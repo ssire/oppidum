@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--+
+    | Configuration file for the web application. 
+    |
+    | Provides XMLRPC + SOAP access to eXist and configures Cocoon2. If you don't need
+    | XMLRPC or SOAP or Cocoon, remove the corresponding servlets and servlet-mappings.
+    |
+    | $Id: web.xml 10400 2009-11-08 16:59:08Z wolfgang_m $
+    +-->       
+    
+    <!-- Edited by S. Sire to remove SOAP, Cocoon, WebDAV, jnlp (WebStart) -->
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+    
+    <description>Site Web auto-éditable par Stéphane Sire</description>
+    <display-name>Site UAP</display-name>
+
+    <!-- 
+        Initialize Log4j using a servlet.
+        Only needed when eXist is deployed as a .war file in e.g. Tomcat.
+    -->
+    <servlet>
+        <servlet-name>log4j-init</servlet-name>
+        <servlet-class>org.exist.http.servlets.Log4jInit</servlet-class>
+
+        <init-param>
+            <param-name>log4j-init-file</param-name>
+            <param-value>WEB-INF/log4j.xml</param-value>
+        </init-param>
+        
+        <init-param>
+            <param-name>log4j-log-dir</param-name>
+            <param-value>WEB-INF/logs</param-value>
+        </init-param>
+
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+
+    <!--
+        RpcServlet provides XML-RPC access to eXist
+    -->
+    <servlet>
+        <servlet-name>org.exist.xmlrpc.RpcServlet</servlet-name>
+        <servlet-class>org.exist.xmlrpc.RpcServlet</servlet-class>
+        <init-param>
+          <param-name>enabledForExtensions</param-name>
+          <param-value>true</param-value>
+        </init-param>
+    </servlet>
+
+    <!-- 
+        DatabaseAdminServlet: this servlet can be used to ensure that
+        eXist is running in the background. Just set the start-parameter 
+        to true and load-on-startup to 1 
+    -->
+    <servlet>
+        <servlet-name>EXistServlet</servlet-name>
+        <servlet-class>org.exist.http.servlets.EXistServlet</servlet-class>
+    
+        <!--
+            where to find eXist's configuration file relative to the basedir 
+            of the web-application.
+        -->
+        <init-param>
+            <param-name>configuration</param-name>
+            <param-value>conf.xml</param-value>
+        </init-param>
+
+        <!-- 
+            eXist's home directory. All file names in the configuration file 
+            will be relative to this directory.
+        -->
+        <init-param>
+            <param-name>basedir</param-name>
+            <param-value>WEB-INF/</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>start</param-name>
+            <param-value>true</param-value>
+        </init-param>
+
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <!-- 
+        Servlet that enables webDAV 
+    -->
+    <!-- <servlet>
+        <servlet-name>WebDAVServlet</servlet-name>
+        <servlet-class>org.exist.http.servlets.WebDAVServlet</servlet-class>
+
+        <init-param>
+            <param-name>authentication</param-name>
+            <param-value>basic</param-value>
+        </init-param>
+    </servlet> -->
+
+    <!-- 
+        XQueryServlet generates HTML from an XQuery file. 
+    -->
+    <servlet>
+        <servlet-name>XQueryServlet</servlet-name>
+        <servlet-class>org.exist.http.servlets.XQueryServlet</servlet-class>
+
+        <init-param>
+            <param-name>uri</param-name>
+            <param-value>xmldb:exist:///db</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>form-encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>container-encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </servlet>
+	
+    <filter>
+        <filter-name>XQueryURLRewrite</filter-name>
+        <filter-class>org.exist.http.urlrewrite.XQueryURLRewrite</filter-class>
+
+        <!-- Defines the location of the controller-config.xml file, which defines
+             the root mappings. -->
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>WEB-INF/controller-config.xml</param-value>
+        </init-param>      
+        
+        <init-param>
+            <param-name>logLevel</param-name>
+            <param-value>DEBUG</param-value>
+        </init-param>        
+        
+        <!-- This could also be stored inside the db: -->
+		<!--init-param>
+			<param-name>config</param-name>
+			<param-value>xmldb:exist:///db/controller-config.xml</param-value>
+		</init-param-->
+    </filter>
+    
+    <servlet>
+        <servlet-name>XSLTServlet</servlet-name>
+        <servlet-class>org.exist.http.servlets.XSLTServlet</servlet-class>
+    </servlet>
+
+	<!--
+        Configure the Axis servlets. 
+        Axis provides eXist's web-services via SOAP.
+    -->
+    <!-- <servlet>
+        <servlet-name>AxisServlet</servlet-name>
+        <servlet-class>org.apache.axis.transport.http.AxisServlet</servlet-class>
+    </servlet> -->
+
+    <!-- <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <servlet-class>org.apache.axis.transport.http.AdminServlet</servlet-class>
+        <load-on-startup>100</load-on-startup>
+    </servlet> -->
+
+    <!-- Atom Atom Publishing Protocol -->
+    <!-- <servlet>
+        <servlet-name>AtomServlet</servlet-name>
+        <servlet-class>org.exist.atom.http.AtomServlet</servlet-class>
+    </servlet>    -->
+    
+    <!--
+        Needed to overwrite the Cocoon default 
+    -->
+    <!-- <servlet>
+        <servlet-name>Jasper</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    </servlet> -->
+    
+    <!--
+        Register Webstart servlet
+    -->
+    <!-- <servlet>
+        <servlet-name>jnlp</servlet-name>
+        <servlet-class>org.exist.webstart.JnlpServlet</servlet-class>
+    </servlet>     -->
+    
+    
+    <!-- ====================== URL space mappings ======================= -->
+    
+    <!-- IMPORTANT: the XQueryURLRewrite servlet filter does now serve as a single
+         entry point into the web application. All eXist-related URL
+         mappings are handled by XQueryURLRewrite (see controller-config.xml). 
+         The servlet mappings below are thus commented out. We keep them here 
+         for documentation purposes. If you need to switch to the old setup, 
+         you can re-enable the mappings below and disable them in 
+         controller-config.xml. However, please note that some features of the
+         website will only work if XQueryURLRewrite controls the /rest servlet
+         (EXistServlet). -->
+    <filter-mapping>
+        <filter-name>XQueryURLRewrite</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- XMLRPC -->
+    <!--servlet-mapping>
+        <servlet-name>org.exist.xmlrpc.RpcServlet</servlet-name>
+        <url-pattern>/xmlrpc</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- REST new mapping-->
+    <!--servlet-mapping>
+        <servlet-name>EXistServlet</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- webDAV -->
+    <!--servlet-mapping>
+        <servlet-name>WebDAVServlet</servlet-name>
+        <url-pattern>/webdav/*</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- XQuery (not for database stored queries) -->
+    <!--servlet-mapping>
+        <servlet-name>XQueryServlet</servlet-name>
+        <url-pattern>*.xql</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- SOAP (Apache Axis) -->
+    <!--servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>/axis-servlet/AxisServlet</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>*.jws</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>/services/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/axis-servlet/AdminServlet</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- 
+        Finally, we establish the main mapping for Cocoon  
+    -->
+  
+    <!--
+        Cocoon handles all the URL space assigned to the webapp using its 
+        sitemap. It is recommended to leave it unchanged. Under some 
+        circumstances though (like integration with proprietary webapps or 
+        servlets) you might have to change this parameter.
+    -->
+  <!-- <servlet-mapping>
+    <servlet-name>Cocoon</servlet-name>
+    <url-pattern>/cocoon/*</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Jasper</servlet-name>
+        <url-pattern>*.jsp</url-pattern>
+    </servlet-mapping> -->
+
+    <!--
+        Some servlet engines (WebLogic) have defaults which are not overriden
+        by '/' mapping, but must be overriden explicitly.
+    -->
+    <!--servlet-mapping>
+        <servlet-name>Cocoon</servlet-name>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping-->
+    
+    <!-- ==================== various MIME type mappings ================== -->
+
+    <mime-mapping>
+        <extension>css</extension>
+        <mime-type>text/css</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>xml</extension>
+        <mime-type>text/xml</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>xsl</extension>
+        <mime-type>text/xml</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>xconf</extension>
+        <mime-type>text/xml</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>xmap</extension>
+        <mime-type>text/xml</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>ent</extension>
+        <mime-type>text/plain</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>grm</extension>
+        <mime-type>text/plain</mime-type>
+    </mime-mapping>
+
+    <jsp-config>
+        <taglib>
+            <taglib-uri>http://exist-db.org/exist</taglib-uri>
+            <taglib-location>/WEB-INF/exist.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+    
+</web-app>

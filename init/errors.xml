@@ -1,0 +1,52 @@
+<errors>
+  <error type="URI-NOT-FOUND" code="404">
+    <message lang="fr">La page demandée n'existe pas</message>
+    <message lang="en">Page does not exist</message>
+  </error>
+  <error type="DB-NOT-FOUND" code="500">
+    <message lang="fr">La ressource "%s" n'existe pas dans la base de donnée</message>
+    <message lang="en">Resource "%s" not found in database</message>
+  </error>     
+  <error type="FORMAT-NOT-AVAILABLE" code="404">
+    <message lang="fr">Format .%s non reconnu</message>
+    <message lang="en">Format .%s not recognized</message>
+  </error>     
+  <error type="NO-PIPELINE-ERROR" code="500">
+    <message lang="fr">Pas de pipeline</message>
+    <message lang="en">No pipeline</message>
+  </error>     
+  <error type="ACTION-EDIT-NO-TEMPLATE" code="500">
+    <message lang="fr">Pas de template déclaré pour éditer la page</message>
+    <message lang="en">No template declared to edit the page</message>
+  </error>     
+  <error type="UNAUTHORIZED-ACCESS" code="401">
+    <message lang="fr" noargs="yes">Vous n'avez pas assez de privilèges pour voir cette page, identifiez-vous</message>
+    <message lang="fr">Vous devez être reconnu comme "%s" pour voir cette page, identifiez-vous</message>
+    <message lang="en" noargs="yes">You must be login with an account with enough privileges to access this page</message>
+    <message lang="en">You must be login as "%s" to access this page</message>
+  </error>     
+  <error type="ACTION-LOGIN-FAILED">
+    <message lang="fr">Échec du login, réessayez</message>
+    <message lang="en">Login failed, please try again</message>
+  </error>     
+  <error type="ACTION-LOGIN-DESACTIVATED">
+    <message lang="fr">Votre compte a été désactivé, demandez à l'administrateur de vous réactiver</message>
+    <message lang="en">Your account has been disabled, ask the site administrator to enable it again</message>
+  </error>     
+  <error type="DB-WRITE-INTERNAL-FAILURE" code="500">
+    <message lang="fr">Erreur interne lors de l'écriture dans la base de donnée</message>
+    <message lang="en">Database write failed</message>
+  </error>     
+  <error type="DB-WRITE-NO-COLLECTION" code="500">
+    <message lang="fr">Erreur de congiguration du serveur, il n'y a pas de collection pour enregistrer les données</message>
+    <message lang="en">Server configuration error, there is no collection to store the data</message>
+  </error>     
+  <error type="DB-NO-OVERWRITE" code="409">
+    <message lang="fr">La ressource "%s" existe déjà</message>
+    <message lang="en">The resource "%s" already exists</message>
+  </error>     
+  <error type="INVALID-DATA" code="400">
+    <message lang="fr">Données non valides</message>
+    <message lang="en">Invalid data</message>
+  </error>
+</errors>

@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:xt="http://ns.inria.org/xtiger" xml:lang="en">
+<head>                  
+  <!-- Use UTF-8 and avoid the xml protocol declaration at the top for Internet Explorer -->
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=8;" />   
+  <meta name="description" content="XTiger XML document template" />
+  <meta name="keywords" content="template, XTiger" />
+
+  <title>Oppidum's Page Template</title>
+
+  <xt:head version="1.1" templateVersion="1.0" label="article">    
+  
+    <xt:component name="myComponent">  
+      <p>A component <xt:menu-marker /></p>
+    </xt:component> 
+  
+  </xt:head>
+  
+  <!-- Optional AXEL Preview Mode -->
+  <link rel="stylesheet" type="text/css" href="Preview.css" />
+
+</head>
+<body>           
+	<span class="noshow">
+		<xt:attribute types="text" name="status" value="archive" default="archive" option="unset"/>
+	</span>               
+  
+  <h1><xt:use types="text" label="h1">Click to edit a title</xt:use></h1>
+  
+  <xt:repeat minOccurs="0" maxOccurs="*" pseudoLabel="p">            
+    <p><xt:use types="text" label="p" 
+        param="shape=parent-75px;type=textarea">Click to edit a paragraph</xt:use><xt:menu-marker/></p>
+  </xt:repeat>
+</body>
+</html>               
