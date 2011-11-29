@@ -4,8 +4,8 @@
     <message lang="en">Page does not exist</message>
   </error>
   <error type="DB-NOT-FOUND" code="500">
-    <message lang="fr">La ressource "%s" n'existe pas dans la base de donnée</message>
-    <message lang="en">Resource "%s" not found in database</message>
+    <message lang="fr">La ressource “%s” n'existe pas dans la base de donnée</message>
+    <message lang="en">Resource “%s” not found in database</message>
   </error>     
   <error type="FORMAT-NOT-AVAILABLE" code="404">
     <message lang="fr">Format .%s non reconnu</message>
@@ -21,9 +21,9 @@
   </error>     
   <error type="UNAUTHORIZED-ACCESS" code="401">
     <message lang="fr" noargs="yes">Vous n'avez pas assez de privilèges pour voir cette page, identifiez-vous</message>
-    <message lang="fr">Vous devez être reconnu comme "%s" pour voir cette page, identifiez-vous</message>
+    <message lang="fr">Vous devez être reconnu comme “%s” pour voir cette page, identifiez-vous</message>
     <message lang="en" noargs="yes">You must be login with an account with enough privileges to access this page</message>
-    <message lang="en">You must be login as "%s" to access this page</message>
+    <message lang="en">You must be login as “%s” to access this page</message>
   </error>     
   <error type="ACTION-LOGIN-FAILED">
     <message lang="fr">Échec du login, réessayez</message>
@@ -42,11 +42,21 @@
     <message lang="en">Server configuration error, there is no collection to store the data</message>
   </error>     
   <error type="DB-NO-OVERWRITE" code="409">
-    <message lang="fr">La ressource "%s" existe déjà</message>
-    <message lang="en">The resource "%s" already exists</message>
+    <message lang="fr">La ressource “%s” existe déjà</message>
+    <message lang="en">The resource “%s” already exists</message>
   </error>     
   <error type="INVALID-DATA" code="400">
     <message lang="fr">Données non valides</message>
     <message lang="en">Invalid data</message>
   </error>
+  <error type="ARCHIVED" code="410">
+    <message lang="fr">La ressource “%s” n'est plus accessible</message>
+    <message lang="en">The resource “%s” is no longer available</message>
+  </error>
+  <error type="LOGIN-OVERWRITE-FORBIDDEN" code="409">
+    <message lang="fr">Il existe déjà une autre utilisateur "%s", vous devez le supprimer d'abord ou utiliser un autre login</message>
+  </error>   
+  <error type="LOGIN-WRITE-FAILED" code="500">
+    <message lang="fr">L'enregistrement de l'utilisateur dans la base de donnée a échoué</message>
+  </error>     
 </errors>

@@ -6,7 +6,7 @@ xquery version "1.0";
    database for pre-production and production. Some parts of this file
    inspired from eXist 1.4.1's admin/install.xqm module
 
-	 Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@free.fr>
 
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
@@ -150,6 +150,7 @@ declare function install:mime-for-suffix($suffix as xs:string) as xs:string
   else if ($suffix = "js") then "application/x-javascript"  
   else if ($suffix = ("png", "gif", "jpg", "jpeg")) then concat("image/", $suffix)
   else if ($suffix = ("otf", "ttf")) then "application/octet-stream"
+  else if ($suffix = "odf") then "application/pdf"  
   else "application/octet-stream"
 };
 
@@ -218,16 +219,16 @@ declare function install:install-user($user as element())
   let $groups := if (string($user/@groups) != '') then tokenize(string($user/@groups), ' ') else ()
   let $home := if (string($user/@home) != '') then string($user/@home) else ()
   return
-  	if (xdb:exists-user($user/@name)) then
-  		(
-			  xdb:change-user($user/@name, $user/@password, $groups, $home),
-			  <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
-  		)
-  	else
-  		(
-  			xdb:create-user($user/@name, $user/@password, $groups, $home),
-			  <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
-  		)
+    if (xdb:exists-user($user/@name)) then
+      (
+        xdb:change-user($user/@name, $user/@password, $groups, $home),
+        <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
+      )
+    else
+      (
+        xdb:create-user($user/@name, $user/@password, $groups, $home),
+        <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
+      )
 };  
 
 declare function install:install-users($policies as element()) as element()
@@ -278,6 +279,26 @@ declare function install:install-policies($targets as xs:string*, $policies as e
   </ul>
 };
 
+declare function install:_login_form() as element()
+{
+  <div style="width: 400px">
+    <p>You MUST login first as <b>admin</b> user using the application you plan to install :</p> 
+    <form action="login?url=install" method="post" style="margin: 0 auto 0 2em; width: 20em;">
+      <p style="text-align: right">
+        <label for="login-user">User name</label>
+        <input id="login-user" type="text" name="user" value="admin"/>
+      </p>
+      <p style="text-align: right">
+        <label for="login-passwd">Password</label>
+        <input id="login-passwd" type="password" name="password"/>
+      </p>                                   
+      <p style="text-align: right; margin-right: 30px">
+        <input type="submit"/>
+      </p>
+    </form>
+  </div>  
+};
+  
 (: ======================================================================
    Generates an HTML page to handle site installation to the database
    Proceed with installation in case of a submission
@@ -286,6 +307,7 @@ declare function install:install-policies($targets as xs:string*, $policies as e
 declare function install:install($base as xs:string, $policies as element(), $data as element(), $code as element(), $title as xs:string) as element()
 {
   let $install := request:get-parameter("go", ())
+  let $user :=  xdb:get-current-user()
   (:$login := xdb:login('/db', $login, $passwd):)
   return 
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -307,16 +329,22 @@ declare function install:install($base as xs:string, $policies as element(), $da
                   <h2>Installation report for Users</h2>,
                   install:install-users($policies),
                   <h2>Installation report for Data</h2>,
-                  install:install-targets($dir, $data-targets, $data),
-                  install:install-policies($data-targets, $policies, $data),
+                  if (count($data-targets) > 0) then (
+                    install:install-targets($dir, $data-targets, $data),
+                    install:install-policies($data-targets, $policies, $data)
+                    )
+                  else (),
                   <h2>Installation report for Code</h2>,
-                  install:install-targets($dir, $code-targets, $code),
-                  install:install-policies($code-targets, $policies, $code)
+                  if (count($code-targets) > 0) then (
+                    install:install-targets($dir, $code-targets, $code),
+                    install:install-policies($code-targets, $policies, $code)
+                    ) 
+                  else ()
                   )
               } 
               <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
             </div>
-          else
+          else (
             <form method="post" action="install">
               <input type="hidden" name="go" value="yes"/>
               <p>Data : 
@@ -326,11 +354,11 @@ declare function install:install($base as xs:string, $policies as element(), $da
                 for $g at $i in $data/install:group
                 let $n := string($g/@name)
                 return (
-  						    <input id="{$n}" type="checkbox" value="{$n}" name="data-target"/>,
-      						<label for="{$n}">{$n}</label>
-      					  )
+                  <input id="{$n}" type="checkbox" value="{$n}" name="data-target"/>,
+                  <label for="{$n}">{$n}</label>
+                  )
                 }
-  						</p>
+              </p>
               <p>Code : 
                 <input id="code-default" type="checkbox" value="default" name="code-target" checked="true"/>
                 <label for="code-default">default</label>
@@ -338,24 +366,22 @@ declare function install:install($base as xs:string, $policies as element(), $da
                 for $g in $code/install:group
                 let $n := string($g/@name)
                 return (
-  						    <input id="{$n}" type="checkbox" value="{$n}" name="code-target"/>,
-      						<label for="{$n}">{$n}</label>
-      					  )
-                }              
-  						</p>
-              { 
-              let $user :=  xdb:get-current-user()
-              return (
-                <p>You are logged in as <b>{$user}</b></p>,            
-                if ($user != 'admin') then 
-                  <p>You MUST <a href="../login">login</a> first as <b>admin</b> user using the application you plan to install !</p> 
-                else (
-                  <p>Click on the install button to copy Tutorial from the file system to the database</p>,
-                  <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
+                  <input id="{$n}" type="checkbox" value="{$n}" name="code-target"/>,
+                  <label for="{$n}">{$n}</label>
                   )
+                }              
+              </p>
+              <p>You are logged in as <b>{$user}</b></p>
+              {
+              if ($user = 'admin') then (
+                <p>Click on the install button to copy Tutorial from the file system to the database</p>,
+                <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
                 )
+              else ()
               }          
-            </form>
+            </form>,
+            if ($user != 'admin') then install:_login_form() else ()
+            )
           }
         </div>    
       </body>

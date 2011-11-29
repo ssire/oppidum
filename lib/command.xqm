@@ -5,7 +5,7 @@ xquery version "1.0";
    Parses the request URL and returns a command. Checks the command against
    the site's mapping to detect early errors (not-target, not-allowed).
 
-	 Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@free.fr>
 
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)

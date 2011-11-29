@@ -1,5 +1,7 @@
 xquery version "1.0";
 (: --------------------------------------
+   DEPRECATED : VA ETRE SUPPRIME BIENTOT
+
    Oppidum: simple write
 
    Author: Stéphane Sire <s.sire@free.fr>

@@ -45,6 +45,6 @@ return
         </success>                      
         )[last()]
       else        
-        oppidum:render-error($cmd/@db, 'DB-WRITE-INTERNAL-FAILURE', (), $cmd/@lang, true())
+        oppidum:throw-error('DB-WRITE-INTERNAL-FAILURE', ())
   else
-    oppidum:render-error($cmd/@db, 'DB-WRITE-NO-COLLECTION', (), $cmd/@lang, true())
+    oppidum:throw-error('DB-WRITE-NO-COLLECTION', ())

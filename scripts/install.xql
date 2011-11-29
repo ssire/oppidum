@@ -119,7 +119,7 @@ return
           return (
             <p>You are logged in as <b>{$user}</b></p>,            
             if ($user != 'admin') then 
-              <p>You MUST login first as <b>admin</b> user using the application you plan to install !</p> 
+              <p>You MUST <a href="login">login</a> first as <b>admin</b> user using the application you plan to install !</p> 
             else (
               <p>Click on the install button to copy Oppidum from the file system to the '/db/www' collection</p>,
               <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          

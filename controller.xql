@@ -18,13 +18,46 @@ xquery version "1.0";
   
    August 2011
    -------------------------------------- :)
+
+import module namespace gen = "http://oppidoc.com/oppidum/generator" at "lib/pipeline.xqm";
+
+(: ======================================================================
+                  Site default access rights
+   ====================================================================== :)                 
+declare variable $access := <access>
+</access>;
+
+(: ======================================================================
+                  Site default actions
+   ====================================================================== :)                 
+declare variable $actions := <actions error="models/error.xql">
+  <action name="login" depth="0"> <!-- may be GET or POST --> 
+    <model src="actions/login.xql"/>
+    <view src="views/login.xsl"/>
+  </action>  
+  <action name="logout" depth="0"> 
+    <model src="actions/logout.xql"/>
+  </action>
+  <!-- NOTE: unplug this action from @supported on mapping's root node in production --> 
+  <action name="install" depth="0"> 
+    <model src="scripts/install.xql"/>
+  </action>  
+</actions>;
+
+(: ======================================================================
+                  Site mappings
+   ====================================================================== :)                 
+declare variable $mapping := <site startref="home" supported="login logout install">
+  <item name="home">
+    <model src="models/version.xql"/>
+  </item> 
+</site>;
                           
 let 
   $url-payload := if ($exist:prefix = '') then $exist:path else substring-after($exist:path, $exist:root),
   $app-root := if ($exist:prefix = '') then concat($exist:controller, '/') else concat($exist:root, '/')
   
 return
-
   if (starts-with($url-payload, "/static/")) then
     (: alternatively we could set WEB-INF/controller-config.xml to rewrite /static :)
      <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
@@ -34,9 +67,12 @@ return
      (: TODO: cache management for static resources... :)
      
   else      
-    (: FIXME: should display forbidden :)
+    (: NOTE : call oppidum:process with false() to disable ?debug=true mode :)
+    gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)
+    
+  (: TODO: test environment to return 'FORBIDDEN' in test and production 
     <ignore xmlns="http://exist.sourceforge.net/NS/exist">
       <cache-control cache="yes"/>
-    </ignore>   
+    </ignore>   :)
     
   

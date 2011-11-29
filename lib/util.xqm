@@ -31,6 +31,18 @@ declare function oppidum:path-to-ref-col () as xs:string
 }; 
 
 (: ======================================================================
+   Returns the resource element from the command
+   FIXME: this is a trick for epilogue scripts which often declare 
+   an XHTML default namespace and thus cannot address $cmd/resource 
+   axis because the command has no namespace ! 
+   ======================================================================
+:) 
+declare function oppidum:get-resource ( $cmd as element() ) as element()
+{         
+  $cmd/resource
+}; 
+
+(: ======================================================================
    Asks epilogue to redirect
    ======================================================================
 :) 
@@ -90,9 +102,14 @@ declare function oppidum:my-get-error-or-msg($from as xs:string) as xs:string*
   return ( request:get-attribute($from), $flash)
 };
 
-declare function oppidum:add-error( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as empty()
+declare function oppidum:add-error( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as element()
 {
-  oppidum:my-add-error-or-msg('errors', $type, $object, $sticky)                      
+  let $null := oppidum:my-add-error-or-msg('errors', $type, $object, $sticky)
+  return 
+    <error>{
+      if ($object) then attribute object { $object } else (),
+      $type
+    }</error>
 };
 
 declare function oppidum:has-error() as xs:boolean
@@ -122,6 +139,13 @@ declare function oppidum:get-messages() as xs:string*
   oppidum:my-get-error-or-msg('flash')  
 };  
 
+(: ======================================================================
+   Returns the full error message for an error with a given type and clue
+   Uses /config/errors.xml database(s) to expand error messages
+   Returns an <error code=""><message/></error> fragment
+   Eventually sets the response status code if $exec is true()
+   ======================================================================
+:) 
 declare function oppidum:render-error( 
   $db as xs:string,
   $err-type as xs:string, 
@@ -167,6 +191,50 @@ declare function oppidum:render-error(
     </error>
 };
 
+(: ======================================================================
+   Introspection method that returns an integer representing the type 
+   of the current pipeline : 1 means model only, 2 model and view, 
+   and 3 model, view and epilogue
+   ======================================================================
+:) 
+declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
+{
+  let $pipeline := request:get-attribute('oppidum.pipeline')
+  return
+    if ((string($cmd/@format) = 'xml') or not($pipeline/(view | epilogue))) then  1
+    else if ((string($cmd/@format) = 'raw') or not($pipeline/epilogue)) then  2
+    else 3
+};
+
+(: ======================================================================
+   Throws an error during the execution of the model stage of the current
+   pipeline. Depending on the type of pipeline this may lead to the immediate
+   error message expansion or to its postponing for the epilogue. In the
+   former case this may also lead to the setting of the response status code
+   that will cause eXist to terminate the pipeline rendering.
+   ======================================================================
+:) 
+declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string? ) as element()
+{                          
+  let $cmd := request:get-attribute('oppidum.command')
+  let $level := oppidum:get-pipeline-type($cmd)
+  return            
+    if ($level < 3) then (: expands the error message :)
+      let $pipeline := request:get-attribute('oppidum.pipeline')
+      let $set-status := ($level = 1) or (($level = 2) and empty($pipeline/view[@onerror]))
+      (: because a model-view pipeline may ask to execute the view even in case of error with onerror="render" :)
+      return oppidum:render-error($cmd/@db, $err-type, $err-clue, $cmd/@lang, $set-status)
+    else
+      (: stores error message for later rendering in the epilogue :)
+      oppidum:add-error($err-type, $err-clue, false())  
+};                 
+
+(: ======================================================================
+   Consumes the current error stack filled with oppidum:add-error
+   and returns a list of expanded <error> messages
+   Sets the response status code (so it must be called at the end of a pipeline)
+   ======================================================================
+:) 
 declare function oppidum:render-errors( $db as xs:string, $lang as xs:string ) as node()*
 {                          
   for $e in oppidum:get-errors()
@@ -280,8 +348,13 @@ declare function oppidum:check-group( $name as xs:string ) as xs:boolean
 :) 
 declare function oppidum:check-owner( $cmd as element() ) as xs:boolean
 {       
-  (: TO BE DONE :)
-  let $user := xdb:get-current-user()
-  return true()
+  let $r := $cmd/resource
+  let $col-uri := concat($r/@db, '/', $r/@collection)
+  let $doc-uri := concat($col-uri, '/', $r/@resource)
+  return 
+    if (doc-available($doc-uri)) then
+      xdb:get-current-user() = xdb:get-owner($col-uri, $r/@resource)
+    else 
+      false() (: in case user forged a URL to a resource that does not exists :)
 };
 

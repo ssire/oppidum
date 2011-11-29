@@ -4,7 +4,7 @@ xquery version "1.0";
 
    Utility functions for writing epilogue scripts in XQuery
 
-	 Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@free.fr>
 
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
@@ -114,7 +114,7 @@ declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) 
   return
     if ($filename != '') then
       let $path := concat($cmd/@db, '/mesh/', $filename, '.html')
-      let $root := fn:doc($path)/xhtml:html
+      let $root := fn:doc($path)/*[1]
       return                 
         if ($root) 
           then $root
@@ -129,28 +129,25 @@ declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) 
 :) 
 declare function epilogue:my-gen-mesh-error( $name as xs:string ) as element()
 {  
+  (:  FIXME: let $err := oppidum:throw-error('DB-MISSING-MESH', $name):)
   <html>
-    <head/>
     <body>
-      <p>Internal Web site error : mesh “{$name}” not found to render the page !</p>
+      <site:error force="true"/>
+      <p>Note : additionally you can tell the Webmaster that mesh “{$name}” is missing to present the error</p>
     </body>
   </html>
 }; 
 
 (: ======================================================================
-   Returns a fake mesh to display an error if the mesh to display an error is
-   missing !
+   Returns a fake mesh to display the error and a note that there is no mesh
    ======================================================================
 :) 
 declare function epilogue:my-gen-error-no-mesh() as element()
 {  
-  <html>
-    <head/>
-    <body>
-      <site:error force="true"/>
-      <p><small>This site does not define any mesh to display the error message</small></p>
-    </body>
-  </html>
+  (:  FIXME: let $err := oppidum:throw-error('DB-MISSING-MESH', $name):)
+  <root>
+    <site:error force="true"/>
+  </root>
 }; 
 
 (: ======================================================================

@@ -4,7 +4,7 @@ xquery version "1.0";
 
    Generates the pipeline to execute a command
 
-	 Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@free.fr>
 
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
@@ -30,11 +30,11 @@ declare function gen:path-to-static-resource($app-root as xs:string, $exist-path
 {
   let $local-path := concat('resources/', substring-after(substring-after($payload, '/static/'), '/'))
   return  
-  	(: currently we handle only one module for "oppidum" resources :) 
-		if (starts-with($payload, '/static/oppidum')) then 
-			gen:path-to-oppidum($app-root, $exist-path, $local-path)	
-		else
-			gen:path-to($app-root, $exist-path, $local-path)
+    (: currently we handle only one module for "oppidum" resources :) 
+    if (starts-with($payload, '/static/oppidum')) then 
+      gen:path-to-oppidum($app-root, $exist-path, $local-path)  
+    else
+      gen:path-to($app-root, $exist-path, $local-path)
 };
 
 (: ======================================================================
@@ -46,11 +46,11 @@ declare function gen:path-to-static-resource($app-root as xs:string, $exist-path
 :)
 declare function gen:dot-path($exist-path as xs:string) as xs:string 
 {
-	let 
-		$p := if (contains($exist-path, '?')) then substring-before($exist-path, '?') else $exist-path,
-		$rel := replace(replace($p, "[^/]+/", "../"), "^/|[^/]*$", "")
-	return
-		if (contains($rel, "..")) then $rel	else ''
+  let 
+    $p := if (contains($exist-path, '?')) then substring-before($exist-path, '?') else $exist-path,
+    $rel := replace(replace($p, "[^/]+/", "../"), "^/|[^/]*$", "")
+  return
+    if (contains($rel, "..")) then $rel else ''
 };
 
 (: ======================================================================
@@ -61,9 +61,9 @@ declare function gen:dot-path($exist-path as xs:string) as xs:string
 :)
 declare function gen:path-to($app-root as xs:string, $exist-path as xs:string, $script as xs:string) as xs:string
 {
-	let $prefix := if (starts-with($app-root, 'xmldb:')) then gen:dot-path($exist-path) else $app-root 
-	return
-		concat($prefix, $script)
+  let $prefix := if (starts-with($app-root, 'xmldb:')) then gen:dot-path($exist-path) else $app-root 
+  return
+    concat($prefix, $script)
 };
 
 (: ======================================================================
@@ -81,16 +81,16 @@ declare function gen:path-to($app-root as xs:string, $exist-path as xs:string, $
 declare function gen:path-to-oppidum($app-root as xs:string, $exist-path as xs:string, $script as xs:string) as xs:string 
 {                                                                                            
   let $base := 
-  	if ($app-root = '/') then (: file system, application served directly below webapp/ :)
-  		'/oppidum/' 
-  	else if (starts-with($app-root, 'xmldb:')) then (: application served from database :)
-  	  (: in that case only relative URLs work, as URLRewriting will also automatically prefixes the URLs 
-  	     with $exist:root/$exist:path we have to forge a relative URL that substracts $exist:path
-  	     plus an additionnel level ("..") since this method is called from the application's controller
-  	     to actually points to /db/www/oppidum collection :)
-  	  concat(gen:dot-path($exist-path), "../oppidum/")
-  	else (: file system, application served somewhere below webapp/ :)
-  		replace($app-root, "/[^/]+/?$", '/oppidum/')
+    if ($app-root = '/') then (: file system, application served directly below webapp/ :)
+      '/oppidum/' 
+    else if (starts-with($app-root, 'xmldb:')) then (: application served from database :)
+      (: in that case only relative URLs work, as URLRewriting will also automatically prefixes the URLs 
+         with $exist:root/$exist:path we have to forge a relative URL that substracts $exist:path
+         plus an additionnel level ("..") since this method is called from the application's controller
+         to actually points to /db/www/oppidum collection :)
+      concat(gen:dot-path($exist-path), "../oppidum/")
+    else (: file system, application served somewhere below webapp/ :)
+      replace($app-root, "/[^/]+/?$", '/oppidum/')
   return  
     concat($base, $script)
 };   
@@ -103,10 +103,10 @@ declare function gen:path-to-oppidum($app-root as xs:string, $exist-path as xs:s
 :)
 declare function gen:path-to-model($app-root as xs:string, $exist-path as xs:string, $script as xs:string) as xs:string 
 {
-	if (starts-with($script, 'oppidum:')) then
-  	gen:path-to-oppidum($app-root, $exist-path, substring-after($script, 'oppidum:'))
+  if (starts-with($script, 'oppidum:')) then
+    gen:path-to-oppidum($app-root, $exist-path, substring-after($script, 'oppidum:'))
   else
-  	gen:path-to($app-root, $exist-path, $script)
+    gen:path-to($app-root, $exist-path, $script)
 };
 
 (: ======================================================================
@@ -118,10 +118,10 @@ declare function gen:path-to-model($app-root as xs:string, $exist-path as xs:str
 :) 
 declare function gen:path-to-view($app-root as xs:string, $script as xs:string) as xs:string 
 {
-	if (starts-with($script, 'oppidum:')) then
-		concat(replace($app-root, "/[^/]+/?$", '/oppidum/'), substring-after($script, 'oppidum:'))			
-	else 
-		concat($app-root, $script)
+  if (starts-with($script, 'oppidum:')) then
+    concat(replace($app-root, "/[^/]+/?$", '/oppidum/'), substring-after($script, 'oppidum:'))      
+  else 
+    concat($app-root, $script)
 };
                                 
 (: ======================================================================
@@ -217,7 +217,7 @@ declare function gen:check-availability($cmd as element(), $pipeline as element(
       'yes'
     else 
       $doc-uri      
-};                                                  
+};        
                    
 (: ======================================================================
    Returns an implementation independent pipeline to execute the given 
@@ -226,24 +226,26 @@ declare function gen:check-availability($cmd as element(), $pipeline as element(
  :)                                        
 declare function gen:resolve($cmd as element(), $default as element()*) as element()
 {
-  let          
+  let
     $inline-action := 
-      if (string($cmd/@action) = 'GET') then (: syntactic sugar for GET actions :)
-        if ($cmd/@format and ($cmd/@format != 'debug') and ($cmd/@format != 'xml') and ($cmd/@format != 'raw')) then 
-          (: GET actions may have an optional format, xml hard wired :)
-          if ($cmd/resource/variant[(@name = 'GET') and (@format = $cmd/@format)]) then 
-            <action>
-            {
-            if ($cmd/resource/variant/@epilogue) then $cmd/resource/variant/@epilogue else $cmd/resource/@epilogue,
-            if ($cmd/resource/variant/@check) then $cmd/resource/variant/@check else $cmd/resource/@check,
-            if ($cmd/resource/variant/model) then $cmd/resource/variant/model else $cmd/resource/model,
-            if ($cmd/resource/variant/view) then $cmd/resource/variant/view else $cmd/resource/view
-            }
-            </action> 
-          else        
-            <action/>
-        else (: no format :)
-          <action>                    
+      if (string($cmd/@action) = 'GET') then
+        if ($cmd/@format and not(string($cmd/@format) = ('debug', 'xml', 'raw'))) then (: look for a format variant :)
+          let $variant := $cmd/resource/variant[(@name = 'GET') and (@format = $cmd/@format)]
+          return 
+            if ($variant) then
+              <action>
+              {
+              if ($variant/@epilogue) then $variant/@epilogue else $cmd/resource/@epilogue,
+              if ($variant/@check) then $variant/@check else $cmd/resource/@check,
+              if ($variant/model) then $variant/model else $cmd/resource/model,
+              if ($variant/view) then $variant/view else $cmd/resource/view
+              }
+              </action> 
+            else  
+              <action/> (: no variant for the given format, that's an error :)   
+        else  
+          (: syntactic sugar : implicit action :)
+          <action>
           {
           $cmd/resource/@epilogue,
           $cmd/resource/@check,
@@ -252,7 +254,7 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
           }
           </action> 
       else        
-       $cmd/resource/action
+        $cmd/resource/action
        
   return
     <pipeline>   
@@ -295,7 +297,8 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
           if (string($src-node/@src)) then 
             <view>{
               $src-node/@src,
-              $src-node/@onerror
+              $src-node/@onerror,
+              $src-node/param
             }</view> 
           else 
             (),
@@ -341,6 +344,39 @@ declare function gen:check($cmd as element(), $pipeline as element()) as element
           ()
 };
 
+declare function gen:expand-paths( $exp as xs:string, $trail as xs:string ) as xs:string
+{      
+  let $tokens := tokenize($trail, '/')
+  let $expanded := replace($exp, "\$(\d)", "|var=$1|")
+  return 
+    string-join( 
+      for $t in tokenize($expanded, "\|")
+      let $index := substring-after($t, 'var=')
+      return
+        if ($index) then $tokens[xs:decimal($index)] else $t,
+      '')
+};
+
+declare function gen:more_view_parameters($cmd as element(), $pipeline as element()) as element()*
+{
+  (: some paramater names are reserved, see "URL Rewriting and MVC Framework" in eXist-db doc :)
+  let $reserved := ("user", "password", "stylesheet", "rights", "base-url", "format", "input")
+  return (
+    if ($cmd/@format) then <set-attribute name="xslt.format" value="{$cmd/@format}"/> else (),
+    <set-attribute name="xslt.base-url" value="{$cmd/@base-url}"/>,
+    for $var in request:get-parameter-names() 
+    return
+      if (not($var = $reserved)) then
+        <set-attribute name="{concat('xslt.', $var)}" value="{request:get-parameter($var, ())}"/>
+      else (),
+    for $p in $pipeline/view/param
+    return
+      if (not($p/@name = $reserved)) then
+        <set-attribute name="{concat('xslt.', $p/@name)}" value="{gen:expand-paths($p/@value, $cmd/@trail)}"/>
+      else ()
+    )
+};
+
 (: ======================================================================
    Transforms the independent pipeline for the command given as parameters
    into an implementation pipeline executable by eXist-db. 
@@ -358,12 +394,13 @@ declare function gen:render($cmd as element(), $pipeline as element()) as elemen
     {                
       (: MODEL :)  
       if ($pipeline/model) then
+        (: FIXME: turn DB-NOT-FOUND into a pre-construction error ? :)
         if ($avail = 'yes') then
           <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src)}"/>        
         else              
           <exist:forward url="{gen:path-to-oppidum($cmd/@app-root, $cmd/@exist-path, 'models/error.xql')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
-            <exist:set-attribute name="oppidum.error.clue" value="{$avail}"/>
+            <exist:set-attribute name="oppidum.error.clue" value="{$cmd/resource/@name}"/>
           </exist:forward>
       else
         (),
@@ -388,14 +425,7 @@ declare function gen:render($cmd as element(), $pipeline as element()) as elemen
                   <forward servlet="XSLTServlet" xmlns="http://exist.sourceforge.net/NS/exist">
                     <set-attribute name="xslt.stylesheet" value="{gen:path-to-view($cmd/@app-root, $src)}"/>
                     <set-attribute name="xslt.rights" value="{$rights}"/>
-                    <set-attribute name="xslt.base-url" value="{$cmd/@base-url}"/>
-                    {                     
-                      (: some paramater names are reserved, see "URL Rewriting and MVC Framework" in eXist-db doc :)
-                      for $var in request:get-parameter-names() return
-                        if (not($var = ("user", "password", "stylesheet", "rights", "base-url", "input"))) then
-                      	  <set-attribute name="{concat('xslt.', $var)}" value="{request:get-parameter($var, ())}"/>
-                      	else ()
-                    }
+                    { gen:more_view_parameters($cmd, $pipeline) }
                   </forward>
               else 
                 (),        
@@ -471,8 +501,8 @@ declare function gen:process(
     else if (starts-with($path, "/static/")) then
       (: as an alternative we could set WEB-INF/controller-config.xml to rewrite /static :)
        <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-       	  <forward url="{gen:path-to-static-resource($app-root, $path, $path)}"/>
-        	<cache-control cache="yes"/>
+          <forward url="{gen:path-to-static-resource($app-root, $path, $path)}"/>
+          <cache-control cache="yes"/>
        </dispatch>
      
     else

@@ -21,12 +21,8 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/u
 
 (:::::::::::::  BODY  ::::::::::::::)
 
-let 
-  $cmd := request:get-attribute('oppidum.command'),
-  $db := $cmd/resource/@db,
-  $col := $cmd/resource/@collection,
-  $rsrc := $cmd/resource/@resource,  
-  $doc-uri := concat($db, '/', $col, '/', $rsrc)  
+let $cmd := request:get-attribute('oppidum.command')
+let $doc-uri := oppidum:path-to-ref()
 return                 
   let 
     $data := doc($doc-uri)/*[1],

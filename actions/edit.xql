@@ -9,6 +9,9 @@ xquery version "1.0";
   a template declaration .
 
   See also bootstrap.xql, edit.xsl and edit.js (companion Javascript library)
+  
+  Pre-condition: the reference resource must exists otherwise AXEL will fail 
+  to load the XML data  
 
   August 2011
   -------------------------------------- :)
@@ -26,9 +29,6 @@ return
       if ($cmd/resource/@template) then
         <Template>{concat($cmd/@base-url, $cmd/resource/@template)}</Template>
       else
-        (
-        oppidum:add-error('ACTION-EDIT-NO-TEMPLATE', $cmd/@trail, true()),
-        <Error>Template not found</Error>
-        )                      
+        oppidum:add-error('ACTION-EDIT-NO-TEMPLATE', $cmd/@trail, true())
     }
   </Edit>

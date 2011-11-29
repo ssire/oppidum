@@ -25,9 +25,6 @@ return
       if ($cmd/resource/@template) then 
         <Template>{concat($cmd/@base-url, $cmd/resource/@template)}</Template>
       else
-        (
-        oppidum:add-error('ACTION-EDIT-NO-TEMPLATE', $cmd/@trail, true()),
-        <Error>Missing template declaration in site mapping</Error>
-        )                      
+        oppidum:add-error('ACTION-EDIT-NO-TEMPLATE', $cmd/@trail, true())
     }
   </Edit>
