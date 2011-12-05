@@ -1,30 +1,37 @@
 xquery version "1.0";
-(: --------------------------------------
+(: ------------------------------------------------------------------
 	 Oppidum framework
 
-	 Returns a message saying the functionality will be available soon.
-	 
-	 The model is directly returned as a <site:view> element so that it can be
-   rendered directly in the epilogue without an intermediate view
-   transformation.
+	 Returns a message saying the functionality will be available soon. You can
+   use this a model place holder while building a new application.
 
 	 Author: Stéphane Sire <s.sire@free.fr>
 
-	 August 2011
-	 -------------------------------------- :)
-declare namespace site="http://oppidoc.com/oppidum/site";
+	 December 2011 - Copyright (c) Oppidoc S.A.R.L
+	 ------------------------------------------------------------------ :)
+
+import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
 declare option exist:serialize "method=xml media-type=application/xml";
 
 let $cmd := request:get-attribute('oppidum.command')
-return                                                  
-  <site:view>
-    <site:content>
+let $ref-col-uri := oppidum:path-to-ref-col()
+return          
+  <scaffold>
+    <meta>
+      <page>{string($cmd/resource/@name)}</page>
+      <action>{string($cmd/@action)}</action>
+      <reference>
+        <collection>{$ref-col-uri}</collection>
+        <resource>{string($cmd/resource/@resource)}</resource>
+      </reference>      
+    </meta>
+    <content>
     {
     if ($cmd/@lang = 'fr') then 
       <p>Cette fonctionnalité sera bientôt disponible...</p>
     else 
       <p>This functionality will be available soon...</p>
     }
-    </site:content>
-  </site:view>
+    </content>
+  </scaffold>

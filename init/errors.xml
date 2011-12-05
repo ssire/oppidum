@@ -38,7 +38,7 @@
     <message lang="en">Database write failed</message>
   </error>     
   <error type="DB-WRITE-NO-COLLECTION" code="500">
-    <message lang="fr">Erreur de congiguration du serveur, il n'y a pas de collection pour enregistrer les données</message>
+    <message lang="fr">Erreur de configuration du serveur, il n'y a pas de collection pour enregistrer les données</message>
     <message lang="en">Server configuration error, there is no collection to store the data</message>
   </error>     
   <error type="DB-NO-OVERWRITE" code="409">

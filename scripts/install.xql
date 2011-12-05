@@ -28,6 +28,10 @@ declare function local:install-oppidum-data($dir as xs:string) as element()* {
     install:create-collection("/db/oppidum", "config"),
     install:store-files("/db/oppidum/config", $dir, "init/errors.xml", "text/xml"),
 
+    (: mesh :)
+    install:create-collection("/db/oppidum", "mesh"),
+    install:store-files("/db/oppidum/mesh", $dir, "mesh/*.html", "text/html"),
+
     <li>Set permissions</li>,
     xdb:set-collection-permissions('/db/sites', 'admin', 'dba', util:base-to-integer(0744, 8)),  
     install:apply-permissions-to('/db/oppidum', 'admin', 'dba', util:base-to-integer(0744, 8))

@@ -130,7 +130,7 @@ declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) 
 declare function epilogue:my-gen-mesh-error( $name as xs:string ) as element()
 {  
   (:  FIXME: let $err := oppidum:throw-error('DB-MISSING-MESH', $name):)
-  <html>
+  <html xmlns:site="http://oppidoc.com/oppidum/site">
     <body>
       <site:error force="true"/>
       <p>Note : additionally you can tell the Webmaster that mesh “{$name}” is missing to present the error</p>
@@ -145,7 +145,7 @@ declare function epilogue:my-gen-mesh-error( $name as xs:string ) as element()
 declare function epilogue:my-gen-error-no-mesh() as element()
 {  
   (:  FIXME: let $err := oppidum:throw-error('DB-MISSING-MESH', $name):)
-  <root>
+  <root xmlns:site="http://oppidoc.com/oppidum/site">
     <site:error force="true"/>
   </root>
 }; 

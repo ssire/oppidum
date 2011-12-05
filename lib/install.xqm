@@ -39,7 +39,8 @@ declare function install:fix-xsl-import( $col-uri as xs:string, $name as xs:stri
   let 
     $data := fn:doc(concat($col-uri, '/', $name)),
     $params := <parameters>
-                 <param name="oppidum.base" value="{$base-col-uri}"/>
+                 <param name="oppidum.base" value="{$base-col-uri}{if (not(ends-with($base-col-uri, '/'))) then '/' else ''}"/>
+                 <param name="script.base" value="{$col-uri}{if (not(ends-with($col-uri, '/'))) then '/' else ''}"/>
                  <param name="exist:stop-on-warn" value="yes"/>
                  <param name="exist:stop-on-error" value="yes"/>                 
                </parameters>,
@@ -168,12 +169,6 @@ declare function install:install-file($home as xs:string, $col as xs:string, $fi
     )      
 };
 
-declare function install:install-fix-xsl-import($col as xs:string, $xslfile as xs:string) as element()*
-{  
-  (: A FAIRE - cf. Platinn :)
-  <p>Nope</p>
-};
-
 declare function install:install-collection($home as xs:string, $col as element()) as element()*
 {
   let $col-name := string($col/@name)
@@ -188,7 +183,6 @@ declare function install:install-collection($home as xs:string, $col as element(
     return
       install:install-file($home, $col-name, $f)
     )
-    (: FIXME: ajouter install:install-fix-xsl-import en post-action :)
 };
 
 declare function install:install-group($home as xs:string, $group as element()) as element()*
@@ -199,7 +193,10 @@ declare function install:install-group($home as xs:string, $group as element()) 
     <ul>{
       for $c in $group/install:collection
       return
-        install:install-collection($home, $c)
+        install:install-collection($home, $c),
+      for $f in $group/install:fix-xsl-import
+      return
+        install:fix-xsl-import($f/@collection, $f/@file, $f/@base)
     }</ul>
   )
 };
