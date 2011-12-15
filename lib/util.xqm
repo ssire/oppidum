@@ -46,9 +46,10 @@ declare function oppidum:get-resource ( $cmd as element() ) as element()
    Asks epilogue to redirect
    ======================================================================
 :) 
-declare function oppidum:redirect( $url as xs:string ) as empty()
-{                                                  
-  request:set-attribute('oppidum.redirect.to', $url)
+declare function oppidum:redirect( $url as xs:string ) as xs:string
+{ 
+  let $exec := request:set-attribute('oppidum.redirect.to', $url)
+  return $url
 }; 
     
 (: ======================================================================
@@ -123,9 +124,14 @@ declare function oppidum:get-errors() as xs:string*
   oppidum:my-get-error-or-msg('errors')  
 };
 
-declare function oppidum:add-message( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as empty()
+declare function oppidum:add-message( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as element()
 {
-  oppidum:my-add-error-or-msg('flash', $type, $object, $sticky)                      
+  let $null := oppidum:my-add-error-or-msg('flash', $type, $object, $sticky)
+  return 
+    <success>{
+      if ($object) then attribute object { $object } else (),
+      $type
+    }</success>
 };
 
 declare function oppidum:has-message() as xs:boolean

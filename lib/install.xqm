@@ -149,7 +149,8 @@ declare function install:mime-for-suffix($suffix as xs:string) as xs:string
   else if ($suffix = ("xql", "xqm")) then "application/xquery"
   else if ($suffix = "css") then "text/css"
   else if ($suffix = "js") then "application/x-javascript"  
-  else if ($suffix = ("png", "gif", "jpg", "jpeg")) then concat("image/", $suffix)
+  else if ($suffix = ("png", "gif", "jpeg")) then concat("image/", $suffix)
+  else if ($suffix = "jpg") then "image/jpeg"
   else if ($suffix = ("otf", "ttf")) then "application/octet-stream"
   else if ($suffix = "odf") then "application/pdf"  
   else "application/octet-stream"
