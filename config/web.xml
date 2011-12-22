@@ -1,22 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--+
     | Configuration file for the web application. 
     |
     | Provides XMLRPC + SOAP access to eXist and configures Cocoon2. If you don't need
     | XMLRPC or SOAP or Cocoon, remove the corresponding servlets and servlet-mappings.
     |
-    | $Id: web.xml 10400 2009-11-08 16:59:08Z wolfgang_m $
-    +-->       
+    | $Id: web.xml.tmpl 14208 2011-04-15 08:08:57Z dizzzz $
+    +-->
     
-    <!-- Edited by S. Sire to remove SOAP, Cocoon, WebDAV, jnlp (WebStart) -->
+    <!-- *********************************************************
 
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+           Oppidum servlet context configuration for production 
+           
+           FIXME: to be improved !
+         
+         *********************************************************
+    -->  
     
-    <description>Site Web auto-éditable par Stéphane Sire</description>
-    <display-name>Site UAP</display-name>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+    
+    <description>Oppidum default servlet configuration file</description>
+    <display-name>Oppidum default</display-name>
+    
+   <!-- <context-param>
+      <param-name>betterform.configfile</param-name>
+      <param-value>WEB-INF/betterform-config.xml</param-value>
+   </context-param> -->
 
     <!-- 
         Initialize Log4j using a servlet.
@@ -83,9 +95,19 @@
             <param-name>start</param-name>
             <param-value>true</param-value>
         </init-param>
+        
+        <init-param>
+           <param-name>hidden</param-name>
+           <param-value>true</param-value>
+        </init-param>        
 
         <load-on-startup>2</load-on-startup>
     </servlet>
+
+    <servlet>
+      <servlet-name>JMXServlet</servlet-name>
+      <servlet-class>org.exist.management.client.JMXServlet</servlet-class>
+    </servlet>     
 
     <!-- 
         Servlet that enables webDAV 
@@ -98,7 +120,22 @@
             <param-name>authentication</param-name>
             <param-value>basic</param-value>
         </init-param>
-    </servlet> -->
+    </servlet>
+
+    <servlet>
+      <servlet-name>milton</servlet-name>
+      <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
+        <init-param>
+            <param-name>resource.factory.class</param-name>
+            <param-value>org.exist.webdav.ExistResourceFactory</param-value>
+        </init-param>  -->
+        <!--
+        <init-param>
+             <param-name>filter_0</param-name>
+             <param-value>com.bradmcevoy.http.DebugFilter</param-value>
+         </init-param>
+         -->
+    <!-- </servlet> -->
 
     <!-- 
         XQueryServlet generates HTML from an XQuery file. 
@@ -128,7 +165,19 @@
         </init-param>
     </servlet>
 	
-    <filter>
+    <!--XForms Filter-->
+    
+<!-- <filter>
+      <filter-name>XFormsFilter</filter-name>
+      <filter-class>
+      de.betterform.agent.web.filter.XFormsFilter</filter-class>
+      <init-param>
+         <param-name>useragent</param-name>
+         <param-value>dojo</param-value>
+      </init-param>
+   </filter> -->
+    
+   <filter>
         <filter-name>XQueryURLRewrite</filter-name>
         <filter-class>org.exist.http.urlrewrite.XQueryURLRewrite</filter-class>
 
@@ -137,18 +186,13 @@
         <init-param>
             <param-name>config</param-name>
             <param-value>WEB-INF/controller-config.xml</param-value>
-        </init-param>      
-        
-        <init-param>
-            <param-name>logLevel</param-name>
-            <param-value>DEBUG</param-value>
-        </init-param>        
+        </init-param>
         
         <!-- This could also be stored inside the db: -->
-		<!--init-param>
-			<param-name>config</param-name>
-			<param-value>xmldb:exist:///db/controller-config.xml</param-value>
-		</init-param-->
+<!-- <init-param>
+          <param-name>config</param-name>
+          <param-value>xmldb:exist:///db/controller-config.xml</param-value>
+        </init-param> -->
     </filter>
     
     <servlet>
@@ -156,34 +200,29 @@
         <servlet-class>org.exist.http.servlets.XSLTServlet</servlet-class>
     </servlet>
 
-	<!--
+	  <!--
         Configure the Axis servlets. 
         Axis provides eXist's web-services via SOAP.
     -->
     <!-- <servlet>
-        <servlet-name>AxisServlet</servlet-name>
-        <servlet-class>org.apache.axis.transport.http.AxisServlet</servlet-class>
-    </servlet> -->
+         <servlet-name>AxisServlet</servlet-name>
+         <servlet-class>org.apache.axis.transport.http.AxisServlet</servlet-class>
+     </servlet>
 
-    <!-- <servlet>
-        <servlet-name>AdminServlet</servlet-name>
-        <servlet-class>org.apache.axis.transport.http.AdminServlet</servlet-class>
-        <load-on-startup>100</load-on-startup>
-    </servlet> -->
+     <servlet>
+         <servlet-name>AdminServlet</servlet-name>
+         <servlet-class>org.apache.axis.transport.http.AdminServlet</servlet-class>
+         <load-on-startup>100</load-on-startup>
+     </servlet>     -->
 
     <!-- Atom Atom Publishing Protocol -->
     <!-- <servlet>
         <servlet-name>AtomServlet</servlet-name>
         <servlet-class>org.exist.atom.http.AtomServlet</servlet-class>
-    </servlet>    -->
+    </servlet>     --> 
     
-    <!--
-        Needed to overwrite the Cocoon default 
-    -->
-    <!-- <servlet>
-        <servlet-name>Jasper</servlet-name>
-        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
-    </servlet> -->
+    <!-- Cocoon removed ....
+     -->
     
     <!--
         Register Webstart servlet
@@ -191,7 +230,39 @@
     <!-- <servlet>
         <servlet-name>jnlp</servlet-name>
         <servlet-class>org.exist.webstart.JnlpServlet</servlet-class>
-    </servlet>     -->
+    </servlet>      -->
+    
+   <!--betterFORM servlets-->
+    
+<!-- <servlet>
+      <servlet-name>Flux</servlet-name>
+      <servlet-class>
+      org.directwebremoting.servlet.DwrServlet</servlet-class>
+      <init-param>
+         <param-name>debug</param-name>
+         <param-value>true</param-value>
+      </init-param>
+   </servlet>
+   <servlet>
+      <servlet-name>XFormsPostServlet</servlet-name>
+      <servlet-class>
+      de.betterform.agent.web.servlet.XFormsPostServlet</servlet-class>
+   </servlet>
+   <servlet>
+      <servlet-name>FormsServlet</servlet-name>
+      <servlet-class>
+      de.betterform.agent.web.servlet.FormsServlet</servlet-class>
+   </servlet>
+   <servlet>
+      <servlet-name>inspector</servlet-name>
+      <servlet-class>
+      de.betterform.agent.web.servlet.XFormsInspectorServlet</servlet-class>
+   </servlet>
+   <servlet>
+      <servlet-name>ResourceServlet</servlet-name>
+      <servlet-class>
+      de.betterform.agent.web.resources.ResourceServlet</servlet-class>
+   </servlet>    -->
     
     
     <!-- ====================== URL space mappings ======================= -->
@@ -205,10 +276,46 @@
          controller-config.xml. However, please note that some features of the
          website will only work if XQueryURLRewrite controls the /rest servlet
          (EXistServlet). -->
-    <filter-mapping>
+    <!-- <filter-mapping>
+      <filter-name>XFormsFilter</filter-name>
+      <url-pattern>/rest/db/*</url-pattern>
+   </filter-mapping>
+   <filter-mapping>
+      <filter-name>XFormsFilter</filter-name>
+      <servlet-name>XFormsPostServlet</servlet-name>
+   </filter-mapping> -->
+    
+   <filter-mapping>
         <filter-name>XQueryURLRewrite</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    
+   <!--betterFORM Flux Servlet Mapping-->
+    
+<!-- <servlet-mapping>
+      <servlet-name>Flux</servlet-name>
+      <url-pattern>/Flux/*</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>XFormsPostServlet</servlet-name>
+      <url-pattern>/XFormsPost</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>XQueryServlet</servlet-name>
+      <url-pattern>*.xql</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>FormsServlet</servlet-name>
+      <url-pattern>/forms/formslist</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>inspector</servlet-name>
+      <url-pattern>/inspector/*</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>ResourceServlet</servlet-name>
+      <url-pattern>/bfResources/*</url-pattern>
+   </servlet-mapping>    -->
     
     <!-- XMLRPC -->
     <!--servlet-mapping>
@@ -266,9 +373,9 @@
         servlets) you might have to change this parameter.
     -->
   <!-- <servlet-mapping>
-    <servlet-name>Cocoon</servlet-name>
-    <url-pattern>/cocoon/*</url-pattern>
-  </servlet-mapping>
+        <servlet-name>Cocoon</servlet-name>
+        <url-pattern>/cocoon/*</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>Jasper</servlet-name>
@@ -322,10 +429,11 @@
     </mime-mapping>
 
     <jsp-config>
-        <taglib>
+        <!-- commented out by S. Sire (Oppidoc) because we do not package WEB-INF/exist.tld -->
+        <!-- <taglib>
             <taglib-uri>http://exist-db.org/exist</taglib-uri>
             <taglib-location>/WEB-INF/exist.tld</taglib-location>
-        </taglib>
+        </taglib> -->
     </jsp-config>
     
 </web-app>

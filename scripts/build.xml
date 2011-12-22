@@ -1,459 +1,188 @@
 <?xml version='1.0'?>
-<project name="PSE" default="test" basedir="." xmlns:xdb="http://exist-db.org/ant">
+<project name="Oppidum demo" default="init-db" basedir="." xmlns:xdb="http://exist-db.org/ant">
   <description>
-    Site Web PSE par Docetis
+    Oppidum framework
   </description>
+  <!-- 
+   
+    Targets :
+
+    - ant package : generates WAR file ready for tomcat deployment 
+                    inside ${exist.home}/dist directory       
+    
+    Do not forget to start exist database first (e.g. oppidum/scripts/start.sh) !
+    
+   -->
+    
+  <!-- Loads properties 
+  -->
+  <property file="ant.properties" />          
   
-<!-- 
-
-  ant install : configure installation xquery scripts accessible 
-                from the dashboard (sets admin login/password)
-
-  ant init-db : database initialization
+  <!-- This is required to be able to use Exist Ant task 
+  -->
+  <!-- <path id="classpath.core">
+    <fileset dir="${exist.dir}/lib/core">
+      <include name="*.jar"/>
+    </fileset>
+    <pathelement path="${exist.dir}/exist.jar"/>
+    <pathelement path="${exist.dir}/exist-optional.jar"/>
+  </path>         -->
   
-  ant config.dev : switch configuration files to development
-                   (log4j.xml, controller-config.xml inside WEB-INF)
- 
-  ant config.prod : switch configuration files to production
-                   (log4j.xml, controller-config.xml inside WEB-INF)                                   
-                   You MUST to do this before packaging !
-                   
-  ant backup : creates a database backup inside ${pkg.init.db.dir}
-               (defaults to WEB-INF/data/bootstrap)
-               You MUST do this after you have installed PSE application 
-               from the browser with /pse/scripts/dashboard.html
-               and before packaging !
-                                
-  ant package : generates WAR file ready for tomcat deployment 
-               inside ${exist.home}/dist directory       
-               - see steps above -
+  <!-- ================================================================== -->
+  <!-- Database initialization                                            -->
+  <!-- ...is done with install.xql invoked directly from the browser      --> 
+  <!-- ================================================================== -->
+  
+  <!-- Voluntarily left empty...  -->
 
-  ant clean : clean up ${pkg.init.db.dir} directory
-              (defaults to WEB-INF/data/bootstrap)               
-             
-  ant template : generates templates/company-EN.xhtml
-                 use this only if you change company-FR.xhtml
-                 FIXE: attention actuellement le component ListItem 
-                 doit etre fini a la main !             
- -->
-    
-    <!-- Loads properties -->
-    <property file="ant.properties" />          
-    
-    <!-- This is required to be able to use Exist Ant task -->
-    <path id="classpath.core">
-      <fileset dir="${exist.dir}/lib/core">
-        <include name="*.jar"/>
-      </fileset>
-      <pathelement path="${exist.dir}/exist.jar"/>
-      <pathelement path="${exist.dir}/exist-optional.jar"/>
-    </path>        
-                        
-    
-    <!-- ================================================================== -->
-    <!-- Installation                                                       -->
-    <!--                                                                    -->
-    <!-- Initializes PSE installation and packaging scripts                 -->
-    <!-- a/ sets up login/password for admin user                           -->
-    <!-- b/ sets up first database backup location and name                 -->
-    <!-- ================================================================== -->                            
-    <target name="install" depends="">
-      <echo message="Configure admin login / passwd into 'import-users.xql import-dicos.xql import-db.xql backup.xql'"/>      
-      <replaceregexp byline="true">
-        <regexp pattern='passwd := ".*"'/>
-        <substitution expression='passwd := "${exist.passwd}"'/>
-        <fileset dir="." includes="import-users.xql import-dicos.xql import-db.xql backup.xql"/>
-      </replaceregexp>             
-      <replaceregexp byline="true">
-        <regexp pattern='login := ".*"'/>
-        <substitution expression='login := "${exist.login}"'/>
-        <fileset dir="." includes="import-users.xql import-dicos.xql import-db.xql backup.xql"/>
-      </replaceregexp>                    
-      <echo message="Configure backup directory into 'backup.xql'"/>            
-      <replaceregexp byline="true">
-        <regexp pattern='backupDir := ".*"'/>
-        <substitution expression='backupDir := "${pkg.backup.dir}"'/>
-        <fileset dir="." includes="backup.xql"/>
-      </replaceregexp> 
-      <echo message="Configure shutdown script 'stop.sh'"/>            
-      <replaceregexp byline="true">
-        <regexp pattern='-u .* -p .*'/>
-        <substitution expression='-u ${exist.login} -p ${exist.passwd}'/>
-        <fileset dir="." includes="stop.sh"/>
-      </replaceregexp>             
-      <echo message="Please proceed with 'ant config.dev' for development or 'ant config.prod' for packaging"/>
-    </target>                                                                                                  
-    
-    <!-- ================================================================== -->
-    <!-- First database initialization                                      -->
-    <!-- Oppidum related data : errors.xml                                  -->
-    <!-- ================================================================== -->
-    <target name="init-db" depends="">
-      <typedef resource="org/exist/ant/antlib.xml" uri="http://exist-db.org/ant">
-          <classpath refid="classpath.core"/>
-      </typedef>          
+  <!-- ================================================================== -->
+  <!-- Database migration                                                 -->
+  <!-- ...is optionally done with migrate.xql invoked from the browser    --> 
+  <!-- ================================================================== -->
 
-      <!-- Create oppidum collection and config sub-collection
-      -->    
-      <condition property="exists.database">
-        <xdb:exist xmlns:xdb="http://exist-db.org/ant"
-          uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/${site.database}"
-          user="${exist.login}" password="${exist.passwd}"/>
-      </condition> 
-      <antcall target="create.database"></antcall>          
-      <condition property="exists.config.database">
-        <xdb:exist xmlns:xdb="http://exist-db.org/ant"
-          uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/${site.database}/config"
-          user="${exist.login}" password="${exist.passwd}"/>
-      </condition> 
-      <antcall target="create.config.database"></antcall>      
-      
-      <!-- Import errors.xml 
-      -->
-      <!-- <condition property="exists.errors">
-        <xdb:exist xmlns:xdb="http://exist-db.org/ant"
-          uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/${site.database}/config" resource="errors.xml"
-          user="${exist.login}" password="${exist.passwd}"/>
-      </condition>  -->
-      <antcall target="create.errors"></antcall>
-    </target>           
-    
-    <!-- ====== Sub-tasks =====  -->  
-
-    <target name="create.database" unless="exists.database">
-      <echo message="creating Oppidum database root collection at /db/${site.database}"/>
-      <xdb:create xmlns:xdb="http://exist-db.org/ant"
-        uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/" collection="${site.database}"
-        user="${exist.login}" password="${exist.passwd}"/>
-    </target>    
-
-    <target name="create.config.database" unless="exists.config.database">
-      <echo message="creating config subcollection at /db/${site.database}/config"/>
-      <xdb:create xmlns:xdb="http://exist-db.org/ant"
-        uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/${site.database}" collection="config"
-        user="${exist.login}" password="${exist.passwd}"/>
-    </target>
-                        
-    <!-- errors.xml -->
-    <target name="create.errors">
-      <echo message="importing error messages"/>
-      <xdb:store xmlns:xdb="http://exist-db.org/ant"
-          uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/${site.database}/config"
-          createcollection="false"
-          user="${exist.login}" password="${exist.passwd}">
-          <fileset dir="../init">
-            <include name="errors.xml"/>
-          </fileset>
-      </xdb:store>            
-    </target>                     
-        
-    <target name="init-test" depends="">
-      <typedef resource="org/exist/ant/antlib.xml" uri="http://exist-db.org/ant">
-          <classpath refid="classpath.core"/>
-      </typedef>   
-      <echo message="importing test/email.xql into /db/uap/test..."/>
-      <xdb:store xmlns:xdb="http://exist-db.org/ant"
-          uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/uap/test"
-          createcollection="true" createsubcollections="true"
-          user="${exist.login}" password="${exist.passwd}">
-          <fileset dir="../test">
-            <include name="email.xql"/>
-          </fileset>
-      </xdb:store>              
-    </target>    
-        
-    <!-- ================================================================== -->
-    <!-- Configuration                                                      -->
-    <!-- ================================================================== -->
-                  
-                  
-    <!-- NOTE
-
-         You may need to edit original ${exist.dir}/conf.xml file to activate some modules
-         - image module
-         - mail module
-         - etc.
-
-         web.xml is copied directly from our own version in config/ 
-         -->
-                                        
-    <!-- common -->              
-
-    <target name="copy.log4j" unless="log4j.copied">
-      <echo message="...preserving original log4j.xml file"/>
-      <copy file="${exist.dir}/log4j.xml" tofile="${exist.dir}/log4j.orig.xml"/>
-    </target>
-    
-    <target name="config.common">
-      <available type="file" property="log4j.copied" file="${exist.dir}/log4j.orig.xml"/>
-      <antcall target="copy.log4j"/>
-    </target>    
-    
-    <!-- DEVELOPMENT (Jetty / eXist) -->
-    <target depends="config.common" name="config.dev">                                                                                     
-        <echo message="Switching to development configuration"/> 
-                                                               
-        <!-- CONF.xml -->                                        
-        <echo message="...edit ${exist.dir}/conf.xml by hand if you need extra modules !"/> 
-        <!-- edit it by hand to activate extra modules if needed ! -->
-
-        <!-- LOG4j.xml -->
-        <echo message="...generating 'log4j.xml'"/>
-        <xslt in="${exist.dir}/log4j.orig.xml" out="${exist.dir}/log4j.xml" style="../config/dev-log4j.xsl" force="true"/>
-        <!-- <copy file="../config/log4j.dev.xml" overwrite="true"
-              tofile="${exist.dir}/log4j.xml" filtering="false"/>         -->
-              
-        <!-- WEB.xml -->
-        <!-- <echo message="...copying 'web.xml'"/>
-        <copy file="../config/web.dev.xml" overwrite="true" 
-              tofile="${exist.dir}/webapp/WEB-INF/web.xml" filtering="false"/>         -->
-
-        <!-- CONTROLLER-CONFIG.xml -->
-        <!-- <echo message="...copying 'controller-config.xml'"/>
-        <copy file="../config/controller-config.dev.xml" overwrite="true"
-              tofile="${exist.dir}/webapp/WEB-INF/controller-config.xml" filtering="false"/> -->
-    </target>    
-
-    <!-- PRODUCTION (Tomcat / eXist) -->
-    <target depends="config.common" name="config.prod">
-        <echo message="Switching to production configuration"/>                  
-
-        <!-- CONF.xml -->                                                
-        <echo message="...generating 'conf.xml'"/>
-        <xslt in="${exist.dir}/conf.xml"  out="${exist.dir}/webapp/WEB-INF/conf.xml"  style="${build.scripts}/dist-war-conf.xsl" force="true"/>
-                               
-        <!-- LOG4j.xml -->        
-        <echo message="...creating 'log4j.xml'"/>
-        <xslt in="${exist.dir}/log4j.orig.xml" out="${exist.dir}/webapp/WEB-INF/log4j.xml" style="../config/prod-log4j.xsl"/>
-        <!-- <copy file="../config/log4j.prod.xml" overwrite="true" 
-              tofile="${exist.dir}/webapp/WEB-INF/log4j.xml" filtering="false"/> -->
-              
-        <!-- WEB.xml -->
-        <echo message="...copying 'web.xml'"/>
-        <copy file="../config/web.prod.xml" overwrite="true" 
-              tofile="${exist.dir}/webapp/WEB-INF/web.xml" filtering="false"/>
-              
-        <!-- CONTROLLER-CONFIG.xml -->
-        <echo message="...copying 'controller-config.xml'"/>
-        <copy file="../config/controller-config.prod.xml" overwrite="true" 
-              tofile="${exist.dir}/webapp/WEB-INF/controller-config.xml" filtering="false"/>
-    </target>    
+  <!-- Voluntarily left empty...  -->
                             
-                           
-    <!-- ================================================================== -->
-    <!-- Packaging                                                          -->
-    <!--                                                                    -->
-    <!-- ================================================================== -->    
-    <target name="package">
-      <echo message="Packaging, assuming you have followed 'dashboard' instructions first !"/>      
-      <!-- <echo message="Configure production backup directory into 'backup.xql'"/>
-      <replaceregexp byline="true">
-        <regexp pattern='backupDir := ".*"'/>
-        <substitution expression='backupDir := "${prod.backup.dir}"'/>
-        <fileset dir="." includes="backup.xql"/>
-      </replaceregexp>         -->
-      <echo message="Making WAR"/>      
-      <!-- <ant antfile="../../../build.xml" target="dist-war" useNativeBasedir="true"/>       -->
-      <antcall target="dist-war"/>      
-    </target>
-            
-    <!-- Generates templates/company-EN.xhtml 
-         from templates/company-FR.xhtml and dataset/company-dico.xml                                            
-         using Xalan embedded with eXist
-     -->
-    <target name="template"> 
-      <exec executable="java">
-        <arg line='-cp ../../../lib/endorsed/serializer-2.9.1.jar:../../../lib/endorsed/xercesImpl-2.9.1.jar:../../../lib/endorsed/xml-apis-1.3.04.jar:../../../lib/endorsed/xalan-2.7.1.jar org.apache.xalan.xslt.Process -IN ../templates/company-FR.xhtml -XSL gen-lang.xsl -OUT ../templates/company-EN.xhtml'/>
-      </exec>
-    </target>     
-                                                 
-    <target name="backup"> 
-        <typedef resource="org/exist/ant/antlib.xml" uri="http://exist-db.org/ant">
-            <classpath refid="classpath.core"/>
-        </typedef>     
-        <xdb:backup xmlns:xdb="http://exist-db.org/ant"
-            uri="xmldb:exist://localhost:${pkg.exist.port}/exist/xmlrpc/db/"
-            dir="${pkg.init.db.dir}" user="${exist.login}" password="${exist.passwd}"/>
-    </target>     
-    
-    <target name="clean" >
-      <delete dir="${pkg.init.db.dir}"/>
-      <mkdir dir="${pkg.init.db.dir}"/>
-      <delete dir="../build"/>
-    </target>  
-                   
-    <!-- ================================================================== -->
-    <!-- Create .war file                                                   -->
-    <!-- Copied and adapted from {exist}/build/scripts/dist.xml !           -->
-    <!-- ================================================================== -->
-    <target depends="config.prod" name="dist-war" description="Create war file">          
-                                             
-      <!-- make sure those folders exist
-           As seen in {exist}/build/scripts/dist.xml 
-       -->
-      <mkdir dir="${exist.dir}/webapp/WEB-INF/data"/>
-      <mkdir dir="${exist.dir}/webapp/WEB-INF/loggerdir"/>
-      <mkdir dir="${exist.dir}/webapp/WEB-INF/logs"/>
-      
-      <mkdir dir="../build"/>   
+  <!-- ================================================================== -->
+  <!-- Prepare webapp                                                     -->
+  <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
+  <!-- ================================================================== -->
+  <target name="webapps">
       <mkdir dir="${exist.dir}/dist"/>
       
-      <!-- copy /resources to /static -->
-      <copy todir="../build/static/uap">
-            <fileset dir="${exist.dir}/webapp/uap/resources">
-                <exclude name="**/*~"/>
-                <exclude name="**/*.log*"/>
-                <exclude name="controller.xql"/>
-                <exclude name="data/*"/>                
-                <exclude name="pages/*"/>
-                <include name="**"/>
-            </fileset>
-      </copy>  
-             
-      <!-- copy /app application without /app top level path -->
-      <copy todir="../build">
-            <fileset dir="${exist.dir}/webapp/uap/app">
-                <exclude name="**/*~"/>
-                <exclude name="**/*.log*"/>
-                <include name="controller.xql"/>
-                <include name="render.xql"/>
-                <include name="ajaxrender.xql"/>
-                <include name="actions/**"/>   
-                <include name="models/**"/>                       
-                <include name="views/**"/>
-                <include name="modules/**"/>   
-                <include name="modules/comptes/**"/>   
-                <include name="service/**"/>
-                <exclude name="service/initialize.xql"/>
-            </fileset>         
-      </copy>      
+      <!-- When there are no java docs, create empty file -->
+      <!-- <mkdir dir="${exist.dir}webapp/api"/>
+      <touch file="${exist.dir}webapp/api/index.html"/> -->
 
-      <!-- to be moved to the database -->
-      <copy todir="../build/templates">
-            <fileset dir="${exist.dir}/webapp/uap/templates">
-                <exclude name="**/*~"/>
-                <exclude name="**/*.log*"/>
-                <include name="**"/>
-            </fileset>         
-      </copy>      
+      <mkdir dir="${exist.dir}webapp/WEB-INF/data"/>
+      <mkdir dir="${exist.dir}webapp/WEB-INF/logs"/>      
       
-      <!-- make WAR -->
-      <war destfile="${exist.dir}/dist/${pkg.war.name}-${product.version}.war" 
-           webxml="${exist.dir}/webapp/WEB-INF/web.xml">     
-                    
-           <!-- Add files context root ('/') -->
-          <fileset dir="../build">
-               <include name="**"/>
-           </fileset> 
-           
-           <!-- Add files context root ('/') -->
-           <fileset dir="${exist.dir}/webapp">
-               <exclude name="**/*~"/>
-               <exclude name="api/**"/>
-               <exclude name="WEB-INF/web.xml"/>
-               <exclude name="WEB-INF/data/*.dbx"/>
-               <exclude name="WEB-INF/data/*.lck"/>
-               <exclude name="WEB-INF/data/lucene/**"/>
-               <exclude name="WEB-INF/data/fs/**"/>
-               <exclude name="WEB-INF/data/fs.journal/**"/>
-               <exclude name="WEB-INF/data/export/**"/>
-               <exclude name="WEB-INF/data/sanity/**"/>
-               <exclude name="**/*.log*"/>
-               <include name="WEB-INF/**"/>                
-           </fileset>              
-           
+      <!-- create war specific configuration files -->
+      <!-- <xslt in="../config/conf.xml"  out="${exist.dir}/webapp/WEB-INF/conf.xml"  style="${build.scripts}/dist-war-conf.xsl"/>
+      <xslt in="${exist.dir}/log4j.xml" out="${exist.dir}/webapp/WEB-INF/log4j.xml" style="${build.scripts}/dist-war-log4j.xsl"/> -->
+  </target>      
+  
+  <!-- ================================================================== -->
+  <!-- Create .war file                                                   -->
+  <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
+  <!-- ================================================================== -->
+  <target name="package" depends="webapps" description="Create war file">
+      <war destfile="${exist.dir}/dist/${pkg.war.name}-v${product.version}.war" webxml="../config/web.xml">
+
           <!-- Add files to WEB-INF/lib -->
           <lib dir="${exist.dir}">
-             <include name="start.jar"/>
-             <include name="exist.jar"/>
-             <include name="exist-optional.jar"/>
-             <include name="exist-modules.jar"/>
+              <include name="start.jar"/>
+              <include name="exist.jar"/>
+              <include name="exist-optional.jar"/>
+              <include name="exist-modules.jar"/>
           </lib>
           <lib dir="${lib.core}">
-             <include name="*.jar"/>
-             <exclude name="javax.servlet-1.4.jar"/>
+              <include name="*.jar"/>
+              <exclude name="javax.servlet-1.4.jar"/>
           </lib>
-          <lib dir="${lib.extensions}">
-          	<include name="*.jar"/>
-          </lib> 
+      		<lib dir="${lib.extensions}">
+      			<include name="*.jar"/>
+      		</lib> 
           <lib dir="${lib.optional}">
-             <include name="*.jar"/>
-          </lib>           
+              <include name="*.jar"/>
+          </lib>
+          <!-- <lib dir="${lib.cocoon}">
+              <include name="*.jar"/>
+          </lib>     -->
           <lib dir="${lib.user}">
-             <include name="*.jar"/>
+              <include name="*.jar"/>
           </lib>
           <!-- The following jars should not be here, but in 'endorsed' -->
           <lib dir="${lib.endorsed}">
-             <include name="*.jar"/>
+              <include name="*.jar"/>
           </lib>
-          <!-- Include lucene jar, needed for documentation search -->
+         	<!-- Include lucene jar, needed for documentation search -->
           <lib dir="${exist.dir}/extensions/indexes/lucene/lib">
-          	<include name="*.jar"/>
-          </lib>
+            <include name="*.jar"/>
+          </lib>  
           <!-- Include spatial jars, when available -->
           <!-- <lib dir="${exist.dir}/extensions/indexes/spatial/lib">
-             <include name="*.jar"/>
-          </lib> -->                 
-          
+              <include name="*.jar"/>
+          </lib> -->
+          <!-- Include additional xqdoc jars -->
+          <!-- <lib dir="${exist.dir}/extensions/xqdoc/lib">
+               <include name="*.jar"/>
+           </lib>      -->
+          <!-- Include webdav milton jars  -->
+          <!-- <lib dir="${exist.dir}/extensions/webdav/lib">
+              <include name="*.jar"/>
+          </lib> -->
+          <!-- Include betterform jars  -->
+          <!-- <lib dir="${exist.dir}/extensions/betterform/src/main/lib">
+              <include name="*.jar"/>
+          </lib>    -->
+
           <!-- Add configuration files to WEB-INF -->
           <webinf dir="${exist.dir}">
-              <include name="client.properties"/>
-              <include name="backup.properties"/>
-      				<include name="controller-config.xml"/>
-              <include name="server.xml"/>
               <include name="mime-types.xml"/>
               <include name="descriptor.xml"/>
               <include name="log4j.dtd"/>
-              <include name="atom-services.xml"/>
-          </webinf>    
+              <!-- <include name="atom-services.xml"/> -->
+          </webinf>
+
+          <webinf dir="../config/prod">
+            <include name="conf.xml"/>
+            <include name="controller-config.xml"/>
+            <include name="log4j.xml"/>
+          </webinf>
+
+          <!-- trick to package an empty WEB-INF/data folder -->
+          <zipfileset dir="${exist.dir}/webapp/WEB-INF" includes="data" prefix="WEB-INF"/>          
+
+          <!-- Add files context root ('/') -->
+          <!-- <fileset dir="${exist.dir}/webapp">
+              <exclude name="WEB-INF/data/*.dbx"/>
+              <exclude name="WEB-INF/data/*.lck"/>
+              <exclude name="WEB-INF/data/lucene/**"/>
+              <exclude name="WEB-INF/data/fs/**"/>
+              <exclude name="WEB-INF/data/fs.journal/**"/>
+              <exclude name="WEB-INF/data/export/**"/>
+              <exclude name="WEB-INF/data/sanity/**"/>
+              <include name="WEB-INF/data"/>
+              <include name="projets/oppidum/**"/>
+              <include name="projets/platinn/**"/>
+          </fileset>       -->
+          
+          <!-- <fileset dir="${exist.dir}/webapp/projets">
+            <include name="oppidum/**"/>
+          </fileset>
+
+          <fileset dir="${exist.dir}/webapp/projets">
+            <include name="platinn/**"/>
+          </fileset> -->
+          
+      		<!-- Betterform -->
+          <!-- <zipfileset dir="extensions/betterform/src/main/xrx/"  prefix="betterform/samples">
+              <include name="**/*"/>
+          </zipfileset>
+          <zipfileset dir="samples" prefix="samples">
+              <include name="**"/>
+              <exclude name="**/*~"/>
+              <exclude name="xupdate/**"/>
+              <exclude name="test.xml"/>
+              <exclude name="**/.*"/>
+          </zipfileset> -->
+          
+          <!-- Not needed for war file -->
+          <!-- <fileset dir=".">
+          <include name="start.jar"/>
+          <include name="examples.jar"/>
+          </fileset> -->
           
           <!-- Add additional information -->
           <manifest>
-              <attribute name="Built-By" value="S. Sire"/>
-              <attribute name="Project-Name" value="UAP"/>
-              <attribute name="Project-Version" value="${product.version}"/>
+              <attribute name="Built-By" value="${product.author}"/>
+              <attribute name="Project-Name" value="${product.name}"/>
+              <attribute name="Project-Version" value="${project.version}"/>
               <attribute name="Project-Build" value="-"/>
               <attribute name="SVN-Revision" value="-"/>
-          </manifest>                      
-      </war>     
-      
-      <!-- <delete dir="../build"/>          -->
-      
-      <echo message="Packaging done, switch back to config.dev to continue development"/>                  
-    </target>  
+          </manifest>
 
-    <!-- ================================== -->
-    <!-- UNUSED TARGETS                     --> 
-    <!-- Deprecated or experimental         -->
-    <!-- ================================== -->
-    
-    <target name="restore"> 
-        <typedef resource="org/exist/ant/antlib.xml" uri="http://exist-db.org/ant">
-            <classpath refid="classpath.core"/>
-        </typedef>
-        <xdb:store xmlns:xdb="http://exist-db.org/ant"
-            uri="xmldb:exist://localhost:8080/${application.dir}/exist/xmlrpc/db/${collection.name}"
-            createcollection="true" createsubcollections="true">
-            <fileset dir="../data/db"/> 
-        </xdb:store>
-    </target>    
-    
-    <!-- Generates templates/company-EN.xhtml 
-         from templates/company-FR.xhtml and dataset/company-dico.xml                                            
-         BROKEN  
-         maybe because document() in gen-lang.xsl does not work
-     -->
-    <target name="company-EN"> 
-         <typedef resource="org/exist/ant/antlib.xml" uri="http://exist-db.org/ant">
-             <classpath refid="classpath.core"/>
-         </typedef>       
-         <echo message="Generating templates/company-EN.xhtml"/>
-         <loadfile property="xquery" srcFile="gen-lang.xql"/>
-         <xdb:xquery  xmlns:xdb="http://exist-db.org/ant"
-           uri="xmldb:exist://localhost:8080/exist/xmlrpc/db" query="${xquery}"
-           outputproperty="result.data"/>                       
-         <echo message="${result.data}" file="../templates/company-EN.xhtml"/>
-         <echo message="Result written to '../templates/company-EN.xhtml'"/>
-    </target>          
-
+      </war>
+  </target>        
+  
 </project>

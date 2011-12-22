@@ -19,7 +19,7 @@
   <xsl:template match="/">
     <site:view>       
       <site:menu>
-        <button id="oppidum-save" data-role="save">Save</button>,
+        <button id="oppidum-save" data-role="save">Save</button>
         <button id="oppidum-preview" data-edit-label="Edit">Preview</button>
       </site:menu>
       <site:content>   
