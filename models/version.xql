@@ -15,7 +15,7 @@ declare option exist:serialize "method=html media-type=text/html";
   <body>
     <h1>Oppidum</h1>
     <p>Version Beta</p>
-    <p>&#169; 2011 Oppidoc S.A.R.L</p>
+    <p>&#169; 2011-2012 Oppidoc S.A.R.L</p>
   </body>
 </html>
  

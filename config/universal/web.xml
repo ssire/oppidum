@@ -10,9 +10,10 @@
     
     <!-- *********************************************************
 
-           Oppidum servlet context configuration for production 
-           
-           FIXME: to be improved !
+         Oppidum servlet context configuration for test and production (Tomcat)
+         Universal WAR version (controller-config.xml stored inside /db/www/universal)
+         
+         By S. Sire (Oppidoc)
          
          *********************************************************
     -->  
@@ -183,16 +184,16 @@
 
         <!-- Defines the location of the controller-config.xml file, which defines
              the root mappings. -->
-        <init-param>
+        <!-- <init-param>
             <param-name>config</param-name>
             <param-value>WEB-INF/controller-config.xml</param-value>
-        </init-param>
+        </init-param> -->
         
         <!-- This could also be stored inside the db: -->
-        <!-- <init-param>
+        <init-param>
           <param-name>config</param-name>
-          <param-value>xmldb:exist:///db/controller-config.xml</param-value>
-        </init-param> -->
+          <param-value>xmldb:exist:///db/www/universal/controller-config.xml</param-value>
+        </init-param>
     </filter>
     
     <servlet>

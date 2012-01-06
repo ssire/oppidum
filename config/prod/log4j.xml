@@ -159,7 +159,7 @@
     
 	  <category name="org.exist.http.urlrewrite" additivity="false">
 		    <!-- set to "trace" to get detailed info on URL rewriting -->
-        <priority value="warn"/>
+        <priority value="error"/>
         <appender-ref ref="exist.urlrewrite"/>
     </category>
     

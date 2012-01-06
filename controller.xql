@@ -65,8 +65,8 @@ return
   if (starts-with($url-payload, "/static/")) then
     (: alternatively we could set WEB-INF/controller-config.xml to rewrite /static :)
      <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-     	  <forward url="{concat($app-root, substring-after($url-payload, '/static/'))}"/>
-      	<cache-control cache="yes"/>
+        <forward url="{concat($app-root, substring-after($url-payload, '/static/'))}"/>
+        <cache-control cache="yes"/>
      </dispatch>                                                                         
      (: TODO: cache management for static resources... :)
      
