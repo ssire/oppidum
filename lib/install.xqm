@@ -170,9 +170,9 @@ declare function install:install-file($home as xs:string, $col as xs:string, $fi
     )      
 };
 
-declare function install:install-collection($home as xs:string, $col as element()) as element()*
+declare function install:install-collection($home as xs:string, $col as element(), $module as xs:string?) as element()*
 {
-  let $col-name := string($col/@name)
+  let $col-name := if ($module) then replace($col/@name, $module, "/db/www/root") else string($col/@name)
   return (
     let $tokens := tokenize($col-name, '/')[. != '']
     for $i in 2 to count($tokens)
@@ -186,7 +186,10 @@ declare function install:install-collection($home as xs:string, $col as element(
     )
 };
 
-declare function install:install-group($home as xs:string, $group as element()) as element()*
+declare function install:install-group(
+  $home as xs:string, 
+  $group as element(),
+  $module as xs:string?) as element()*
 {
   let $name := string($group/@name)
   return (
@@ -194,22 +197,38 @@ declare function install:install-group($home as xs:string, $group as element()) 
     <ul>{
       for $c in $group/install:collection
       return
-        install:install-collection($home, $c),
+        install:install-collection($home, $c, $module),
       for $f in $group/install:fix-xsl-import
       return
-        install:fix-xsl-import($f/@collection, $f/@file, $f/@base)
+        if ($module) then
+          let $col-uri := replace($f/@collection, $module, "/db/www/root")
+          let $base-col-uri := replace($f/@base, $module, "/db/www/root")
+          return
+            install:fix-xsl-import($col-uri, $f/@file, $base-col-uri)
+        else
+          install:fix-xsl-import($f/@collection, $f/@file, $f/@base)        
     }</ul>
   )
 };
 
-declare function install:install-targets($dir as xs:string, $targets as xs:string*, $specs as element()) as element()*
+(: ======================================================================
+   When $module is defined it contains the path of the home database 
+   collection that contains the application and that will be rewritten 
+   to /db/www/root for a universal WAR compatible installation 
+   ======================================================================
+:)
+declare function install:install-targets(
+  $dir as xs:string, 
+  $targets as xs:string*, 
+  $specs as element(),
+  $module as xs:string?) as element()*
 {
   let $default := if (('default' = $targets) and ($specs/install:collection)) then 
                     <group name="default">{$specs/install:collection}</group> 
                   else ()
   return
     for $g in ( $default, $specs/install:group[@name = $targets] )
-    return install:install-group($dir, $g)
+    return install:install-group($dir, $g, $module)
 };
 
 declare function install:install-user($user as element())
@@ -240,12 +259,12 @@ declare function install:install-users($policies as element()) as element()
   </ul>
 };  
 
-declare function install:install-policy($policy as element(), $collection as element())
+declare function install:install-policy($policy as element(), $collection as element(), $module as xs:string?)
 {
   let $perms := string($policy/@perms)
   let $owner := string($policy/@owner)
   let $group := string($policy/@group)
-  let $col := string($collection/@name)
+  let $col := if ($module) then replace($collection/@name, $module, "/db/www/root") else string($collection/@name)
   let $p := install:perms($perms)
   return
     if (not(xdb:exists-user($owner))) then
@@ -261,16 +280,20 @@ declare function install:install-policy($policy as element(), $collection as ele
         )
 };  
 
-declare function install:install-policies($targets as xs:string*, $policies as element(), $specs as element()) as element()*
+declare function install:install-policies(
+  $targets as xs:string*, 
+  $policies as element(), 
+  $specs as element(),
+  $module as xs:string?) as element()*
 {
   <p>Set permissions :</p>,
   <ul>
     {
-    for $c in ($specs/(install:collection[@policy] | install:group/install:collection[@policy]))
+    for $c in ($specs/(install:collection[@policy] | install:group[@name = $targets]/install:collection[@policy]))
     let $p := $policies/install:policy[@name = $c/@policy]
     return 
       if ($p) then
-        install:install-policy($p, $c)
+        install:install-policy($p, $c, $module)
       else
         <li style="color: red">Cannot apply unkown policy “{string($c/@policy)}” onto collection “{string($c/@name)}”</li>
     }
@@ -302,7 +325,13 @@ declare function install:_login_form() as element()
    Proceed with installation in case of a submission
    ======================================================================
 :)    
-declare function install:install($base as xs:string, $policies as element(), $data as element(), $code as element(), $title as xs:string) as element()
+declare function install:install(
+  $base as xs:string, 
+  $policies as element(), 
+  $data as element(), 
+  $code as element(), 
+  $title as xs:string,
+  $module as xs:string?) as element()
 {
   let $install := request:get-parameter("go", ())
   let $user :=  xdb:get-current-user()
@@ -328,15 +357,18 @@ declare function install:install($base as xs:string, $policies as element(), $da
                   install:install-users($policies),
                   <h2>Installation report for Data</h2>,
                   if (count($data-targets) > 0) then (
-                    install:install-targets($dir, $data-targets, $data),
-                    install:install-policies($data-targets, $policies, $data)
+                    install:install-targets($dir, $data-targets, $data, ()),
+                    install:install-policies($data-targets, $policies, $data, ())
                     )
                   else (),
                   <h2>Installation report for Code</h2>,
-                  if (count($code-targets) > 0) then (
-                    install:install-targets($dir, $code-targets, $code),
-                    install:install-policies($code-targets, $policies, $code)
-                    ) 
+                  if (count($code-targets) > 0) then
+                    let $m := if (request:get-parameter("code-location", "module") = "root") then $module else ()
+                    return 
+                      (
+                      install:install-targets($dir, $code-targets, $code, $m),
+                      install:install-policies($code-targets, $policies, $code, $m)
+                      ) 
                   else ()
                   )
               } 
@@ -367,7 +399,18 @@ declare function install:install($base as xs:string, $policies as element(), $da
                   <input id="{$n}" type="checkbox" value="{$n}" name="code-target"/>,
                   <label for="{$n}">{$n}</label>
                   )
-                }              
+                }  
+                {
+                  if ($module) then
+                    <span>
+                      [<span style="color:blue">installation type</span> : 
+                      <input id="universal" type="radio" value="root" name="code-location" checked="true"/>
+                      <label for="universal">root (universal)</label>
+                      <input id="module" type="radio" value="module" name="code-location"/>
+                      <label for="module">module</label>]
+                    </span>
+                  else ()                    
+                }            
               </p>
               <p>You are logged in as <b>{$user}</b></p>
               {

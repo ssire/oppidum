@@ -9,6 +9,7 @@ xquery version "1.0";
    TODO:
    - improve Cache-Control (HTTP 1.1) with Expires / Date (HTTP 1.0)
    - (no need for must-revalidate / Last-Modified since images never change)
+   - return a standard "NOT-FOUND" image when image not found
 
    September 2011
    -------------------------------------- :)
@@ -38,7 +39,11 @@ return
           response:set-header('Cache-Control', 'public, max-age=900000'),
           response:stream-binary($image, concat('image/', $cmd/@format))
         )
-      else
-        response:set-status-code(404)
-  else
-    response:set-status-code(404)
+      else (
+        response:set-status-code(404),
+        <error>not found</error>
+        )
+  else (
+    response:set-status-code(404),
+    <error>not found</error>
+    )

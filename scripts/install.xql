@@ -69,5 +69,5 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
   </group>  
 </code>;
 
-install:install($local:base, $policies, $site, $code, "oppidum")
+install:install($local:base, $policies, $site, $code, "oppidum", ())
 
