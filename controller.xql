@@ -47,7 +47,7 @@ declare variable $actions := <actions error="models/error.xql">
 (: ======================================================================
                   Site mappings
    ====================================================================== :)                 
-declare variable $mapping := <site startref="home" supported="login logout install" db="/db/oppidum">
+declare variable $mapping := <site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum">
   <item name="home">
     <model src="models/version.xql"/>
   </item>

@@ -184,7 +184,7 @@ declare function command:parse-url(
   $mapping as element(),
   $lang as xs:string ) as element()
 {                    
-  let                                                                               
+  let
     $extension := if (contains($url, '.')) then substring-after($url, '.') else '',
     $raw-payload := if ($extension != '') then substring-before($url, '.') else $url,  
     $payload := if ($raw-payload = '/') then $mapping/@startref else $raw-payload, (: although we SHOULD have redirected before reaching that line :)
@@ -198,6 +198,7 @@ declare function command:parse-url(
       attribute exist-path { $exist-path },
       attribute lang { $lang },      
       attribute db { $mapping/@db },
+      $mapping/@confbase,
       if ($mapping/error/@mesh) then attribute error-mesh { $mapping/error/@mesh } else (),
       if ($format) then attribute format { $format } else (),
       command:parse-token-iter($method, 1, $tokens, $mapping, 

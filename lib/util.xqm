@@ -16,7 +16,7 @@ import module namespace response="http://exist-db.org/xquery/response";
 import module namespace session="http://exist-db.org/xquery/session";      
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";                    
 
-declare variable $oppidum:DB_ERR_LOCATION := '/db/oppidum/config/errors.xml';
+declare variable $oppidum:DEFAULT_ERR_LOC := '/db/www/oppidum/config/errors.xml';
 
 declare function oppidum:path-to-ref () as xs:string
 {         
@@ -167,7 +167,7 @@ declare function oppidum:render-error(
         if (doc-available($sitefile) 
            and (not(empty(doc($sitefile)/errors/error[@type = $err-type])))) then
            doc($sitefile)/errors/error[@type = $err-type]
-        else doc($oppidum:DB_ERR_LOCATION)/errors/error[@type = $err-type],
+        else doc($oppidum:DEFAULT_ERR_LOC)/errors/error[@type = $err-type],
     $msgs := 
       if ($error/message[@lang = $lang]) then 
         $error/message[@lang = $lang] 
@@ -229,7 +229,7 @@ declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:st
       let $pipeline := request:get-attribute('oppidum.pipeline')
       let $set-status := ($level = 1) or (($level = 2) and empty($pipeline/view[@onerror]))
       (: because a model-view pipeline may ask to execute the view even in case of error with onerror="render" :)
-      return oppidum:render-error($cmd/@db, $err-type, $err-clue, $cmd/@lang, $set-status)
+      return oppidum:render-error($cmd/@confbase, $err-type, $err-clue, $cmd/@lang, $set-status)
     else
       (: stores error message for later rendering in the epilogue :)
       oppidum:add-error($err-type, $err-clue, false())  

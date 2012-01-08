@@ -707,7 +707,7 @@
             <module uri="http://www.expath.org/mod/http-client" src="resource:org/expath/www/mod/http-client/http-client.xqm" />      
 
             <!-- Native EXPath HTTPClient Module -->
-            <module uri="http://exist-db.org/xquery/httpclient" class="org.exist.xquery.modules.httpclient.HTTPClientModule" />
+            <!-- <module uri="http://exist-db.org/xquery/httpclient" class="org.exist.xquery.modules.httpclient.HTTPClientModule" /> -->
             
             <!-- 
                 Modules written in XQuery

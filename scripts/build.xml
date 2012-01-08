@@ -196,7 +196,7 @@
   <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
   <!-- ================================================================== -->
   <target name="universal" depends="webapps" description="Create war file">
-      <war destfile="${exist.dir}/dist/${pkg.war.name}-v${product.version}.war" webxml="../config/universal/web.xml">
+      <war destfile="${exist.dir}/dist/${pkg.war.name}-uni-v${product.version}.war" webxml="../config/universal/web.xml">
 
           <!-- Add files to WEB-INF/lib -->
           <lib dir="${exist.dir}">

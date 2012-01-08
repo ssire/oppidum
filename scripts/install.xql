@@ -23,20 +23,21 @@ declare variable $policies := <policies xmlns="http://oppidoc.com/oppidum/instal
 </policies>;
 
 declare variable $site := <site xmlns="http://oppidoc.com/oppidum/install">
-  <collection name="/db/oppidum" policy="admin" inherit="true"/>
-  <collection name="/db/sites" policy="admin"/>
-  <group name="data">
-    <collection name="/db/oppidum/config">
-      <files pattern="init/errors.xml"/>
-    </collection>
-    <collection name="/db/oppidum/mesh">
-      <files pattern="mesh/*.html"/>
-    </collection>
-  </group>
+  <collection name="/db/sites"/>
 </site>;
 
 declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
   <collection name="/db/www" policy="admin" inherit="true"/>
+  <group name="config">
+    <collection name="/db/www/oppidum/config">
+      <files pattern="init/errors.xml"/>
+    </collection>
+  </group>
+  <group name="mesh">
+    <collection name="/db/www/oppidum/mesh">
+      <files pattern="mesh/*.html"/>
+    </collection>
+  </group>
   <group name="code">
     <collection name="/db/www/oppidum">
       <files pattern="controller.xql"/>

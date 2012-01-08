@@ -113,7 +113,7 @@ declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) 
       string($pipeline/epilogue/@mesh)
   return
     if ($filename != '') then
-      let $path := concat($cmd/@db, '/mesh/', $filename, '.html')
+      let $path := concat($cmd/@confbase, '/mesh/', $filename, '.html')
       let $root := fn:doc($path)/*[1]
       return                 
         if ($root) 

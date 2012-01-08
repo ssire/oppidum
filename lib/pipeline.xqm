@@ -388,7 +388,7 @@ declare function gen:render($cmd as element(), $pipeline as element()) as elemen
   let 
     $avail := if (not($pipeline/@check)) then 'yes' else gen:check-availability($cmd, $pipeline),
     $void := request:set-attribute('oppidum.pipeline', $pipeline)
-     
+    
   return 
     <exist:dispatch xmlns:exist="http://exist.sourceforge.net/NS/exist">
     {                
@@ -396,11 +396,16 @@ declare function gen:render($cmd as element(), $pipeline as element()) as elemen
       if ($pipeline/model) then
         (: FIXME: turn DB-NOT-FOUND into a pre-construction error ? :)
         if ($avail = 'yes') then
-          <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src)}"/>        
+          <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src)}">        
+            <exist:set-header name="Cache-Control" value="no-cache"/>
+            <exist:set-header name="Pragma" value="no-cache"/>
+          </exist:forward>          
         else              
           <exist:forward url="{gen:path-to-oppidum($cmd/@app-root, $cmd/@exist-path, 'models/error.xql')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
             <exist:set-attribute name="oppidum.error.clue" value="{$cmd/resource/@name}"/>
+            <exist:set-header name="Cache-Control" value="no-cache"/>
+            <exist:set-header name="Pragma" value="no-cache"/>
           </exist:forward>
       else
         (),
