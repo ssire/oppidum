@@ -244,7 +244,11 @@
           </webinf>
 
           <!-- S. SIRE: package the current data/ database into WEB-INF/data folder -->
-          <zipfileset dir="${exist.dir}/webapp/WEB-INF/data" prefix="WEB-INF/data"/>          
+          <zipfileset dir="${exist.dir}/webapp/WEB-INF/data" prefix="WEB-INF/data">
+            <exclude name="*.lck"/>
+            <exclude name="fs.journal/**"/>
+            <exclude name="*.log*"/>
+          </zipfileset>            
 
           <!-- Add additional information -->
           <manifest>

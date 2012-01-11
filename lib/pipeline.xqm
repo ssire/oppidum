@@ -279,13 +279,13 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
         let $src := 
           if ((string($cmd/@action) = 'GET') and (starts-with($cmd/resource/@resource, 'file:///'))) then
             (: special case to store resources to local file system :)
-            substring-after($cmd/resource/@resource, 'file:///')              
+            (substring-after($cmd/resource/@resource, 'file:///'), ())
           else if ($inline-action/model) then 
-            string($inline-action/model/@src)
+            (string($inline-action/model/@src), $inline-action/model)
           else 
-            string($default/model/@src)
+            (string($default/model/@src), $default/model)
         return
-          if ($src) then <model src="{$src}"/> else (),
+          if ($src[1]) then <model src="{$src[1]}">{$src[2]/param}</model> else (),
           
         (: VIEW :)  
         let $src-node :=  
@@ -357,6 +357,16 @@ declare function gen:expand-paths( $exp as xs:string, $trail as xs:string ) as x
       '')
 };
 
+(: FIXME: currently it does not support the value="$nb" syntax in parameters value
+          because $cmd/trail contains all the info and is accessible from the code
+ :)
+declare function gen:model_parameters($cmd as element(), $pipeline as element()) as element()*
+{
+  for $p in $pipeline/model/param
+  return
+    <set-attribute name="{concat('xquery.', $p/@name)}" value="{$p/@value}"/>
+};
+
 declare function gen:more_view_parameters($cmd as element(), $pipeline as element()) as element()*
 {
   (: some paramater names are reserved, see "URL Rewriting and MVC Framework" in eXist-db doc :)
@@ -396,10 +406,11 @@ declare function gen:render($cmd as element(), $pipeline as element()) as elemen
       if ($pipeline/model) then
         (: FIXME: turn DB-NOT-FOUND into a pre-construction error ? :)
         if ($avail = 'yes') then
-          <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src)}">        
-            <exist:set-header name="Cache-Control" value="no-cache"/>
-            <exist:set-header name="Pragma" value="no-cache"/>
-          </exist:forward>          
+          <forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src)}" xmlns="http://exist.sourceforge.net/NS/exist">
+            <set-header name="Cache-Control" value="no-cache"/>
+            <set-header name="Pragma" value="no-cache"/>
+            { gen:model_parameters($cmd, $pipeline) }
+          </forward>          
         else              
           <exist:forward url="{gen:path-to-oppidum($cmd/@app-root, $cmd/@exist-path, 'models/error.xql')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
