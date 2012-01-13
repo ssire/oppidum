@@ -43,11 +43,15 @@ declare function install:fix-xsl-import( $col-uri as xs:string, $name as xs:stri
                  <param name="script.base" value="{$col-uri}{if (not(ends-with($col-uri, '/'))) then '/' else ''}"/>
                  <param name="exist:stop-on-warn" value="yes"/>
                  <param name="exist:stop-on-error" value="yes"/>                 
-               </parameters>,
-    $filtered := transform:transform($data, 'xmldb:exist:///db/www/oppidum/scripts/filter-transfo.xsl', $params),
-    $res := xdb:store($col-uri, $name, $filtered)
+               </parameters>
   return
-    <li>Fixed xsl:include in xslt file: {$res}</li>
+    if (doc-available('/db/www/oppidum/scripts/filter-transfo.xsl')) then 
+      let $filtered := transform:transform($data, 'xmldb:exist:///db/www/oppidum/scripts/filter-transfo.xsl', $params)
+      let $res := xdb:store($col-uri, $name, $filtered)
+      return
+        <li>Fixed xsl:include in xslt file: {$res}</li>
+    else
+      <li style="color: red">Cannot fix xsl:include in xslt file: {$name} install Oppidum First !</li>
 };
 
 (: ======================================================================
@@ -239,7 +243,7 @@ declare function install:install-user($user as element())
     if (xdb:exists-user($user/@name)) then
       (
         xdb:change-user($user/@name, $user/@password, $groups, $home),
-        <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
+        <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then concat("“", $home, "”") else "no home"}</li>
       )
     else
       (
