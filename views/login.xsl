@@ -48,6 +48,10 @@
         </form>
       </div>        
     </site:content>
-  </xsl:template>                        
+  </xsl:template>  
+  
+  <xsl:template match="Login[Redirected]">
+    <p>Goto <a href="{Redirected}"><xsl:value-of select="Redirected"/></a></p>
+  </xsl:template>
   
 </xsl:stylesheet>

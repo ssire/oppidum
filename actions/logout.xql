@@ -20,7 +20,7 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";   
 import module namespace response="http://exist-db.org/xquery/response";
                                               
-let $goto-url := request:get-parameter('url', '.')
+let $goto-url := request:get-parameter('url', '..')
 return
   <Redirected>
     {                               

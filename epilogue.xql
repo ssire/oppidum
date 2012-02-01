@@ -1,10 +1,10 @@
 xquery version "1.0";
 (: -----------------------------------------------
-	 Oppidum Epilogue 
+   Oppidum framework : sample epilogue
 
-	 Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@free.fr>
 
-   December 2011 - Copyright (c) 0PPID0C S.A.R.L
+   December 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
@@ -68,46 +68,46 @@ declare function site:message( $view as element() ) as node()*
    ======================================================================
 :)
 declare function local:render( $cmd as element(), $source as element(), $view as element()* ) as element()
-{		 
-	element { node-name($source) }
-	{
-		$source/@*,
-		for $child in $source/node()
-		return		       
-		  if ($child instance of text()) then
-	      $child
-	    else
-				(: FIXME: hard-coded 'site:' prefix we should better use namespace-uri :)
-				if (starts-with(xs:string(node-name($child)), 'site:')) then
-					(		                   
-						if (($child/@force) or 
-								($view/*[local-name(.) = local-name($child)])) then
+{    
+  element { node-name($source) }
+  {
+    $source/@*,
+    for $child in $source/node()
+    return           
+      if ($child instance of text()) then
+        $child
+      else
+        (: FIXME: hard-coded 'site:' prefix we should better use namespace-uri :)
+        if (starts-with(xs:string(node-name($child)), 'site:')) then
+          (                      
+            if (($child/@force) or 
+                ($view/*[local-name(.) = local-name($child)])) then
                  site:branch($cmd, $child, $view)
-						else
-							()
-					)
-				else if ($child/*) then
-				  if ($child/@condition) then
- 				  let $go :=  
- 				    if (string($child/@condition) = 'has-error') then
- 				      oppidum:has-error()
- 				    else if (string($child/@condition) = 'has-message') then
- 			        oppidum:has-message()
- 			      else if ($view/*[local-name(.) = substring-after($child/@condition, ':')]) then 
-  			        true()
- 			      else 
- 			        false()
- 				  return
- 					  if ($go) then        
- 						  local:render($cmd, $child, $view)
- 						else 
- 						  () 
- 			  else 
-           local:render($cmd, $child, $view)  			    
-			  else
+            else
+              ()
+          )
+        else if ($child/*) then
+          if ($child/@condition) then
+          let $go :=  
+            if (string($child/@condition) = 'has-error') then
+              oppidum:has-error()
+            else if (string($child/@condition) = 'has-message') then
+              oppidum:has-message()
+            else if ($view/*[local-name(.) = substring-after($child/@condition, ':')]) then 
+                true()
+            else 
+              false()
+          return
+            if ($go) then        
+              local:render($cmd, $child, $view)
+            else 
+              () 
+        else 
+           local:render($cmd, $child, $view)            
+        else
          $child
-	}
-};		    
+  }
+};        
 
 (: ======================================================================
    Epilogue entry point

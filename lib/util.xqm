@@ -30,6 +30,12 @@ declare function oppidum:path-to-ref-col () as xs:string
   return concat($r/@db, '/', $r/@collection)
 }; 
 
+declare function oppidum:path-to-config ( $fn as xs:string? ) as xs:string
+{       
+  let $cb := request:get-attribute('oppidum.command')/@confbase
+  return if ($fn) then concat($cb, '/config/', $fn) else concat($cb, '/config')
+}; 
+
 (: ======================================================================
    Returns the resource element from the command
    FIXME: this is a trick for epilogue scripts which often declare 

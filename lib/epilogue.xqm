@@ -19,6 +19,7 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../oppid
 
 (: ======================================================================
    Returns a URL prefix pointing to the static resources of a given package 
+   FIXME: ... OBSOLETE 
    ======================================================================
 :) 
 declare function epilogue:make-static-base-url-for( $package as xs:string ) as xs:string 
@@ -60,7 +61,10 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
   return (
     for $f in $files
     return
-      <script type="text/javascript" src="{$base}{$f}">//</script>,    
+      if (starts-with($f, 'http:')) then
+        <script type="text/javascript" src="{$f}">//</script>
+      else
+        <script type="text/javascript" src="{$base}{$f}">//</script>,
     for $p in $predefs (: pre-defined modules coming with Oppidum :)
     return
       if ($p = 'jquery') then

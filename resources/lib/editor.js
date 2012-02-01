@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012 Stéphane Sire, <s.sire@free.fr> 
+/* Copyright (c) 2011-2012 Oppidoc SARL, <contact@oppidoc.fr> 
  *
  * author      : Stéphane Sire
  * contact     : s.sire@free.fr
@@ -198,6 +198,7 @@ function install () {
   if (errLog.inError()) {
     logError(errLog.printErrors());
   }
+  $(document).triggerHandler('AXEL-TEMPLATE-READY');
 }     
                                
 // onDOMReady

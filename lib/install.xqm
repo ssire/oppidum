@@ -149,7 +149,8 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
 declare function install:mime-for-suffix($suffix as xs:string) as xs:string
 {
   if ($suffix = "html") then "text/html"
-  else if ($suffix = ("xml", "xhtml", "xsl")) then "text/xml"
+  else if ($suffix = ("xml", "xhtml")) then "text/xml"
+  else if ($suffix = "xsl") then "application/xslt+xml"
   else if ($suffix = ("xql", "xqm")) then "application/xquery"
   else if ($suffix = "css") then "text/css"
   else if ($suffix = "js") then "application/x-javascript"  

@@ -130,16 +130,16 @@
     
     <category name="org.exist.JettyStart" additivity="false">
         <priority value="warn"/>
-        <appender-ref ref="console"/>
+        <!-- <appender-ref ref="console"/> -->
         <appender-ref ref="exist.core"/>
-        <appender-ref ref="exist.xmldb"/>
+        <!-- <appender-ref ref="exist.xmldb"/> -->
     </category>
     
     <category name="org.exist.StandaloneServer" additivity="false">
         <priority value="warn"/>
-        <appender-ref ref="console"/>
+        <!-- <appender-ref ref="console"/> -->
         <appender-ref ref="exist.core"/>
-        <appender-ref ref="exist.xmldb"/>
+        <!-- <appender-ref ref="exist.xmldb"/> -->
     </category>
     
     <category name="xquery.profiling" additivity="false">
@@ -153,13 +153,13 @@
     </category>
     
     <category name="org.exist.xmldb" additivity="false">
-        <priority value="info"/>
+        <priority value="warn"/>
         <appender-ref ref="exist.xmldb"/>
     </category>
     
 	  <category name="org.exist.http.urlrewrite" additivity="false">
 		    <!-- set to "trace" to get detailed info on URL rewriting -->
-        <priority value="error"/>
+        <priority value="warn"/>
         <appender-ref ref="exist.urlrewrite"/>
     </category>
     

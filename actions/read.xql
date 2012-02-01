@@ -4,7 +4,7 @@ xquery version "1.0";
 
    Returns the reference resource in the reference collection from the
    database unless it has been archived and the user does not have the right
-   to activate it in which case it returns an error.
+   to activate it in which case it throws an Oppidum error.
    
    Pre-condition: 
    - the reference resource must exist (i.e. use check="true" in the mapping)

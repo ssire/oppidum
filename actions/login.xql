@@ -44,7 +44,7 @@ return
             (                                        
             oppidum:add-message('ACTION-LOGIN-SUCCESS', $user, true()),
             oppidum:redirect($goto-url),
-            <Redirected/>        
+            <Redirected>{$goto-url}</Redirected>        
             )
             else (: login page model, asks again, keeps user because wrong password in most cases :)          
               oppidum:add-error('ACTION-LOGIN-FAILED', (), true())

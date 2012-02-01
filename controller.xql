@@ -1,22 +1,21 @@
 xquery version "1.0";         
 (: --------------------------------------
-   Oppidum framework : controller
-   
-   Serves Oppidum static resources which can be shared between sites (e.g. AXEL library)
-   
-   The convention is that these resources should be addressed with a URL
-   ending in '/static/*' (usually generated in the site's epilogue). 
-   
-   This controller should not be called in production use because the Apache
-   proxy should be configured to directly take all the '/oppidum/static/*'
-   resources inside the content of the 'resources/*' folder that contains
-   them.
+   Oppidum framework : sample controller
 
-   DEPRECATED (except to start scrips/install.xql)
+   Sample Oppidum controller. When deployed as an application it just define 
+   a home page URL that shows Oppidum version, a scaffold page and the admin
+   module. The admin module can then be used to replace the application itself 
+   with another from a ZIP file.
+
+   NOTE: gen:process() still serves Oppidum static resources. The convention is 
+   that these resources should be addressed with a URL  ending in '/static/*' 
+   (usually generated in the site's epilogue). However we recommend not to use it
+   and to use an Apache proxy or NGINX proxy configured to directly take all 
+   the '/oppidum/static/*' resources from the file system.
 
    Author: Stéphane Sire <s.sire@free.fr>
-  
-   August 2011
+
+   January 2012 - (C) 2012 Oppidoc SARL
    -------------------------------------- :)
 
 import module namespace gen = "http://oppidoc.com/oppidum/generator" at "lib/pipeline.xqm";
@@ -25,6 +24,7 @@ import module namespace gen = "http://oppidoc.com/oppidum/generator" at "lib/pip
                   Site default access rights
    ====================================================================== :)                 
 declare variable $access := <access>
+  <rule method="POST" role="u:admin" message="super admin"/>
 </access>;
 
 (: ======================================================================
@@ -32,15 +32,15 @@ declare variable $access := <access>
    ====================================================================== :)                 
 declare variable $actions := <actions error="models/error.xql">
   <action name="login" depth="0"> <!-- may be GET or POST --> 
-    <model src="actions/login.xql"/>
-    <view src="views/login.xsl"/>
+    <model src="oppidum:actions/login.xql"/>
+    <view src="oppidum:views/login.xsl"/>
   </action>  
   <action name="logout" depth="0"> 
-    <model src="actions/logout.xql"/>
+    <model src="oppidum:actions/logout.xql"/>
   </action>
   <!-- NOTE: unplug this action from @supported on mapping's root node in production --> 
   <action name="install" depth="0"> 
-    <model src="scripts/install.xql"/>
+    <model src="oppidum:scripts/install.xql"/>
   </action>  
 </actions>;
 
@@ -49,34 +49,28 @@ declare variable $actions := <actions error="models/error.xql">
    ====================================================================== :)                 
 declare variable $mapping := <site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum">
   <item name="home">
-    <model src="models/version.xql"/>
+    <model src="oppidum:models/version.xql"/>
+  </item>
+  <!-- Oppidum administration module (backup / restore) -->  
+  <item name="admin" resource="none" method="POST">
+    <access>
+      <rule action="GET POST" role="u:admin" message="admin"/>
+    </access>    
+    <model src="oppidum:modules/admin/restore.xql"/>
+    <view src="oppidum:modules/admin/restore.xsl"/>
+    <action name="POST">
+      <model src="oppidum:modules/admin/restore.xql"/>
+      <view src="oppidum:modules/admin/restore.xsl"/>   
+    </action>
   </item>
   <item name="scaffold" resource="none">
-    <model src="models/scaffold.xql"/>
-    <view src="views/scaffold.xsl"/>
+    <model src="oppidum:models/scaffold.xql"/>
+    <view src="oppidum:views/scaffold.xsl"/>
   </item> 
 </site>;
                           
-let 
-  $url-payload := if ($exist:prefix = '') then $exist:path else substring-after($exist:path, $exist:root),
-  $app-root := if ($exist:prefix = '') then concat($exist:controller, '/') else concat($exist:root, '/')
-  
-return
-  if (starts-with($url-payload, "/static/")) then
-    (: alternatively we could set WEB-INF/controller-config.xml to rewrite /static :)
-     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <forward url="{concat($app-root, substring-after($url-payload, '/static/'))}"/>
-        <cache-control cache="yes"/>
-     </dispatch>                                                                         
-     (: TODO: cache management for static resources... :)
-     
-  else      
-    (: NOTE : call oppidum:process with false() to disable ?debug=true mode :)
-    gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)
-    
-  (: TODO: test environment to return 'FORBIDDEN' in test and production 
-    <ignore xmlns="http://exist.sourceforge.net/NS/exist">
-      <cache-control cache="yes"/>
-    </ignore>   :)
+(: NOTE : call oppidum:process with false() to disable ?debug=true mode :)
+gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)
+
     
   

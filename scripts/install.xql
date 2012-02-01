@@ -48,6 +48,13 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
       <files pattern="modules/**/*.xql" preserve="true"/>
       <files pattern="modules/**/*.xqm" preserve="true"/>
       <files pattern="modules/**/*.xsl" preserve="true"/>
+      <files pattern="scripts/filter-transfo.xsl" preserve="true"/>
+      <files pattern="templates/**/*.xhtml" preserve="true"/>
+      <files pattern="views/**/*.xsl" preserve="true"/>
+    </collection>
+  </group>
+  <group name="resources">
+    <collection name="/db/www/oppidum">
       <files pattern="resources/**/*.css" preserve="true"/>
       <files pattern="resources/**/*.js" preserve="true"/>
       <files pattern="resources/**/*.png" preserve="true"/>
@@ -55,20 +62,22 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
       <files pattern="resources/**/*.html" preserve="true"/>
       (: there a trick because photo.xhtml is a forrest and cannot be imported as text/xml :)
       <files pattern="resources/lib/axel/bundles/photo/photo.xhtml" type="text/plain" preserve="true"/>
-      <files pattern="scripts/filter-transfo.xsl" preserve="true"/>
-      <files pattern="templates/**/*.xhtml" preserve="true"/>
-      <files pattern="views/**/*.xsl" preserve="true"/>
     </collection>
-  </group>
+  </group>  
   <group name="root (universal)">
     <collection name="/db/www/universal" policy="admin">
       <files pattern="config/universal/controller-config.xml"/>
     </collection>
     <collection name="/db/www/root">
-      <files pattern="config/universal/controller.xql"/>
+      <!-- <files pattern="config/universal/controller.xql"/> -->
+      <files pattern="controller.xql"/>
+      <files pattern="epilogue.xql"/>      
+    </collection>
+    <collection name="/db/www/root/mesh">
+      <files pattern="mesh/*.html"/>
     </collection>
   </group>  
 </code>;
 
-install:install($local:base, $policies, $site, $code, "oppidum", ())
+install:install($local:base, $policies, $site, $code, "oppidum", '/db/www/oppidum')
 
