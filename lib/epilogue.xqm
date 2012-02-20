@@ -19,12 +19,16 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../oppid
 
 (: ======================================================================
    Returns a URL prefix pointing to the static resources of a given package 
-   FIXME: ... OBSOLETE 
    ======================================================================
 :) 
 declare function epilogue:make-static-base-url-for( $package as xs:string ) as xs:string 
 {
-  concat(request:get-attribute('oppidum.base-url'), 'static/', $package, '/')
+  let $cmd := request:get-attribute('oppidum.command')
+  return 
+    if (string($cmd/@mode) eq 'prod') then
+      concat('/static/', $package, '/') (: MUST be served by a proxy :)
+    else
+      concat(string($cmd/@base-url), 'static/', $package, '/')
 };
 
 (: ======================================================================
@@ -33,7 +37,7 @@ declare function epilogue:make-static-base-url-for( $package as xs:string ) as x
 :) 
 declare function epilogue:css-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as element()*
 {
-  let $base := concat(request:get-attribute('oppidum.base-url'), 'static/', $package, '/')
+  let $base := epilogue:make-static-base-url-for($package)
   return (
     for $f in $files
     return
@@ -57,7 +61,7 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
 :) 
 declare function epilogue:js-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as element()*
 {
-  let $base := concat(request:get-attribute('oppidum.base-url'), 'static/', $package, '/')
+  let $base := epilogue:make-static-base-url-for($package)
   return (
     for $f in $files
     return
@@ -94,7 +98,7 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
 :) 
 declare function epilogue:img-link( $package as xs:string, $files as xs:string* ) as element()*
 {
-  let $base := concat(request:get-attribute('oppidum.base-url'), 'static/', $package, '/')
+  let $base := epilogue:make-static-base-url-for($package)
   for $f in $files
   return
     <img src="{$base}{$f}"/>

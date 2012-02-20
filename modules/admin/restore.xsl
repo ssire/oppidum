@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Oppidum framework
 
-    Turns a scaffold content model into a view.
+<!-- Oppidum admin module view
 
-    Author: Stéphane Sire <s.sire@free.fr>
+     Author: Stéphane Sire <s.sire@opppidoc.fr>
 
-    December 2011 - Copyright (c) Oppidoc S.A.R.L
- -->
+     February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
+  -->
 
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -47,6 +46,13 @@
           <input type="submit" name="list" value="Cancel" style="margin-right: 1em"/>
           <input type="submit" name="restore" value="Restore"/>
         </p>
+        <p>NOTE (<span style="color:red">very important</span>) : when you
+        restore a ZIP archive, please check before that the DB defines all the
+        users which appear as file and/or collection owners within the ZIP
+        archive; if they do not exist, create them first or the restoration
+        will fail ! Of course if the ZIP archive contains the
+        <tt>/db/system</tt> collection, as it will restored first with the
+        user definitions, there will be no problems.</p>
       </form>
     </div>
   </xsl:template>

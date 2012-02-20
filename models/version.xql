@@ -10,7 +10,6 @@ xquery version "1.0";
    ----------------------------------------------- :)
 
 declare option exist:serialize "method=html media-type=text/html";
-
 <html>
   <body>
     <h1>Oppidum</h1>
@@ -18,4 +17,3 @@ declare option exist:serialize "method=html media-type=text/html";
     <p>&#169; 2011-2012 Oppidoc S.A.R.L</p>
   </body>
 </html>
- 

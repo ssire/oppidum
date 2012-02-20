@@ -1,33 +1,48 @@
-Packager une application pour Tomcat avec Oppidum
-=================================================
+Packager et déployer  une application pour Tomcat avec Oppidum
+===
 
-Par Stéphane Sire (Oppidoc), <s.sire@free.fr>, Janvier 2012
+Par Stéphane Sire (Oppidoc), <s.sire@free.fr>, Février 2012
 
-Suivre les étapes suivantes :
- 
+De manière générale suivre les étapes suivantes :
+
   1. Générer le fichier WAR contenant eXist
-  2. Générer l'archive oppidum.zip contenant la librairie Oppidum
-  3. Générer l'archive app-code.zip contenant le code de l'application
-  4. Générer l'archive app-data.zip contenant les données de l'application
+  2. Générer l'archive db-www-oppidum.zip contenant la librairie Oppidum
+  3. Générer l'archive db-www-app.zip contenant le code de l'application
+  4. Générer l'archive db-sites-app.zip contenant les données de l'application
+  5. Déployer le fichier WAR
+  6. Restorer db-www-oppidum.zip avec le client d'administration de eXist
+  7. Installer le contrôleur de l'application dans `/db/www/root`
+  8. Restorer db-www-app.zip et db-sites-app.zip avec la console d'administration Oppidum
+  
+Il est possible de grouper les étapes 2 à 4 et 6 à 8 en: 
+
+  - Générer une archive de toute l'application db.zip
+  - Restorer l'archive de toute l'application avec le client d'administration eXist
+  
+Cette variante plus compacte peut néanmoins prendre beaucoup plus de temps suivant la qualité de la liaison entre le site de développement et le site de production.
   
 Distribution de l'application sous Tomcat
 ---
-  
-Sous Tomcat le code de la librairie Oppidum, le code de l'application et les données de l'application sont situés dans la BD dans les collections suivantes :
 
-- `db/www/oppidum` : librairie Oppidum
-- `db/www/monapp` (ou `/db/www/root` pour la variante universelle): code de l'application (y compris messages d'erreurs et gabarits)
-- `/db/sites/monapp` : données de l'application
+La convention d'Oppidum en mode production est de stocker l'application dans la BD. Le code de la librairie Oppidum, le code de l'application et les données de l'application sont situés respectivement dans les collections suivantes :
 
-où *monapp* est le nom de l'application
+- `/db/www/oppidum` pour librairie Oppidum
+- `/db/www/{app}` pour code de l'application (y compris messages d'erreurs et gabarits)
+- `/db/sites/{app}` pour les données de l'application
 
-Le fichier `controller-config.xml` qui se trouvera à la racine du `WEB-INF` redirigera les URLs vers le contrôleur de l'application dans  `/db/www/monapp/controller.xql` (ou bien vers `/db/www/root/controller.xql` pour la variante universelle, cf. les explications ci-dessous).
+où _app_ est le nom de l'application.
 
-Le fichier WAR ne contient qu'une distribution minimale de eXist. Les mises à jour ultérieures de l'application s'effectuent directement avec le client d'administration de eXist en 2 étapes :
+Par convention le fichier `WEB-INF/controller-config.xml` de eXist inclus dans le WAR redirige les URLs vers le contrôleur `/db/www/root/controller.xql` dans la BD. C'est donc ce fichier qui détermine l'application qui sera exécutée par Oppidum (c'est lui qui contient le mapping). Ce fichier sera en général créé lors d'une action post-installation en recopiant le fichier `/db/www/{app}/controller.xql`.
 
-- génération d'une archive ZIP contenant le nouveau code depuis la version de développement ou de test de l'application
+Pour simplifier le packaging, le fichier WAR universel d'Oppidum ne contient qu'une distribution minimale de eXist (principalement sous forme de fichiers .jar et de fichiers de configuration) et sa base de donnée est vide. Une fois le fichier WAR déployé il faut donc encore **restorer** la base de donnée contenant **l'installation minimale d'Oppidum** depuis une archive ZIP. La restoration s'effectue avec le client d'administation de eXist.
 
-- restauration de l'archive ZIP du nouveau code sur la version en production de l'application
+L'installation minimale d'Oppidum contient une **console d'administration Oppidum** qui peut servir ensuite pour mettre à jour Oppidum et/ou pour installer et/ou mettre à jour une ou plusieurs applications à partir d'archives ZIP. Alternativement à cette console d'administration, il est également possible d'utiliser le client d'administration de eXist.
+
+Les mises à jour ultérieures s'effectuent toujours sur le cycle :
+
+- génération d'une archive ZIP contenant le nouveau code depuis la version de développement ou de test de l'application (et/ou des nouvelles données)
+
+- restoration de l'archive ZIP du nouveau code sur la version en production de l'application
 
 Cette méthode de travail permet de ne pas modifier le fichier WAR déployé, et d'éviter les coûteuse opérations de redéploiement de l'application sous Tomcat qui entrainent parfois des fuites mémoire (PermGen Space).
 
@@ -43,17 +58,15 @@ La distribution de test sert à tester l'application complète sur une machine d
 
 Dans la plupart des cas la seule différence entre ces 2 distributions étant le niveau de log défini dans le fichier `log4j.xml` (qui fait partie du WAR), si vous ne souhaitez pas packager 2 fois le fichier WAR, vous pouvez alors simplement déployer la version destinée à la production sur le serveur de test, l'arrêter, modifier à la main le fichier de configuration des logs et redémarrer l'application. Vous éviterez ainsi de devoir générer 2 fichiers WAR différents.
 
-Génération du WAR
+Génération du fichier WAR universel d'Oppidum
 ---
 
-Le répertoire `scripts` de Oppidum défini une cible `package` pour générer le fichier WAR avec ant. La commande suivante :
+Le répertoire `scripts` de Oppidum défini une cible `universal` pour générer le fichier WAR avec ant. La commande suivante :
 
     cd scripts
-    ant package
+    ant universal
     
-génère un fichier `oppidum-v{nb}.war` dans le répertoire `dist` de eXist. Éditez le fichier `scripts/ant.properties` si vous souhaitez modifier le nom du fichier généré et d'autres méta-données (product.author, product.name, product.version, pkg.war.name).
-
-Notez que à priori il est également possible de faire les même opérations depuis la distribution source de l'application si elle contient également le script ant issu de la distribution d'Oppidum (ou une version adaptée).
+génère un fichier `oppidum-uni-v{nb}.war` dans le répertoire `dist` de eXist. Éditez le fichier `scripts/ant.properties` si vous souhaitez modifier le nom du fichier généré et d'autres méta-données (product.author, product.name, product.version, pkg.war.name).
 
 Le fichier WAR généré contient une distribution minimale de eXist avec un minimum de modules XQuery. Par défaut les modules XQuery suivants sont inclus :
 
@@ -70,13 +83,13 @@ Pour changer la distribution générée vous devez modifier les fichiers suivant
 
 Si vous modifiez les servlets dans `web.xml` ou les modules XQuery dans `conf.xml`, il se peut que vous deviez également modifier la liste des fichiers jar inclus dans le fichier WAR en éditant `scripts/build.xml`.
 
-Dans tous les cas vous devez modifier une ligne dans le fichier `config/controller-config.xml` :
+Le fichier `config/controller-config.xml` définissant le contrôleur de l'application contient la ligne suivante :
 
-    <root pattern=".*" path="xmldb:exist:///db/www/oppidum"/>
+    <root pattern=".*" path="xmldb:exist:///db/www/root"/>
     
-en remplaçant *opppidum* par le nom de votre application. Il est aussi possible de mettre des préfixes différents pour regrouper plusieurs applications dans un seul WAR.
+Il est aussi possible de mettre des préfixes différents pour regrouper plusieurs applications dans un seul WAR.
 
-Notons que ce fichier WAR ne contient pas de BD initiale (le répertoire `WEB-INF/data` est vide), celle-ci sera créée lors du premier lancement de l'application sous Tomcat.
+Notons que ce fichier WAR ne contient pas de BD initiale (le répertoire `WEB-INF/data` est vide), celle-ci sera créée lors du premier lancement de l'application sous Tomcat, raison pour laquelle il faudra restorer la librairie Oppidum et le contrôleur de l'application lors d'une procédure de post-installation.
 
 Configuration des logs
 ----
@@ -84,7 +97,6 @@ Configuration des logs
 Mettre le niveau `debug` (ou `info`) en test.
 
 Mettre le niveau `error` (ou `warn` plus verbeux) en production.
-
 
 Génération des archives ZIP
 ---
@@ -106,7 +118,7 @@ Restoration des archives ZIP
 
 Déployez le WAR sour Tomcat et lancez le.
 
-Lancez le client d'administration eXist en vous connectant à l'application installée sous Tomcat. Par exemple, en test cela devrait être une URL de la forme `http://localhost:8000/monapp`.
+Lancez le client d'administration eXist en vous connectant à l'application installée sous Tomcat. Par exemple, en test cela devrait être une URL de la forme `http://localhost:8000/exist/projets/{app}`.
 
 Si votre application nécessite des utilisateurs spécifique et des groupes spécifiques (typiquement il devrait y a voir un utilisateur 'monapp' ainsi que des groupes 'site-admin' et 'site-member), alors créez à la main ces utilisateurs et ces groupes.
 
@@ -119,50 +131,138 @@ Nous recommandons de fabriquer les archives ZIP et de les restaurer sur une BD e
 
 À priori cette contrainte est indispensable si vous utilisez une seule archive ZIP embarquant tout la BD plutôt que le découpage indiqué ci-dessus.
 
-Variante avec fichier WAR universel
-----
+Procédure détaillée de déploiement
+---
 
-Le répertoire scripts de Oppidum défini également une cible `universal` pour générer le fichier WAR avec ant. La commande suivante :
+Pré-requis : 
 
-    cd scripts
+- ant
+- installer eXist en local (répertoire `{:home}/{:exist-home}`)
+- créer un répertoire `database` au même niveau que le précédent (répertoire `{:home}/database`)
+- récupérer les sources de Oppidum en local (répertoire `{:exist-home}/webapps/projets/oppidum`)
+- récupérer ou développer l'application en local (répertoire `{:exist-home}/webapps/projets/{:app}`)
+
+Résultats :
+
+- fichier WAR Oppidum universel dans `{:exist-home}`/dist
+- archive de l'application à déployer dans le fichier WAR universel dans `{:home}/database/{:app}.zip`
+
+
+### 1 : installation d'eXist
+
+Lors de l'installation d'eXist utilisez le mot de passe pour la BD que vous utiliserez en production.
+
+Vous pouvez choisir de mettre la BD où vous voulez (question posée par le programme d'installation de eXist)
+
+NOTE: vous pouvez aussi partir d'une installation de eXist existante, nous vous conseillons alors d'effacer le contenu du répertoire `data` (mais pas le répertoire lui-même) de façon à repartir d'une base de données vierge lors du premier lancement.
+
+### 2 : récupération des sources
+
+Pour Oppidum, avec un accès bitbucket configuré :
+
+    cd {:exist-home}/webapps
+    mkdir projets
+    cd projets
+    git clone git@bitbucket.org:ssire/oppidum.git
+    
+Une fois Oppidum copié, éditez la première ligne du fichier `scripts/stop.sh` pour y mettre le mot de passe utilisé par la BD.
+
+Si les sources de l'application sont aussi sur bitbucket :
+
+    cd {:exist-home}/webapps/projets
+    git clone git@bitbucket.org:ssire/{:app}.git
+    
+
+### 3 : création du fichier WAR universel
+
+Pour créer le fichier oppidoc-uni-{:version}.war dans le répertoire `{:exist-home}/dist` :
+
+    cd {:exist-home}/webapps/projets/oppidum/scripts
     ant universal
     
-génère un fichier `oppidum-uni-version.war` dans le répertoire `dist` de eXist. De même que pour le packaging WAR classique vous pouvez modifier le nom du fichier généré et d'autres méta-données (product.author, product.name, product.version, pkg.war.name) en éditant le fichier `scripts/ant.properties`.
+### 4 : création de l'archive ZIP de l'application avec Oppidum
 
-Le fichier WAR universel contient une version spéciale du fichier `web.xml` avec le paramètrage suivant :
+Lancez eXist, vous pouvez utiliser le script de démarrage fourni avec Oppidum :
 
-    <init-param>
-      <param-name>config</param-name>
-      <param-value>xmldb:exist:///db/www/universal/controller-config.xml</param-value>
-    </init-param>
+    cd {:exist-home}/webapps/projets/oppidum/scripts
+    ./start.sh
+    
+Notez que vous pouvez utiliser le script `stop.sh` pour arrêter eXist.
 
-instruisant eXist de lire le fichier `controller-config.xml` depuis la collection `/db/www/universal` de la BD.
+Ensuite installez Oppidum dans la BD, pour cela:
 
-**Pour générer le fichier WAR universel il faut au préalable**:
+- accédez à l'URL `http://localhost:8080/exist/projets/oppidum/install`
+- cochez toutes les cases et appuyez sur le bouton *Install*
+- accédez à l'URL `http://localhost:8080/exist/projets/{:app}/install`
+- cochez toutes les cases et appuyez sur le bouton *Install*
+- appuyez ensuite sur le bouton *Set as root* pour copier le contrôleur de l'application dans le répertoire `/db/www/root`
 
-1. invoquer le script ant depuis une installation d'eXist dans laquelle la BD (répertoire `data`) se situe dans `${exist-home}/webapp/WEB-INF/data`
-2. avoir installé le fichier `controller-config.xml` universel dans la collection `/db/www/universal`
+Pour finir créez l'archive ZIP de toute la base de données: a) avec le client d'administration eXist (il faut choisir la collection `/db`) ou b) avec le module d'administration de Oppidum (cf ci-dessous).
 
-Le point 1 s'effectue au moment de l'installation de l'application eXist qui servira à générer le WAR, il faut bien préciser que la localisation du répertoire `data` sera celle indiquée ci-dessus (même si formellement elle n'existe pas encore au moment où l'on installe eXist).
+Pour créer l'archive ZIP de toute l'application avec le module d'administration de Oppidum : 
 
-Le point 2 nécessite, une fois le point 1 effectué, de copier Oppidum dans le répertoire `webapp` de eXist (par exemple dans le répertoire `{chemin}`), de lancer eXist, puis de copier Oppidum dans la base de données avec la page d'installation `http://localhost:8080/exist/{chemin}/oppidum/install` (cf. le point *Génération des archives ZIP*). 
+- accédez à l'URL `http://localhost:8080/exist/projets/oppidum/admin`
+- sélectionnez la collection `/db`
+- appuyez sur le bouton `Backup` et suivez les instructions
 
-Au moment de l'installation il faut sélectionner le module `root` dans le code, ce qui aura pour effet d'installer le fichier `controller-config.xml` universel dans la BD.
+L'archive `db-{:date}.zip` sera créée dans le répertoire {:home}/database par défaut.
 
-Le fichier WAR obtenu est universel car il permet d'éditer le mapping des URLs du site (par exemple pour ajouter des applications sur le site) sans modifier le WAR (et donc sans avoir à le redéployer), en modifiant directement la ressource `controller-config.xml` dans la BD. 
+Déploiement d'une application avec Oppidum pour Tomcat
+---
 
-Notons cependant que comme les modifications de la ressource `controller-config.xml` ne sont pas prises en compte immédiatement par eXist (qui impose un redémarrage pour les prendre en compte). Pour y remédier le fichier `controller-config.xml` universel fait pointer toutes les URLs vers la collection `/db/www/root`. En respectant cette convention lors de la création du fichier ZIP pour le code d'une application (celui qui contient le `controller.xql`) il est ainsi possible de la déployer directement sur le fichier WAR universel sans avoir besoin de relancer eXist (donc Tomcat).
+Démarrer Tomcat et déployer le fichier WAR universel de Tomcat.
 
-Pour produire le fichier ZIP universel du code de l'application (celui qui place le code de l'application dans `/db/www/root` et non pas dans la collection `/db/www/monapp`), nous avons ajouté une option *universal* à la page d'installation des applications. Il faut alors : 
+Il suffit ensuite de restorer l'archive `db-{:date}.zip` de l'application à l'aide du client d'administration de eXist.
 
-1. sélectionner l'option `universal` lors de l'installation du code dans la BD
-2. éditer le fichier `/db/www/root/controller.xql` et modifier l'attribute `confbase` du mapping en remplaçant `confbase="/db/www/monapp"` par `confbase="/db/www/root"`
+### Variante
 
-Ensuite seulement vous pouvez générer le fichier monapp-uni-code.ZIP du code de  l'application comme expliqué ci-dessus.
+Il est possible d'utiliser une variante qui accélère le déploiement (moins de fichiers transférés entre le client d'administration eXist et l'application Tomcat). 
 
-Notons qu'alternativement vous pouvez faire une installation standard et renommer à la main la collection `/db/www/monapp` en `/db/www/root` sans omettre le point 2 ci-dessus avant de générer le ZIP.
+Pour cela à l'étape 4, commencez par créer 1 archive `db-{:date}.zip` immédiatement après avoir installé Oppidum et qui contiendra Oppidum seulement. Pensez à inclure le contrôleur d'Oppidum dans la collection `/db/www/root`, pour cela appuyer sur le bouton *Set as root* lorsque vous installez Oppidum dans la base de donnée, et non pas lorsque vous installez l'application dans la base de donnée. 
 
-Notons enfin qu'il est possible d'inclure dans le fichier WAR obtenu en suivant les instructions précédentes la librairie Oppidum pré-installée. Pour cela cochez tous les modules correspondants lors du point 1. Vous n'aurez ainsi pas besoin de restorer l'archive `oppidum.zip` avec le client Java d'eXist sur le WAR déployé.
+Ensuite continuez à installez l'application et créez 2 archives différentes avec le module d'administration de Oppidum :
+
+- archive `db-sites-{:app}-{:date}.zip` ne contenant que les données de l'application
+- archive `db-www-{:app}-{:date}.zip` ne contenant que le code de l'application
+
+Une fois que vous aurez restoré l'archive `db-{:date}.zip` dans l'application sous Tomcat avec le client d'administration eXist, il vous restera alors à copier par FTP les 2 autres archives `db-sites-{:app}-{:date}.zip` et `db-www-{:app}-{:date}.zip` dans le répertoire `database` du domaine hébergé.
+
+Vous pourrez ensuite les restorer directement depuis l'application en accédant à l'URL `http://{:app-url}/admin` et en utilisant le bouton *Restore* après avoir sélectionné le fichier des archives ZIP à restorer l'une après l'autre.
+
+Mise à jour d'une application avec Oppidum pour Tomcat
+---
+
+La méthode de mise à jour ci-dessous n'est possible que si le contrôleur de l'application (`/db/www/root/controlle.xql`) contient le module d'administration de Oppidum, c'est à dire que si le bloc de code suivant est dans le mapping du site : 
+
+    <!-- Oppidum administration module (backup / restore) -->  
+    <item name="admin" resource="none" method="POST">
+      <access>
+        <rule action="GET POST" role="u:admin" message="admin"/>
+      </access>    
+      <model src="oppidum:modules/admin/restore.xql"/>
+      <view src="oppidum:modules/admin/restore.xsl"/>
+      <action name="POST">
+        <model src="oppidum:modules/admin/restore.xql"/>
+        <view src="oppidum:modules/admin/restore.xsl"/>   
+      </action>
+    </item>
+
+Au besoin vous pouvez l'ajouter avec le client d'amdministration eXist en éditant directement le contrôleur.
+
+Commencez par accéder à l'URL `http://{:app-url}/admin` et par effectuer une backup de la collection `/db` de manière å posséder une copie de sauvegarde de la BD. Pour plus de sûreté vous pouvez également restorer en local cette copie sur une installation d'eXist vierge afin de pouvoir revenir en arrière en cas de problème.
+
+Pour mettre à jour Oppidum, créez l'archive `db-www-oppidum-{:date}.zip` de la nouvelle version d'Oppidum que vous souhaitez utiliser comme expiqué ci-dessus, puis copiez la par FTP dans le répertoire `database` du site hébergé. Vous pouvez alors la restorer en utilisant le bouton *Restore* de la console d'amdministration d'Oppidum. 
+
+Pour mettre à jour l'application, procédez de même.
+
+Notez que les restorations sont non-destructive, c'est-à-dire qu'elles ne font que modifier les fichiers existants ou ajouter de nouveaux fichiers, si vous souhaitez supprimmer des fichiers vous devez le faire manuellement avant la restoration.  
+
+
+
+
+
+
+
 
 
 

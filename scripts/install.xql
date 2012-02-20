@@ -1,14 +1,14 @@
 xquery version "1.0";
-(: --------------------------------------
+(: ------------------------------------------------------------------
    Oppidum framework installation script
 
-   Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@opppidoc.fr>
 
-   Loads Oppidum library into the database as '/db/www/oppidum' (code)
-   and '/db/oppidum' (data). Creates '/db/sites'.
-      
-   January 2012
-   -------------------------------------- :)
+   Loads Oppidum library into the database as '/db/www/oppidum'
+
+   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
+   ------------------------------------------------------------------ :)
+
 declare namespace xdb = "http://exist-db.org/xquery/xmldb";
 declare namespace request = "http://exist-db.org/xquery/request";
 import module namespace install = "http://oppidoc.com/oppidum/install" at "../lib/install.xqm";   
@@ -28,12 +28,12 @@ declare variable $site := <site xmlns="http://oppidoc.com/oppidum/install">
 
 declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
   <collection name="/db/www" policy="admin" inherit="true"/>
-  <group name="config">
+  <group name="config" mandatory="true">
     <collection name="/db/www/oppidum/config">
       <files pattern="init/errors.xml"/>
     </collection>
   </group>
-  <group name="mesh">
+  <group name="mesh" mandatory="true">
     <collection name="/db/www/oppidum/mesh">
       <files pattern="mesh/*.html"/>
     </collection>
@@ -49,10 +49,14 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
       <files pattern="modules/**/*.xqm" preserve="true"/>
       <files pattern="modules/**/*.xsl" preserve="true"/>
       <files pattern="scripts/filter-transfo.xsl" preserve="true"/>
+<!--  <files pattern="scripts/filter-template.xsl" preserve="true"/> -->
       <files pattern="templates/**/*.xhtml" preserve="true"/>
       <files pattern="views/**/*.xsl" preserve="true"/>
     </collection>
   </group>
+</code>;
+
+declare variable $static := <static xmlns="http://oppidoc.com/oppidum/install">
   <group name="resources">
     <collection name="/db/www/oppidum">
       <files pattern="resources/**/*.css" preserve="true"/>
@@ -60,24 +64,11 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
       <files pattern="resources/**/*.png" preserve="true"/>
       <files pattern="resources/**/*.gif" preserve="true"/>
       <files pattern="resources/**/*.html" preserve="true"/>
-      (: there a trick because photo.xhtml is a forrest and cannot be imported as text/xml :)
+      (: note this a trick because photo.xhtml is a forrest and cannot be imported as text/xml :)
       <files pattern="resources/lib/axel/bundles/photo/photo.xhtml" type="text/plain" preserve="true"/>
     </collection>
-  </group>  
-  <group name="root (universal)">
-    <collection name="/db/www/universal" policy="admin">
-      <files pattern="config/universal/controller-config.xml"/>
-    </collection>
-    <collection name="/db/www/root">
-      <!-- <files pattern="config/universal/controller.xql"/> -->
-      <files pattern="controller.xql"/>
-      <files pattern="epilogue.xql"/>      
-    </collection>
-    <collection name="/db/www/root/mesh">
-      <files pattern="mesh/*.html"/>
-    </collection>
-  </group>  
-</code>;
+  </group>
+</static>;
 
-install:install($local:base, $policies, $site, $code, "oppidum", '/db/www/oppidum')
+install:install($local:base, $policies, $site, $code, $static, "oppidum", ())
 

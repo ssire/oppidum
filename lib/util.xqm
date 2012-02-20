@@ -67,6 +67,11 @@ declare function oppidum:log( $msg as xs:string ) as empty()
   util:log-app('debug', 'webapp.site', $msg)
 }; 
 
+declare function oppidum:debug( $msg as xs:string* ) as empty()
+{                                                                       
+  util:log-app('debug', 'webapp.site', string-join($msg, ' '))
+}; 
+
 (: ======================================================================
    Dumps eXist variables related to the request URL to the site's log file
    ======================================================================

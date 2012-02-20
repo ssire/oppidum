@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>untitled</title>
+	
+</head>
+
+<body>
+  <h1 id="guide_de_dploiement_d8217une_application_ralise_avec_oppidum">Guide de déploiement d&#8217;une application réalisée avec Oppidum</h1>
+
+  <p>par Stéphane Sire (Oppidoc SARL)
+  le 13 février 2012</p>
+
+  <p>L&#8217;application Auteurs Platinn Focus est écrite en XQuery / XSLT / Javascript. Elle utilise le framework Oppidum, développé par Stéphane Sire (Oppidoc SARL), compatible avec la base de donnée eXist-DB 1.4.1 rev 15155 [<a href="http://exist.sourceforge.net/download.html" title="exist.sourceforge.net/download.html">1</a>].</p>
+
+  <p>Le code et les données de l&#8217;application sont directement contenues dans la BD en production. Elles sont packagées sous la forme d&#8217;une archive .ZIP contenant le code et les données initiales. L&#8217;archive .ZIP s&#8217;installe dans la BD avec le client d&#8217;administration eXist. L&#8217;application fonctionne avec les modules standards de eXist-DB (le module image est activé par défaut dans le fichier conf.xml), donc pas besoin de modifier le fichier conf.xml par défaut de l&#8217;application. Vous pouvez par contre modifier le descripteur de déploiement web.xml pour supprimer des services inutilisés (comme WebDAV).</p>
+
+  <h2 id="instructions_sommaires">Instructions sommaires</h2>
+
+  <p>Pour déployer l&#8217;application en production : </p>
+
+  <ol>
+  <li><p>installer eXist-DB [<a href="http://exist.sourceforge.net/quickstart.html" title="exist.sourceforge.net/quickstart.html">2</a>]</p>
+
+  <ol>
+  <li><p>sur le choix de la JVM noter cette remarque d&#8217;un développeur eXist : &#8220;please do not use an openjdk6 for existdb&#8230;. Prefer to use a std oracle JVM instead&#8221; [<a href="http://markmail.org/message/22jscrhj63mwevtw" title="markmail.org/message/22jscrhj63mwevtw">3</a>]</p></li>
+  <li><p>configurer le fichier controller-config.xml pour aller chercher le contrôleur de l&#8217;application dans la collection &#8216;/db/www/root&#8217; (mettre la ligne <code>&lt;root pattern=".*" path="xmldb:exist:///db/www/root"/&gt;</code>)</p></li>
+  <li><p>configurer le fichier conf.xml de eXist pour activer les modules XQuery optionnels (dans notre cas le seul module optionnel &#8220;images&#8221; est activé par défaut donc rien à faire)</p></li>
+  <li><p>configurer le fichier web.xml de eXist pour désactiver les éventuels servlets inutiles (ex. WebDAV)</p></li>
+  <li><p>ajuster les niveaux de log dans le fichier log4j.xml</p></li>
+  <li><p>augmenter la mémoire allouée à la JVM, nous recommandons 765Mo minimum (utiliser la variable d&#8217;environnement <code>JAVA_OPTIONS</code>, par défaut <code>JAVA_OPTIONS="-Xms128m -Xmx512m -Dfile.encoding=UTF-8"</code>)</p></li>
+  </ol></li>
+  <li><p>lancer eXist-DB et utiliser le client d&#8217;administration [<a href="http://exist.sourceforge.net/client.html" title="exist.sourceforge.net/client.html">4</a>] pour restaurer l&#8217;archive .ZIP de l&#8217;application (juste une contrainte: il vaut mieux utiliser le même mot de passe admin pour créer l&#8217;archive ZIP que celui de la BD sur laquelle s&#8217;effectue la restauration, donc communiquez le nous avant de manière à ce que nous packagions correctement l&#8217;archive .ZIP)</p></li>
+  </ol>
+
+  <p>Pour l&#8217;étape 1 vous pouvez soit installer eXist en mode standalone (cf. [<a href="http://exist.sourceforge.net/production_web_proxying.html" title="Production use - Proxying eXist behind a Web Server">5</a>], [<a href="http://exist-open.markmail.org/thread/bwhv3c2rk7gpmfui" title="Installation d'eXist-DB sur Linux (date un peu)">6</a>] et [<a href="http://exist.sourceforge.net/production_good_practice.html" title="Production use - Good Practice">7</a>]), soit utiliser Tomcat. Si vous utilisez Tomcat, nous pouvons fournir un fichier .WAR contenant la BD eXist configurée pour l&#8217;application et duquel nous avons enlevé tout le superflu.</p>
+
+  <p>A noter que concernant le choix eXist en mode standalone ou eXist dans Tomcat, voici ce que recommande Dannes Wessels, l&#8217;un des développeurs de eXist-DB [<a href="http://markmail.org/message/tm4saqgztsslaqkj" title="markmail.org/message/tm4saqgztsslaqkj">8</a>] :</p>
+
+  <p>For good reasons we do not recommend running exist-db for production in tomcat. The main risk is that you share memory with other applications, an out-of-memory exception can be fatal for eXist.</p>
+
+  <p>Besides, you miss all kind of nice tooling (e.g. recovery tooling) when running in Tomcat and alike.</p>
+
+  <h2 id="optimisations">Optimisations</h2>
+
+  <h3 id="utilisation_d8217un_proxy_pour_servir_les_ressources_statiques">Utilisation d&#8217;un proxy pour servir les ressources statiques</h3>
+
+  <p>En plus d&#8217;augmenter la sécurité de l&#8217;application [<a href="http://exist.sourceforge.net/production_web_proxying.html" title="Production use - Proxying eXist behind a Web Server">5</a>], le proxy peut servir les ressources statiques. En production le framework Oppidum s&#8217;arrange en effet pour que toutes les URLs vers les ressources statiques (CSS, JS) soient de la forme:</p>
+
+  <pre><code>/static/{module}/reste-du-chemin-vers-ressources-statique
+  </code></pre>
+
+  <p>Avec {module} égal soit à &#8220;oppidum&#8221;, soit au nom de l&#8217;application (&#8220;focus&#8221;)</p>
+
+  <p>Par défaut, les ressources statiques sont servies par la BD (car elles sont dans les collections /db/www/{modules}/resources/), mais il est fortement recommandé de configurer le serveur Proxy (e.g. NGINX) pour servir directement ces ressources depuis :</p>
+
+  <pre><code>/{static}/{module}/reste-du-chemin-vers-ressources-statique
+  </code></pre>
+
+  <p>où {static} est un répertoire en dehors de l&#8217;application, accessible par FTP, où copier les fichiers des ressource statiques</p>
+
+  <h3 id="backups">Backups</h3>
+
+  <p>Pour la sécurité il faut au minimum prévoir une backup périodique de tout le répertoire &#8220;data/&#8221; qui contient la base de donnée eXist et ses journaux (l&#8217;emplacement de ce répertoire est fixé dans un fichier conf.xml de eXist).</p>
+
+  <p>Nous recommandons de définir un répertoire &#8220;database/&#8221; en dehors de l&#8217;application, sur lequel l&#8217;application peut écrire et accessible par FTP. L&#8217;application contient en effet un tableau de bord qui permet de faire manuellement une backup sélective (et une restauration) de tout ou partie de la BD dans une archive .ZIP dans un répertoire externe. Nous utilisons cette procédure lors des mises à jour.</p>
+
+  <p>En option nous pouvons aussi configurer l&#8217;application pour effectuer périodiquement une backup dans une répertoire défini à l&#8217;avance (par exemple le répertoire &#8220;database/&#8221; ci-dessus). Dans ce cas vous pouvez prévoir un script qui efface les anciennes backups.</p>
+
+  <h3 id="rfrences">Références</h3>
+
+  <p>[1] <a href="http://exist.sourceforge.net/download.html" title="exist.sourceforge.net/download.html">exist.sourceforge.net/download.html</a> <br>
+  [2] <a href="http://exist.sourceforge.net/quickstart.html" title="exist.sourceforge.net/quickstart.html">exist.sourceforge.net/quickstart.html</a> <br>
+  [3] <a href="http://markmail.org/message/22jscrhj63mwevtw" title="markmail.org/message/22jscrhj63mwevtw">markmail.org/message/22jscrhj63mwevtw</a> <br>
+  [4] <a href="http://exist.sourceforge.net/client.html" title="exist.sourceforge.net/client.html">exist.sourceforge.net/client.html</a> <br>
+  [5] <a href="http://exist.sourceforge.net/production_web_proxying.html" title="Production use - Proxying eXist behind a Web Server">exist.sourceforge.net/production_web_proxying.html</a> <br>
+  [6] <a href="http://exist-open.markmail.org/thread/bwhv3c2rk7gpmfui" title="Installation d'eXist-DB sur Linux (date un peu)">exist-open.markmail.org/thread/bwhv3c2rk7gpmfui</a> <br>
+  [7] <a href="http://exist.sourceforge.net/production_good_practice.html" title="Production use - Good Practice">exist.sourceforge.net/production_good_practice.html</a> <br>
+  [8] <a href="http://markmail.org/message/tm4saqgztsslaqkj" title="markmail.org/message/tm4saqgztsslaqkj">markmail.org/message/tm4saqgztsslaqkj</a>  </p>
+</body>
+</html>

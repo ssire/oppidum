@@ -119,17 +119,21 @@ declare function local:report-exception( $name as xs:string, $param as xs:string
 declare function local:collection-list() as element() {
   <list>
     <collection>/db</collection>
-    <collection>/db/sites</collection>
-    { 
-    for $n in xdb:get-child-collections('/db/sites') 
-    return <collection>/db/sites/{$n}</collection>  
-    }
-    <collection>/db/www</collection>
-    { 
-    for $n in xdb:get-child-collections('/db/www') 
-    return <collection>/db/www/{$n}</collection>
+    {
+    local:list-one('/db/sites'),
+    local:list-one('/db/www')
     }
   </list>
+};
+
+declare function local:list-one( $col-uri as xs:string ) as element()* {
+  if (xdb:collection-available($col-uri)) then
+    (
+    <collection>{$col-uri}</collection>,
+    for $n in xdb:get-child-collections($col-uri) 
+    return <collection>{$col-uri}/{$n}</collection>  
+    )
+  else ()
 };
 
 let $dir := local:get-path()
@@ -178,7 +182,7 @@ return
     <data>
       { 
       if (not(file:is-directory($dir))) then attribute error { 'path-not-found' } else (),
-      file:directory-list($dir, '*.zip'),
+      file:directory-list($dir, '*.zip'), (: TODO: sort by modification date :)
       local:collection-list()
       }
     </data>

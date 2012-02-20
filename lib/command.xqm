@@ -199,6 +199,7 @@ declare function command:parse-url(
       attribute lang { $lang },      
       attribute db { $mapping/@db },
       $mapping/@confbase,
+      $mapping/@mode,
       if ($mapping/error/@mesh) then attribute error-mesh { $mapping/error/@mesh } else (),
       if ($format) then attribute format { $format } else (),
       command:parse-token-iter($method, 1, $tokens, $mapping, 

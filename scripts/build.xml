@@ -240,7 +240,11 @@
           <webinf dir="../config/prod">
             <include name="conf.xml"/>
             <include name="log4j.xml"/>
-            <!-- controller-config.xml is stored inside /db/www/universal inside the BD -->
+            <!-- DEPRECATED : controller-config.xml is stored inside /db/www/universal inside the BD -->
+          </webinf>
+          
+          <webinf dir="../config/universal">
+            <include name="controller-config.xml"/>
           </webinf>
 
           <!-- S. SIRE: package the current data/ database into WEB-INF/data folder -->
@@ -248,6 +252,14 @@
             <exclude name="*.lck"/>
             <exclude name="fs.journal/**"/>
             <exclude name="*.log*"/>
+            <!-- remove everything to force eXist to construct empy DB on 1st startup -->
+            <exclude name="counters"/>
+            <exclude name="*.dbx"/>
+            <exclude name="lucene/**"/>
+            <exclude name="fs/**"/>
+            <exclude name="fs.journal/**"/>
+            <exclude name="export/**"/>
+            <exclude name="sanity/**"/>
           </zipfileset>            
 
           <!-- Add additional information -->

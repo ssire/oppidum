@@ -1,11 +1,11 @@
 xquery version "1.0";
-(: -----------------------------------------------
-   Oppidum framework : sample epilogue
+(: ------------------------------------------------------------------
+   Oppidum framework sample epilogue
 
-   Author: Stéphane Sire <s.sire@free.fr>
+   Author: Stéphane Sire <s.sire@opppidoc.fr>
 
-   December 2011 - Copyright (c) Oppidoc S.A.R.L
-   ----------------------------------------------- :)
+   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
+   ------------------------------------------------------------------ :)
 
 declare default element namespace "http://www.w3.org/1999/xhtml";
 

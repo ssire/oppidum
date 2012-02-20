@@ -1,15 +1,15 @@
 xquery version "1.0";
-(: -----------------------------------------------
-   Oppidum framework installation scripts
+(: ------------------------------------------------------------------
+   Oppidum framework installation helpers
+
+   Author: Stéphane Sire <s.sire@opppidoc.fr>
 
    Utility functions to copy Oppidum framework and applications to the
    database for pre-production and production. Some parts of this file
    inspired from eXist 1.4.1's admin/install.xqm module
 
-   Author: Stéphane Sire <s.sire@free.fr>
-
-   November 2011 - Copyright (c) Oppidoc S.A.R.L
-   ----------------------------------------------- :)
+   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
+   ------------------------------------------------------------------ :)
 
 module namespace install = "http://oppidoc.com/oppidum/install";
 
@@ -52,6 +52,25 @@ declare function install:fix-xsl-import( $col-uri as xs:string, $name as xs:stri
         <li>Fixed xsl:include in xslt file: {$res}</li>
     else
       <li style="color: red">Cannot fix xsl:include in xslt file: {$name} install Oppidum First !</li>
+};
+
+(: UNPLUGGED BECAUSE DOES NOT WORK (very slow in some cases) - Rewrite it with a TypeSwitch expression ? :)
+declare function install:fix-template-import( $col-uri as xs:string, $name as xs:string, $base-col-uri as xs:string ) {
+  let 
+    $data := fn:doc(concat($col-uri, '/', $name)),
+    $params := <parameters>
+                 <param name="script.base" value="{$col-uri}{if (not(ends-with($col-uri, '/'))) then '/' else ''}"/>
+                 <param name="exist:stop-on-warn" value="yes"/>
+                 <param name="exist:stop-on-error" value="yes"/>                 
+               </parameters>
+  return
+    if (doc-available('/db/www/oppidum/scripts/filter-template.xsl')) then 
+      let $filtered := transform:transform($data, 'xmldb:exist:///db/www/oppidum/scripts/filter-template.xsl', $params)
+      let $res := xdb:store($col-uri, $name, $filtered)
+      return
+        <li>Fixed xt:import in XTiger file: {$res}</li>
+    else
+      <li style="color: red">Cannot fix xt:import in XTiger file: {$name} install Oppidum First !</li>
 };
 
 (: ======================================================================
@@ -211,7 +230,10 @@ declare function install:install-group(
           return
             install:fix-xsl-import($col-uri, $f/@file, $base-col-uri)
         else
-          install:fix-xsl-import($f/@collection, $f/@file, $f/@base)        
+          install:fix-xsl-import($f/@collection, $f/@file, $f/@base)
+(:      for $f in $group/install:fix-template-import
+      return
+        install:fix-template-import($f/@collection, $f/@file, $f/@base) :)
     }</ul>
   )
 };
@@ -331,10 +353,11 @@ declare function install:_login_form() as element()
    ======================================================================
 :)    
 declare function install:install(
-  $base as xs:string, 
-  $policies as element(), 
-  $data as element(), 
-  $code as element(), 
+  $base as xs:string,
+  $policies as element(),
+  $data as element()?,
+  $code as element()?,
+  $static as element()?,
   $title as xs:string,
   $module as xs:string?) as element()
 {
@@ -347,7 +370,7 @@ declare function install:install(
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>{$title} DB installation script</title>
       </head>
-      <body>
+      <body style="margin: 2em 2em">
         <h1>{$title} DB installation</h1>
         <div>
           {
@@ -357,6 +380,7 @@ declare function install:install(
                 let $dir := install:webapp-home($base)
                 let $data-targets := request:get-parameter("data-target", ())
                 let $code-targets:= request:get-parameter("code-target", ())
+                let $static-targets:= request:get-parameter("static-target", ())
                 return (
                   <h2>Installation report for Users</h2>,
                   install:install-users($policies),
@@ -374,36 +398,55 @@ declare function install:install(
                       install:install-targets($dir, $code-targets, $code, $m),
                       install:install-policies($code-targets, $policies, $code, $m)
                       ) 
+                  else (),
+                  <h2>Installation report for Static resources</h2>,
+                  if (count($static-targets) > 0) then 
+                    (
+                    install:install-targets($dir, $static-targets, $static, ()),
+                    install:install-policies($static-targets, $policies, $static, ())
+                    )
                   else ()
                   )
               } 
               <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
             </div>
           else (
+            <p>Select the files to copy to the database below; <span
+            style="color:green">green</span> ones are mandatory even when
+            running the application from the file system (dev mode). 
+            By convention the <em>default</em> targets usually create required empty collections.</p>,
             <form method="post" action="install">
               <input type="hidden" name="go" value="yes"/>
-              <p>Data : 
-                <input id="data-default" type="checkbox" value="default" name="data-target" checked="true"/>
+              <p><b>Data</b> : 
+                <input id="data-default" type="checkbox" value="default" name="data-target"/>
                 <label for="data-default">default</label>
                 {
                 for $g at $i in $data/install:group
                 let $n := string($g/@name)
-                return (
-                  <input id="{$n}" type="checkbox" value="{$n}" name="data-target"/>,
-                  <label for="{$n}">{$n}</label>
-                  )
+                return
+                  <span>
+                    { if ($g/@mandatory) then attribute style { 'color: green '} else () }
+                    <input id="{$n}" type="checkbox" value="{$n}" name="data-target">
+                      { if ($g/@mandatory) then attribute checked { 'true'} else () }
+                    </input>
+                    <label for="{$n}">{$n}</label>
+                  </span>
                 }
               </p>
-              <p>Code : 
-                <input id="code-default" type="checkbox" value="default" name="code-target" checked="true"/>
+              <p><b>Code</b> : 
+                <input id="code-default" type="checkbox" value="default" name="code-target"/>
                 <label for="code-default">default</label>
                 {
                 for $g in $code/install:group
                 let $n := string($g/@name)
-                return (
-                  <input id="{$n}" type="checkbox" value="{$n}" name="code-target"/>,
-                  <label for="{$n}">{$n}</label>
-                  )
+                return
+                  <span>
+                    { if ($g/@mandatory) then attribute style { 'color: green '} else () }
+                    <input id="{$n}" type="checkbox" value="{$n}" name="code-target">
+                      { if ($g/@mandatory) then attribute checked { 'true'} else () }
+                    </input>
+                    <label for="{$n}">{$n}</label>
+                  </span>
                 }  
                 {
                   if ($module) then
@@ -415,8 +458,27 @@ declare function install:install(
                       <label for="module">module</label>]
                     </span>
                   else ()                    
-                }            
+                }
+              </p> 
+              <p><b>Static resources</b> : 
+                {
+                for $g in $static/install:group
+                let $n := string($g/@name)
+                return (
+                  <input id="{$n}" type="checkbox" value="{$n}" name="static-target"/>,
+                  <label for="{$n}">{$n}</label>
+                  )
+                }
+                <br/><span style="font-size: smaller; font-style:italic">In
+                test or production we strongly advise you to setup a proxy
+                (e.g. NGINX) to directly serve static resources so you do not
+                need to load them inside the database</span>
               </p>
+              <p><b>Root</b> :
+                <input type="checkbox" value="true" name="root-controller"/>
+                <label>controller</label>
+                <br/><span style="font-size: smaller; font-style:italic">Check this flag if you want to set the <tt>controller.xql</tt> of this application as the main controller (i.e. copy it to the <tt>/db/www/root</tt> collection)</span>
+              </p>              
               <p>You are logged in as <b>{$user}</b></p>
               {
               if ($user = 'admin') then (
@@ -426,6 +488,18 @@ declare function install:install(
               else ()
               }          
             </form>,
+            <hr/>,
+            <p>NOTE : once you have installed the application to the database,
+            if it declares the Oppidum <em>admin</em> module in its controller, 
+            you can use the admin panel to archive the application to one or more 
+            ZIP files which can be used to deploy or to upgrade it on other servers. 
+            Alternatively you can use the eXist administration client.            
+            To bootstrap an application from an empty
+            universal Oppidum WAR file, you only need to install first the
+            Oppidum ZIP archive using the eXist administration client, then you 
+            can use the embedded <em>admin</em> module to update the databse.
+            </p>
+            ,
             if ($user != 'admin') then install:_login_form() else ()
             )
           }
