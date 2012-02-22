@@ -25,13 +25,14 @@ import module namespace gen = "http://oppidoc.com/oppidum/generator" at "../oppi
                   Site default access rights
    ====================================================================== :)                 
 declare variable $access := <access>
-  <rule method="POST" role="u:admin" message="super admin"/>
+  <rule action="POST" role="u:admin" message="database administrator"/>
 </access>;
 
 (: ======================================================================
                   Site default actions
    ====================================================================== :)                 
 declare variable $actions := <actions error="models/error.xql">
+  <!-- <error mesh="standard"/> -->
   <action name="login" depth="0"> <!-- may be GET or POST --> 
     <model src="oppidum:actions/login.xql"/>
     <view src="oppidum:views/login.xsl"/>

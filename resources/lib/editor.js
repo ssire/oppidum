@@ -65,8 +65,13 @@ function getExistErrorMsg (xhr) {
 }
 
 function saveSuccessCb (response, status, xhr) {
+  var loc = xhr.getResponseHeader('Location');
   if (xhr.status = 201) {
-    window.location.href = xhr.getResponseHeader('Location');
+    if (loc) {
+      window.location.href = loc;
+    } else {
+      logError(getOppidumErrorMsg(xhr));
+    }
   } else {
     logError('Unexpected response from server (' + xhr.status + '). Save action may have failed');
   }

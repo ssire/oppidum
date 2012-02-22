@@ -193,8 +193,8 @@ declare function oppidum:render-error(
     $arg := if ($err-clue) then $err-clue else '',
     $text : = if (contains($message, "%s")) then replace($message, "%s", $arg) else $message
     (: FIXME: substituer la clue :)
-    
-  return        
+
+  return
     <error>
       {
       if ($error/@code) then
@@ -243,7 +243,7 @@ declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:st
       return oppidum:render-error($cmd/@confbase, $err-type, $err-clue, $cmd/@lang, $set-status)
     else
       (: stores error message for later rendering in the epilogue :)
-      oppidum:add-error($err-type, $err-clue, false())  
+      oppidum:add-error($err-type, $err-clue, false())
 };                 
 
 (: ======================================================================

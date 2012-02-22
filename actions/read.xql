@@ -35,4 +35,7 @@ return
       let $cmd := request:get-attribute('oppidum.command')
       return oppidum:throw-error('ARCHIVED', $cmd/resource/@name)
     else
-      $data
+      if ($data) then
+        $data
+      else
+        <empty/>

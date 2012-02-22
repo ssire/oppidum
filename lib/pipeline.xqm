@@ -540,7 +540,7 @@ declare function gen:process(
       (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
          si on l'utilise passer $exist:root, $exist:prefix  :)
       let 
-        $cmd := command:parse-url($base-url, $app-root, $path, $path, request:get-method(), $mapping, 'fr'),
+        $cmd := command:parse-url($base-url, $app-root, $path, $path, request:get-method(), $mapping, $lang),
         $default := command:get-default-action($cmd, $actions),
         $set1 := request:set-attribute('oppidum.base-url', $base-url),      
         $set2 := request:set-attribute('oppidum.command', $cmd),      
