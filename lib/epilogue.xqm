@@ -1,13 +1,13 @@
 xquery version "1.0";
-(: -----------------------------------------------
+(: ------------------------------------------------------------------
    Oppidum framework epilogue
+
+   Author: Stéphane Sire <s.sire@opppidoc.fr>
 
    Utility functions for writing epilogue scripts in XQuery
 
-   Author: Stéphane Sire <s.sire@free.fr>
-
-   November 2011 - Copyright (c) Oppidoc S.A.R.L
-   ----------------------------------------------- :)
+   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
+   ------------------------------------------------------------------ :)
 
 module namespace epilogue = "http://oppidoc.com/oppidum/epilogue";
 
@@ -44,7 +44,9 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
       <link rel="stylesheet" href="{$base}{$f}" type="text/css" charset="utf-8"/>,
     for $p in $predefs (: pre-defined modules coming with Oppidum :)
     return
-      if ($p = 'axel') then (
+      if ($p = 'flash') then
+        <link rel="stylesheet" href="{$base}css/flash.css" type="text/css" />
+      else if ($p = 'axel') then (
         <link rel="stylesheet" href="{$base}css/Preview.css" type="text/css" />,
         <link rel="stylesheet" href="{$base}lib/axel/axel.css" type="text/css" />
         )
@@ -71,7 +73,9 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
         <script type="text/javascript" src="{$base}{$f}">//</script>,
     for $p in $predefs (: pre-defined modules coming with Oppidum :)
     return
-      if ($p = 'jquery') then
+      if ($p = 'flash') then
+        <script type="text/javascript" src="{$base}lib/flash.js">//</script>
+      else if ($p = 'jquery') then
         <script type="text/javascript" src="{$base}lib/jquery-1.5.1.min.js">//</script>
       else if ($p = 'axel') then (
         <script type="text/javascript" src="{$base}lib/axel/axel.js">//</script>,
@@ -110,53 +114,87 @@ declare function epilogue:img-link( $package as xs:string, $files as xs:string* 
    called from the epilogue iff the pipeline defines a non-empty mesh
    ======================================================================
 :) 
-declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) as element()* 
+declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) as element()?
 {
-  let $filename := 
-    if ($cmd/@error) then (: pre-generation error : 'not-found', 'not-supported' - see command.xqm :)
-      if ($cmd/@error-mesh) 
-        then string($cmd/@error-mesh) (: there is an error mesh defined in the mapping :)
-        else string($cmd/@error) (: no error mesh in mapping :)
-    else
-      string($pipeline/epilogue/@mesh)
+  let $fn := string($pipeline/epilogue/@mesh)
+  let $mesh := epilogue:my-make-mesh-uri($cmd, $fn)
   return
-    if ($filename != '') then
-      let $path := concat($cmd/@confbase, '/mesh/', $filename, '.html')
-      let $root := fn:doc($path)/*[1]
-      return                 
-        if ($root) 
-          then $root
-          else epilogue:my-gen-mesh-error($filename)
+    if ($mesh) then
+      (: there is an explicit mesh :)
+      if (epilogue:mesh-available($mesh, $fn)) then
+        fn:doc($mesh)/*[1]
+      else
+        epilogue:my-default-mesh()
     else
-      epilogue:my-gen-error-no-mesh()      
+      (: some pre-gen error prevented pipeline generation e.g. 'not-found', 'not-supported' - see command.xqm :)
+      if ($cmd/@error) then
+        let $errmesh := epilogue:my-make-mesh-uri($cmd, string($cmd/@error-mesh))
+        return
+          if ($errmesh and epilogue:mesh-available($errmesh, string($cmd/@error-mesh))) then 
+            fn:doc($errmesh)/*[1]
+          else
+            let $defmesh := epilogue:my-make-mesh-uri($cmd, string($cmd/@error))
+            return
+              if (epilogue:mesh-available($defmesh, ())) then
+                fn:doc($defmesh)/*[1]
+              else
+                epilogue:my-pregen-error-mesh()
+      else 
+        epilogue:my-pregen-error-mesh()
+};
+
+declare function epilogue:my-make-mesh-uri( $cmd as element(), $fn as xs:string ) as xs:string?
+{
+  if ($fn != '') then
+    concat($cmd/@confbase, '/mesh/', $fn, '.html')
+  else
+    ()
+};
+            
+declare function epilogue:mesh-available( $mesh-uri as xs:string, $name as xs:string? ) as xs:boolean
+{
+  let $res := fn:doc-available($mesh-uri)
+  let $exec := if (not($res) and $name) then oppidum:add-error('DB-MESH-NOT-FOUND', $name, false()) else ()
+  return
+    $res
 };
 
 (: ======================================================================
-   Returns an error when the mesh to render a page is missing
+   Returns a default mesh in case the requested mesh is missing.
+   The mesh has hooks for site's link(s), script(s) and a <site:content>.
    ======================================================================
 :) 
-declare function epilogue:my-gen-mesh-error( $name as xs:string ) as element()
+declare function epilogue:my-default-mesh() as element()
 {  
-  let $err := oppidum:add-error('DB-MESH-NOT-FOUND', $name, false())
-  return
-    <html xmlns:site="http://oppidoc.com/oppidum/site" xmlns="http://www.w3.org/1999/xhtml">
-      <body>
-        <site:error force="true"/>
-      </body>
-    </html>
+  <html xmlns:site="http://oppidoc.com/oppidum/site" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+      <site:link force="true"/>
+      <site:script force="true"/>
+    </head>
+    <body>
+      <div id="error"><site:error force="true"/></div>
+      <div id="message" condition="has-message"><site:message force="true"/></div>
+      <site:content/>
+    </body>
+  </html>
 }; 
 
 (: ======================================================================
-   Returns a fake mesh to display the error and a note that there is no mesh
+   Returns a default mesh to notify a pre-generation error when no error 
+   mesh was specified or when it is missing. The mesh does not have hooks 
+   for site's link(s) and script(s), if you want to style pre generation 
+   errors then you must include a global <error-handler> for the site.
    ======================================================================
 :) 
-declare function epilogue:my-gen-error-no-mesh() as element()
+declare function epilogue:my-pregen-error-mesh() as element()
 {  
-  (:  FIXME: let $err := oppidum:throw-error('DB-MISSING-MESH', $name):)
-  <root xmlns:site="http://oppidoc.com/oppidum/site">
-    <site:error force="true"/>
-  </root>
-}; 
+  <html xmlns:site="http://oppidoc.com/oppidum/site" xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+      <div id="error"><site:error force="true"/></div>
+      <div id="message" condition="has-message"><site:message force="true"/></div>
+    </body>
+  </html>
+};
 
 (: ======================================================================
    Returns the mesh to render the current page, or the empty element 
@@ -172,6 +210,3 @@ declare function epilogue:finalize() as element()*
     else
       epilogue:get-mesh(request:get-attribute('oppidum.command'), request:get-attribute('oppidum.pipeline'))
 };
-
-
-

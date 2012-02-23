@@ -1,0 +1,31 @@
+/* error / message box close button */
+
+div#message {
+  position: relative;
+  border: solid 1px blue;
+}
+
+div#error {
+  position: relative;
+  border: solid 1px red;
+}
+
+div#message p, div#error p {
+  padding: 8px;
+  margin: 0 0 0 20px;
+}
+
+span.ui-close {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  font-weight: bold;
+}
+
+div#message span.ui-close {
+  color: blue;
+}
+
+div#error span.ui-close {
+  color: red;
+}

@@ -129,8 +129,12 @@ declare function gen:path-to-model($app-root as xs:string, $exist-path as xs:str
 :) 
 declare function gen:path-to-view($app-root as xs:string, $script as xs:string, $mkey as xs:string) as xs:string 
 {
-  if (starts-with($script, 'oppidum:')) then
-    concat(replace($app-root, "/[^/]+/?$", '/oppidum/'), substring-after($script, 'oppidum:'))
+  (: if (starts-with($script, 'oppidum:')) then:)
+  if (contains($script, ":")) then
+    let $lib := substring-before($script, ":")
+    return
+      concat(replace($app-root, "/[^/]+/?$", concat('/', $lib, '/')), 
+        substring-after($script, concat($lib, ':')))
   else if ($mkey) then
     concat(replace($app-root, "/[^/]+/?$", concat('/', $mkey, '/')), $script)
   else
@@ -152,8 +156,9 @@ declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:st
         <model src="oppidum:models/error.xql"/>
         {                                                                                                    
         (: FIXME: maybe some POST request are not Ajax or debug request... :)  
-        if ((string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')) then 
-          <epilogue mesh="{$cmd/@error-mesh}"/>
+        if ((string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')) then
+          <epilogue mesh=""/>
+          (: mesh may be an empty string anyway we force it to call epilogue :)
         else 
           () 
         }

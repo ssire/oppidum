@@ -8,8 +8,8 @@
     <message lang="en">Resource “%s” not found in database</message>
   </error>     
   <error type="DB-MESH-NOT-FOUND">
-    <message lang="fr">Pas de gabarit “%s”</message>
-    <message lang="en">Missing mesh “%s”</message>
+    <message lang="fr">Le gabarit “%s” pour afficher la page n'existe pas</message>
+    <message lang="en">Missing mesh “%s” to render the page</message>
   </error>     
   <error type="FORMAT-NOT-AVAILABLE" code="404">
     <message lang="fr">Format .%s non reconnu</message>

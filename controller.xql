@@ -32,7 +32,6 @@ declare variable $access := <access>
                   Site default actions
    ====================================================================== :)                 
 declare variable $actions := <actions error="models/error.xql">
-  <!-- <error mesh="standard"/> -->
   <action name="login" depth="0"> <!-- may be GET or POST --> 
     <model src="oppidum:actions/login.xql"/>
     <view src="oppidum:views/login.xsl"/>
@@ -50,6 +49,7 @@ declare variable $actions := <actions error="models/error.xql">
                   Site mappings
    ====================================================================== :)                 
 declare variable $mapping := <site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum">
+<!-- <error mesh="standard"/> -->
   <item name="home">
     <model src="models/version.xql"/>
   </item>

@@ -150,7 +150,7 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
         for $doc in $stored return
             <li>Uploaded: {$doc}</li>
       else
-        <li style="color: red">No file uploaded, please check your settings</li>
+        <li style="color: red">No file uploaded from {$home} into {$collection} with pattern {$patterns}, please check your settings</li>
       
 };
 
@@ -162,7 +162,7 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
         for $doc in $stored return
           <li>Uploaded: {$doc}</li>
       else
-        <li>No file uploaded, please check your settings</li>
+        <li>No file uploaded from {$home} into {$collection} with pattern {$patterns}, please check your settings</li>
 };
 
 declare function install:mime-for-suffix($suffix as xs:string) as xs:string
@@ -182,15 +182,20 @@ declare function install:mime-for-suffix($suffix as xs:string) as xs:string
 
 declare function install:install-file($home as xs:string, $col as xs:string, $file as element()) as element()*
 {
-  let $pattern := string($file/@pattern)
+  let $pattern := if (contains($file/@pattern, ":")) then
+                    substring-after($file/@pattern, ':')
+                  else string($file/@pattern)
+  let $srcdir := if (contains($file/@pattern, ":")) then
+                   replace($home, "/[^/]*$", concat("/", substring-before($file/@pattern, ':')))
+                 else $home
   let $preserve := if (string($file/@preserve) = 'true') then true() else false()
   let $type := if ($file/@type) then string($file/@type) else install:mime-for-suffix(substring-after($pattern, '.'))
   return (
-    <li>Attempt to upload file(s) "{$pattern}" inside {$col} with type {$type} {if ($preserve) then ' (preserve)' else ()}</li>,
+    <li>Attempt to upload file(s) "{$pattern}" inside {$col} from {$srcdir} with type {$type} {if ($preserve) then ' (preserve)' else ()}</li>,
     if ($preserve) then
-      install:store-files($col, $home, $pattern, $type, true())  
+      install:store-files($col, $srcdir, $pattern, $type, true())  
     else
-      install:store-files($col, $home, $pattern, $type)  
+      install:store-files($col, $srcdir, $pattern, $type)
     )      
 };
 
