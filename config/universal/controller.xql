@@ -18,7 +18,7 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../oppid
 let $app-root := if (not($exist:controller)) then concat($exist:root, '/') else concat($exist:controller, '/')
 return
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-    <forward url="{gen:path-to-oppidum($app-root, $exist:path, 'models/version.xql')}">
+    <forward url="{gen:path-to-lib($app-root, $exist:path, 'models/version.xql', 'oppidum')}">
       <set-header name="Cache-Control" value="no-cache"/>
       <set-header name="Pragma" value="no-cache"/>
     </forward>

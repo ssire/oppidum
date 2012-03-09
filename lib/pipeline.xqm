@@ -32,7 +32,7 @@ declare function gen:path-to-static-resource($app-root as xs:string, $exist-path
   return  
     (: currently we handle only one module for "oppidum" resources :) 
     if (starts-with($payload, '/static/oppidum')) then 
-      gen:path-to-oppidum($app-root, $exist-path, $local-path)  
+      gen:path-to-lib($app-root, $exist-path, $local-path, 'oppidum')
     else
       gen:path-to($app-root, $exist-path, $local-path, $mkey)
 };
@@ -88,20 +88,20 @@ declare function gen:path-to($app-root as xs:string, $exist-path as xs:string, $
    Note: the application code folder is the one containing the controller.xql calling this module
    ======================================================================
 :)
-declare function gen:path-to-oppidum($app-root as xs:string, $exist-path as xs:string, $script as xs:string) as xs:string 
+declare function gen:path-to-lib($app-root as xs:string, $exist-path as xs:string, $script as xs:string, $mkey as xs:string) as xs:string 
 {                                                                                            
   let $base := 
     if ($app-root = '/') then (: file system, application served directly below webapp/ :)
-      '/oppidum/' 
+      concat('/', $mkey, '/')
     else if (starts-with($app-root, 'xmldb:')) then (: application served from database :)
       (: in that case only relative URLs work, as URLRewriting will also automatically prefixes the URLs 
          with $exist:root/$exist:path we have to forge a relative URL that substracts $exist:path
          plus an additionnel level ("..") since this method is called from the application's controller
-         to actually points to /db/www/oppidum collection :)
-      concat(gen:dot-path($exist-path), "../oppidum/")
+         to actually points to /db/www/:mkey collection :)
+      concat(gen:dot-path($exist-path), concat('../', $mkey, '/'))
     else (: file system, application served somewhere below webapp/ :)
-      replace($app-root, "/[^/]+/?$", '/oppidum/')
-  return  
+      replace($app-root, "/[^/]+/?$", concat('/', $mkey, '/'))
+  return
     concat($base, $script)
 };   
 
@@ -113,9 +113,8 @@ declare function gen:path-to-oppidum($app-root as xs:string, $exist-path as xs:s
 :)
 declare function gen:path-to-model($app-root as xs:string, $exist-path as xs:string, $script as xs:string, $mkey as xs:string) as xs:string 
 {
-  (: FIXME: filtrer 'XXX:' aussi :)
-  if (starts-with($script, 'oppidum:')) then
-    gen:path-to-oppidum($app-root, $exist-path, substring-after($script, 'oppidum:'))
+  if (contains($script, ":")) then
+    gen:path-to-lib($app-root, $exist-path, substring-after($script, ':'), substring-before($script, ":"))
   else
     gen:path-to($app-root, $exist-path, $script, $mkey)
 };
@@ -124,12 +123,11 @@ declare function gen:path-to-model($app-root as xs:string, $exist-path as xs:str
    Generates a path to an XSLT script to give to the XSLT servlet.
    In that case absolute URLs works in both file system and database hosting conditions.
    Note: database hosting conditions does not allow '..' segments in the URL hence
-   you must use the "oppidum:" prefix to point to a script in the oppidum libary
+   you must use the "xxx:" prefix to point to a script in the xxx libary
    ======================================================================
 :) 
 declare function gen:path-to-view($app-root as xs:string, $script as xs:string, $mkey as xs:string) as xs:string 
 {
-  (: if (starts-with($script, 'oppidum:')) then:)
   if (contains($script, ":")) then
     let $lib := substring-before($script, ":")
     return
@@ -430,7 +428,7 @@ declare function gen:render($cmd as element(), $pipeline as element(), $mkey as 
             { gen:model_parameters($cmd, $pipeline) }
           </forward>          
         else              
-          <exist:forward url="{gen:path-to-oppidum($cmd/@app-root, $cmd/@exist-path, 'models/error.xql')}">
+          <exist:forward url="{gen:path-to-lib($cmd/@app-root, $cmd/@exist-path, 'models/error.xql', 'oppidum')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
             <exist:set-attribute name="oppidum.error.clue" value="{$cmd/resource/@name}"/>
             <exist:set-header name="Cache-Control" value="no-cache"/>
@@ -506,7 +504,7 @@ declare function gen:pipeline($cmd as element(), $default as element()*, $mkey a
 declare function gen:debug-command($cmd as element()) as element() 
 {                           
   <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-    <forward url="{gen:path-to-oppidum($cmd/@app-root, $cmd/@exist-path, 'models/debug.xql')}"/>
+    <forward url="{gen:path-to-lib($cmd/@app-root, $cmd/@exist-path, 'models/debug.xql', 'oppidum')}"/>
     <cache-control cache="no"/>
   </dispatch>
 };

@@ -191,7 +191,7 @@ declare function oppidum:render-error(
         string($msgs[1]),
     $message := if ($msg) then $msg else concat("Error (", $err-type, ")"),     
     $arg := if ($err-clue) then $err-clue else '',
-    $text : = if (contains($message, "%s")) then replace($message, "%s", $arg) else $message
+    $text := if (contains($message, "%s")) then replace($message, "%s", $arg) else $message
     (: FIXME: substituer la clue :)
 
   return
