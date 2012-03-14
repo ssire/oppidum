@@ -52,6 +52,8 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
         )
       else if ($p = 'photo') then
         <link rel="stylesheet" href="{$base}lib/axel/bundles/photo/photo.css" type="text/css" />
+      else if ($p = 'date') then
+        <link rel="stylesheet" href="{$base}contribs/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css" type="text/css" />
       else
         ()
   )
@@ -76,7 +78,8 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
       if ($p = 'flash') then
         <script type="text/javascript" src="{$base}lib/flash.js">//</script>
       else if ($p = 'jquery') then
-        <script type="text/javascript" src="{$base}lib/jquery-1.5.1.min.js">//</script>
+        <script type="text/javascript" src="{$base}contribs/jquery/js/jquery-1.7.1.min.js">//</script>
+(:        <script type="text/javascript" src="{$base}lib/jquery-1.5.1.min.js">//</script>:)
       else if ($p = 'axel') then (
         <script type="text/javascript" src="{$base}lib/axel/axel.js">//</script>,
         <script data-bundles-path="{$base}lib/axel/bundles" type="text/javascript" src="{$base}lib/editor.js">//</script>
@@ -91,6 +94,8 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
             }}
           }}
         </script>
+      else if ($p = 'date') then
+        <script type="text/javascript" src="{$base}contribs/jquery/js/jquery-ui-1.8.18.custom.min.js">//</script>
       else
         ()
   )
