@@ -159,6 +159,7 @@ function install () {
     errLog = new xtiger.util.Logger(),
     template, data, tmp;
     
+  $('body').addClass('edition');
   if (templateSrc && axelPath && containerId) {                
     // 1. load template and generate editor
     template = xtiger.debug.loadDocument(templateSrc, errLog);

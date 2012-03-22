@@ -35,16 +35,24 @@ declare function epilogue:make-static-base-url-for( $package as xs:string ) as x
    Returns static CSS link elements pointing to the given package 
    ======================================================================
 :) 
-declare function epilogue:css-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as element()*
+declare function epilogue:css-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as node()*
 {
   let $base := epilogue:make-static-base-url-for($package)
   return (
     for $f in $files
     return
-      <link rel="stylesheet" href="{$base}{$f}" type="text/css" charset="utf-8"/>,
+      if (starts-with($f, '[')) then (: conditional :)
+        let $cond := substring-before($f, ']')
+        let $path := substring-after($f, ']')
+        return
+          comment { concat($cond, ']><link rel="stylesheet" href="', $base, $path, '" type="text/css" charset="utf-8" /><![endif]') }
+      else
+        <link rel="stylesheet" href="{$base}{$f}" type="text/css" charset="utf-8"/>,
     for $p in $predefs (: pre-defined modules coming with Oppidum :)
     return
-      if ($p = 'flash') then
+      if ($p = 'favicon') then (: convention :)
+        <link rel="shortcut icon" type="image/x-icon" href="{$base}images/favicon.ico" />
+      else if ($p = 'flash') then
         <link rel="stylesheet" href="{$base}css/flash.css" type="text/css" />
       else if ($p = 'axel') then (
         <link rel="stylesheet" href="{$base}css/Preview.css" type="text/css" />,

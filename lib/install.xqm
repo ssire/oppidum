@@ -100,7 +100,7 @@ declare function install:create-collection($parent as xs:string, $collection as 
   else
     let $r := xdb:create-collection($parent, $collection)
     return
-        <li>Created collection {$r}</li>
+        <li>Created collection <span class="success">{$r}</span></li>
 };
 
 (: ======================================================================
@@ -148,7 +148,7 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
     return
       if (count($stored) > 0) then
         for $doc in $stored return
-            <li>Uploaded: {$doc}</li>
+            <li>Uploaded: <span class="success">{$doc}</span></li>
       else
         <li style="color: red">No file uploaded from {$home} into {$collection} with pattern {$patterns}, please check your settings</li>
       
@@ -160,7 +160,7 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
     return
       if (count($stored) > 0) then
         for $doc in $stored return
-          <li>Uploaded: {$doc}</li>
+          <li>Uploaded: <span class="success">{$doc}</span></li>
       else
         <li>No file uploaded from {$home} into {$collection} with pattern {$patterns}, please check your settings</li>
 };
@@ -351,6 +351,130 @@ declare function install:_login_form() as element()
     </form>
   </div>  
 };
+
+declare function install:gen-form-for-bundle( $bundle as element() ) as element()
+{
+  <p>
+    <b>{string($bundle/@name)}</b> :
+    {
+    for $g in $bundle/install:group
+    let $n := string($g/@name)
+    return
+      <span>
+        { if ($g/@mandatory) then attribute style { 'color: green '} else () }
+        <input id="{$n}" type="checkbox" value="{$n}" name="{$bundle/@name}-target">
+          { if ($g/@mandatory) then attribute checked { 'true'} else () }
+        </input>
+        <label for="{$n}">{$n}</label>
+      </span>
+    }
+  </p>
+};
+
+declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl as xs:boolean  ) as element()
+{
+  let $user :=  xdb:get-current-user()
+  return
+    <div>
+      <p>Select the files to copy to the database below; 
+         <span style="color:green">green</span> ones are mandatory even when running the application from the file system (dev mode).
+      </p>
+      <form method="post" action="install">
+        <input type="hidden" name="go" value="yes"/>
+        {
+          for $b in $bundles return install:gen-form-for-bundle($b)
+        }
+        {
+          if ($hasCtrl) then
+            <p><b>Root</b> :
+              <input type="checkbox" value="true" name="root-controller"/>
+              <label>controller</label>
+              <br/><span style="font-size: smaller; font-style:italic">Check this flag if you want to set the <tt>controller.xql</tt> of this application as the main controller (i.e. copy it to the <tt>/db/www/root</tt> collection)</span>
+            </p>              
+          else
+            ()
+        }
+        <p>You are logged in as <b>{$user}</b></p>
+        {
+        if ($user = 'admin') then (
+          <p>Click on the install button to proceed</p>,
+          <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
+          )
+        else ()
+        }          
+      </form>
+      <hr/>
+      <p>NOTE : once you have installed the application to the database, if it declares the Oppidum <em>admin</em> module in its controller, 
+      you can use the admin panel to archive the application to one or more ZIP files which can be used to deploy or to upgrade it on other servers. 
+      Alternatively you can use the eXist administration client. To bootstrap an application from an empty universal Oppidum WAR file, 
+      you only need to install first the Oppidum ZIP archive using the eXist administration client, then you can use the embedded <em>admin</em> module
+      to update the database.</p>
+      {
+        if ($user != 'admin') then install:_login_form() else ()
+      }
+    </div>
+};
+
+declare function install:do-install-bundle(
+  $base as xs:string,
+  $policies as element(),
+  $bundle as element(),
+  $title as xs:string
+) as element()*
+{
+  let $dir := install:webapp-home($base)
+  let $targets := request:get-parameter(concat($bundle/@name, "-target"), ())
+  return (
+    <h2>Installation report for Users</h2>,
+    install:install-users($policies),
+    <h2>Installation report for {string($bundle/@name)}</h2>,
+    if (count($targets) > 0) then (
+      install:install-targets($dir, $targets, $bundle, ()),
+      install:install-policies($targets, $policies, $bundle, ())
+      )
+    else 
+      <ul>
+        <li>Nothing to install because no targets were selected</li>
+      </ul>
+    )
+};
+
+declare function install:install-bundle(
+  $base as xs:string,
+  $policies as element(),
+  $bundle as element(),
+  $title as xs:string
+)
+{
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+      <title>{$title} DB installation</title>
+      {
+        element style {
+          attribute type { "text/css" },
+          ".success { color: green }"
+        }
+      }
+    </head>
+    <body style="margin: 2em 2em">
+      <h1>{$title} DB installation</h1>
+      <div>
+        {
+        if (request:get-parameter("go", ())) then (: could as well test for method 'POST' :)
+          <div class="report">
+            {
+            install:do-install-bundle($base, $policies, $bundle, $title)
+            }
+            <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
+          </div>
+        else
+          install:gen-forms-for-bundles(($bundle), false())
+        }
+      </div>
+    </body>
+  </html>
+};
   
 (: ======================================================================
    Generates an HTML page to handle site installation to the database
@@ -374,6 +498,12 @@ declare function install:install(
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>{$title} DB installation script</title>
+        {
+          element style {
+            attribute type { "text/css" },
+            ".success { color: green }"
+          }
+        }
       </head>
       <body style="margin: 2em 2em">
         <h1>{$title} DB installation</h1>
@@ -487,7 +617,7 @@ declare function install:install(
               <p>You are logged in as <b>{$user}</b></p>
               {
               if ($user = 'admin') then (
-                <p>Click on the install button to copy Tutorial from the file system to the database</p>,
+                <p>Click on the install button to proceed</p>,
                 <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
                 )
               else ()
