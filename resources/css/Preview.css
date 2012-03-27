@@ -15,6 +15,8 @@ body.preview .axel-repeat-right,
 body.preview .axel-option-checkbox,        
 body.preview .axel-option-unset,          
 body.preview .axel-repeat-unset,
-body.preview select {
+body.preview select,
+body.preview span.axel-option-unset + .xtt-hide-if-unselect
+{
 	display: none !important;
 }	

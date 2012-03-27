@@ -1,20 +1,16 @@
 <?xml version='1.0'?>
 <project name="Oppidum demo" default="init-db" basedir="." xmlns:xdb="http://exist-db.org/ant">
   <description>
-    Oppidum framework
+    Oppidum framework by S. Sire (s.sire@free.fr)
   </description>
   <!-- 
    
     Targets :
 
     - ant package : generates WAR file ready for tomcat deployment inside ${exist.home}/dist directory       
-                    all URLs points to a given /db/www/{app} controller per controller-config.xml 
+                    all URLs points to /db/www/root controller per controller-config.xml 
                     which is located inside WEB-INF (not stored inside database)
 
-    - ant universal : generates universal WAR file ready for tomcat deployment inside ${exist.home}/dist directory
-                    all URLs points to /db/www/root controller per controller-config.xml 
-                    which is located inside '/db/www/universal' (MUST be installed first with /oppidum/install !)
-    
     Do not forget to start exist database first (e.g. oppidum/scripts/start.sh) !
     
    -->
@@ -33,20 +29,6 @@
     <pathelement path="${exist.dir}/exist-optional.jar"/>
   </path>         -->
   
-  <!-- ================================================================== -->
-  <!-- Database initialization                                            -->
-  <!-- ...is done with install.xql invoked directly from the browser      --> 
-  <!-- ================================================================== -->
-  
-  <!-- Voluntarily left empty...  -->
-
-  <!-- ================================================================== -->
-  <!-- Database migration                                                 -->
-  <!-- ...is optionally done with migrate.xql invoked from the browser    --> 
-  <!-- ================================================================== -->
-
-  <!-- Voluntarily left empty...  -->
-                            
   <!-- ================================================================== -->
   <!-- Prepare webapp                                                     -->
   <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
@@ -67,136 +49,11 @@
   </target>      
   
   <!-- ================================================================== -->
-  <!-- Create .war file                                                   -->
-  <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
-  <!-- ================================================================== -->
-  <target name="package" depends="webapps" description="Create war file">
-      <war destfile="${exist.dir}/dist/${pkg.war.name}-v${product.version}.war" webxml="../config/web.xml">
-
-          <!-- Add files to WEB-INF/lib -->
-          <lib dir="${exist.dir}">
-              <include name="start.jar"/>
-              <include name="exist.jar"/>
-              <include name="exist-optional.jar"/>
-              <include name="exist-modules.jar"/>
-          </lib>
-          <lib dir="${lib.core}">
-              <include name="*.jar"/>
-              <exclude name="javax.servlet-1.4.jar"/>
-          </lib>
-          <lib dir="${lib.extensions}">
-            <include name="*.jar"/>
-          </lib> 
-          <lib dir="${lib.optional}">
-              <include name="*.jar"/>
-          </lib>
-          <!-- <lib dir="${lib.cocoon}">
-              <include name="*.jar"/>
-          </lib>     -->
-          <lib dir="${lib.user}">
-              <include name="*.jar"/>
-          </lib>
-          <!-- The following jars should not be here, but in 'endorsed' -->
-          <lib dir="${lib.endorsed}">
-              <include name="*.jar"/>
-          </lib>
-          <!-- Include lucene jar, needed for documentation search -->
-          <lib dir="${exist.dir}/extensions/indexes/lucene/lib">
-            <include name="*.jar"/>
-          </lib>  
-          <!-- Include spatial jars, when available -->
-          <!-- <lib dir="${exist.dir}/extensions/indexes/spatial/lib">
-              <include name="*.jar"/>
-          </lib> -->
-          <!-- Include additional xqdoc jars -->
-          <!-- <lib dir="${exist.dir}/extensions/xqdoc/lib">
-               <include name="*.jar"/>
-           </lib>      -->
-          <!-- Include webdav milton jars  -->
-          <!-- <lib dir="${exist.dir}/extensions/webdav/lib">
-              <include name="*.jar"/>
-          </lib> -->
-          <!-- Include betterform jars  -->
-          <!-- <lib dir="${exist.dir}/extensions/betterform/src/main/lib">
-              <include name="*.jar"/>
-          </lib>    -->
-
-          <!-- Add configuration files to WEB-INF -->
-          <webinf dir="${exist.dir}">
-              <include name="mime-types.xml"/>
-              <include name="descriptor.xml"/>
-              <include name="log4j.dtd"/>
-              <!-- <include name="atom-services.xml"/> -->
-          </webinf>
-
-          <webinf dir="../config/prod">
-            <include name="conf.xml"/>
-            <include name="controller-config.xml"/>
-            <include name="log4j.xml"/>
-          </webinf>
-
-          <!-- S. SIRE: package the current data/ database into WEB-INF/data folder -->
-          <zipfileset dir="${exist.dir}/webapp/WEB-INF/data" prefix="WEB-INF/data"/>          
-
-          <!-- Add files context root ('/') -->
-          <!-- <fileset dir="webapp">
-              <exclude name="**/*~"/>
-              <exclude name="api/**"/>
-              <exclude name="WEB-INF/web.xml"/>
-              <exclude name="WEB-INF/data/*.dbx"/>
-              <exclude name="WEB-INF/data/*.lck"/>
-              <exclude name="WEB-INF/data/lucene/**"/>
-              <exclude name="WEB-INF/data/fs/**"/>
-              <exclude name="WEB-INF/data/fs.journal/**"/>
-              <exclude name="WEB-INF/data/export/**"/>
-              <exclude name="WEB-INF/data/sanity/**"/>
-              <exclude name="**/*.log*"/>
-          </fileset> -->
-          
-          <!-- <fileset dir="${exist.dir}/webapp/projets">
-            <include name="oppidum/**"/>
-          </fileset>
-
-          <fileset dir="${exist.dir}/webapp/projets">
-            <include name="platinn/**"/>
-          </fileset> -->
-          
-          <!-- Betterform -->
-          <!-- <zipfileset dir="extensions/betterform/src/main/xrx/"  prefix="betterform/samples">
-              <include name="**/*"/>
-          </zipfileset>
-          <zipfileset dir="samples" prefix="samples">
-              <include name="**"/>
-              <exclude name="**/*~"/>
-              <exclude name="xupdate/**"/>
-              <exclude name="test.xml"/>
-              <exclude name="**/.*"/>
-          </zipfileset> -->
-          
-          <!-- Not needed for war file -->
-          <!-- <fileset dir=".">
-          <include name="start.jar"/>
-          <include name="examples.jar"/>
-          </fileset> -->
-          
-          <!-- Add additional information -->
-          <manifest>
-              <attribute name="Built-By" value="${product.author}"/>
-              <attribute name="Project-Name" value="${product.name}"/>
-              <attribute name="Project-Version" value="${project.version}"/>
-              <attribute name="Project-Build" value="-"/>
-              <attribute name="SVN-Revision" value="-"/>
-          </manifest>
-
-      </war>
-  </target>  
-
-  <!-- ================================================================== -->
   <!-- Create .war file (Universal distribution)                          -->
   <!-- (from ${exist.dir}/build/scripts/dist.xml)                         -->
   <!-- ================================================================== -->
-  <target name="universal" depends="webapps" description="Create war file">
-      <war destfile="${exist.dir}/dist/${pkg.war.name}-uni-v${product.version}.war" webxml="../config/universal/web.xml">
+  <target name="package" depends="webapps" description="Create war file">
+      <war destfile="${exist.dir}/dist/${pkg.war.name}-v${product.version}.war" webxml="../config/prod/web.xml">
 
           <!-- Add files to WEB-INF/lib -->
           <lib dir="${exist.dir}">
@@ -240,10 +97,6 @@
           <webinf dir="../config/prod">
             <include name="conf.xml"/>
             <include name="log4j.xml"/>
-            <!-- DEPRECATED : controller-config.xml is stored inside /db/www/universal inside the BD -->
-          </webinf>
-          
-          <webinf dir="../config/universal">
             <include name="controller-config.xml"/>
           </webinf>
 

@@ -1,11 +1,11 @@
-xquery version "1.0";        
+xquery version "1.0";
 (: --------------------------------------
    Oppidum module: image 
 
    Author: Stéphane Sire <s.sire@free.fr>
- 
+
    Serves images from the database. Sets a Cache-Control header.
-   
+
    TODO:
    - improve Cache-Control (HTTP 1.1) with Expires / Date (HTTP 1.0)
    - (no need for must-revalidate / Last-Modified since images never change)
