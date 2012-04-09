@@ -71,7 +71,7 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
    Returns static Javascript script elements pointing to the given package
    ======================================================================
 :) 
-declare function epilogue:js-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as element()*
+declare function epilogue:js-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as node()*
 {
   let $base := epilogue:make-static-base-url-for($package)
   return (
@@ -104,6 +104,18 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
         </script>
       else if ($p = 'date') then
         <script type="text/javascript" src="{$base}contribs/jquery/js/jquery-ui-1.8.18.custom.min.js">//</script>
+      else if ($p = 'ga') then
+        let $cmd := request:get-attribute('oppidum.command')
+        return 
+          if (string($cmd/@mode) eq 'prod') then
+            let $tracker := doc(concat($cmd/@confbase, '/config/ga.xml'))/xhtml:script
+            return
+              if ($tracker) then
+                $tracker
+              else
+                comment { 'Google Analytics tracker code not found' }
+          else
+            comment { 'comment to be replaced with Google Analytics tracker code in production' }
       else
         ()
   )
