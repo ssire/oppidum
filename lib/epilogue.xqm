@@ -125,7 +125,7 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
    Returns a static image element pointing to the given package 
    ======================================================================
 :) 
-declare function epilogue:img-link( $package as xs:string, $files as xs:string*, $width as xs:string, $height as xs:string ) as element()*
+declare function epilogue:img-link( $package as xs:string, $files as xs:string*, $width as xs:string?, $height as xs:string? ) as element()*
 {
   let $base := epilogue:make-static-base-url-for($package)
   for $f in $files
