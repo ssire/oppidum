@@ -104,6 +104,8 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
         </script>
       else if ($p = 'date') then
         <script type="text/javascript" src="{$base}contribs/jquery/js/jquery-ui-1.8.18.custom.min.js">//</script>
+      else if ($p = 'style') then
+        <script type="text/javascript" src="{$base}lib/moreaxel/style.js">//</script>
       else if ($p = 'ga') then
         let $cmd := request:get-attribute('oppidum.command')
         return 

@@ -20,7 +20,7 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/u
 let   
   $ref := request:get-attribute('oppidum.command')/resource,      
   $user := request:get-parameter('user', ''),
-  $goto-url := request:get-parameter('url', '..'),
+  $goto-url := request:get-parameter('url', 'login'),
   $method := request:get-method()
   
 return

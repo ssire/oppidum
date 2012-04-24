@@ -19,8 +19,9 @@ import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xdb = "http://exist-db.org/xquery/xmldb";  
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";   
 import module namespace response="http://exist-db.org/xquery/response";
-                                              
-let $goto-url := request:get-parameter('url', '..')
+
+let $cmd := request:get-attribute('oppidum.command')
+let $goto-url := request:get-parameter('url', $cmd/@base-url)
 return
   <Redirected>
     {                               
