@@ -10,8 +10,22 @@ xquery version "1.0";
 declare option exist:serialize "method=text media-type=text/plain";
 
 import module namespace response = "http://exist-db.org/xquery/response";
+import module namespace request = "http://exist-db.org/xquery/request";
 
-let $res := concat('User-Agent: *', codepoints-to-string((13, 10)),'Disallow: /login')
+declare function local:gen-disallow() as xs:string {
+  let $disallow := request:get-attribute('xquery.disallow')
+  return
+    if ($disallow) then
+      string-join(
+        for $s in tokenize($disallow, ' ') 
+        return concat('Disallow: ', $s),
+        codepoints-to-string((13, 10))
+      )
+    else 
+      'Disallow: /login'
+};
+
+let $res := concat('User-Agent: *', codepoints-to-string((13, 10)), local:gen-disallow())
 return (
   response:set-header('Pragma', 'x'),
   response:set-header('Cache-Control', 'public, max-age=9000000'),

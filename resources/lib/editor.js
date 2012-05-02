@@ -132,7 +132,7 @@ function cancel (event) {
       url : event.data.url,
       data : { transaction : event.data.transaction},
       type : 'GET', 
-      async : false,
+      async : false
       });
   }
 }
@@ -158,13 +158,13 @@ function install () {
     saveBtn = $('button[data-role="save"]').first(),
     errLog = new xtiger.util.Logger(),
     template, data, tmp;
-    
+  
   tmp = templateSrc.substring(templateSrc.lastIndexOf('/') + 1);
   if (tmp.indexOf('?') != -1) {
-    tmp = tmp.substring(0, tmp.indexOf('?'))
+    tmp = tmp.substring(0, tmp.indexOf('?'));
   }
   $('body').addClass('edition').addClass(tmp);
-  if (templateSrc && axelPath && containerId) {                
+  if (templateSrc && axelPath && containerId) {
     // 1. load template and generate editor
     template = xtiger.debug.loadDocument(templateSrc, errLog);
     if (template) { 
@@ -200,7 +200,7 @@ function install () {
       $('#oppidum-save').hide();
     }
     if (cancelUrl) {
-      $(window).bind('unload', { url : cancelUrl, transaction : transaction, }, cancel)
+      $(window).bind('unload', { url : cancelUrl, transaction : transaction }, cancel)
     }
   } else {
     errLog.logError('Wrong parameters for loading the editor');

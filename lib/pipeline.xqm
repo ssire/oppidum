@@ -258,7 +258,7 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
               }
               </action> 
             else  
-              <action/> (: no variant for the given format, that's an error :)   
+              <action/> (: no variant for the given format, that's an error unless there is a default action - FIXME Issue #16 :)   
         else  
           (: syntactic sugar : implicit action :)
           <action>
