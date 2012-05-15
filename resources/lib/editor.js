@@ -26,7 +26,8 @@ function isResponseAnOppidumError (xhr) {
 }  
 
 function getOppidumErrorMsg (xhr) {
-  return $('error > message', xhr.responseXML).text();
+  var text = $('error > message', xhr.responseXML).text();
+  return text || xhr.status;
 }  
 
 // FIXME: use an hypothetical "error" div to display errors
@@ -81,18 +82,15 @@ function saveErrorCb (xhr, status, e) {
   var s;
   if (status === 'timeout') {
     logError("Save action taking too much time, it has been aborted");
-  } else if ((xhr.status === 500) && isResponseAnOppidumError(xhr)) { // Internal error
-    logError(getOppidumErrorMsg(xhr));
   } else if (xhr.status === 409) { // 409 (Conflict)
     s = xhr.getResponseHeader('Location');
     if (s) {
-      window.location.href = s;          
+      window.location.href = s;
     } else {
-      logError(getOppidumErrorMsg(xhr));      
+      logError(getOppidumErrorMsg(xhr));
     }
-  } else if (xhr.status === 401) { // 401 as returned by Oppidum access control
-    logError(getOppidumErrorMsg(xhr));
-  } else if ((xhr.status === 400) && isResponseAnOppidumError(xhr)) {
+  } else if (isResponseAnOppidumError(xhr)) {
+    // Oppidum may generate 500 Internal error, 400, 401, 404
     logError(getOppidumErrorMsg(xhr));
   } else if (xhr.responseText.search('Error</title>') != -1) { // eXist-db error (empirical)
     logError(getExistErrorMsg(xhr));

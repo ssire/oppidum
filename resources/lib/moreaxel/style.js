@@ -98,15 +98,21 @@
 
      // Property remapping for chaining
      '->': {
+       'init' : '__StyleSuperInit',
        'set': '__StyleSuperSet', 
        'unset': '__StyleSuperUnset'
      },   
 
+     init : function (aDefaultData, aParams, aOption, aUniqueKey, aRepeater) { 
+       this.__StyleSuperInit(aDefaultData, aParams, aOption, aUniqueKey, aRepeater);
+       this._CurStyleValue = aDefaultData; // works with 'select' iff aDefaultData is the target XML value (not the i18n one)
+     },
+    
      set : function(doPropagate) {
-       var value, prop;
+       var value, prop, values, target;
        this.__StyleSuperSet(doPropagate);
-       var values = this.getParam('values');
-       var target = _getTarget(this); 
+       values = this.getParam('values');
+       target = _getTarget(this);
        if (target) {
          prop = this.getParam('style_property') || 'class';         
          if (values) { // this is a 'select' plugin
@@ -125,10 +131,10 @@
      },
 
      unset : function (doPropagate) {
-       var value, prop;
+       var value, prop, target;
        this.__StyleSuperUnset(doPropagate);
-       var prop = this.getParam('style_property') || 'class';
-       var target = _getTarget(this); 
+       prop = this.getParam('style_property') || 'class';
+       target = _getTarget(this); 
        if (target) {
          prop = this.getParam('style_property') || 'class';         
          if (this.getParam('values')) { // this is a 'select' plugin
