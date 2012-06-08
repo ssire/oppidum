@@ -39,7 +39,7 @@ return
       if(not($stored-path eq ())) then (
         oppidum:add-message('ACTION-UPDATE-SUCCESS', '', true()),
         response:set-status-code(201),
-        response:set-header('Location', concat($cmd/@base-url, $cmd/@trail)), (: redirect info :)
+        response:set-header('Location', concat($cmd/@base-url, $cmd/@trail, if ($cmd/@type='collection') then '/' else '')), (: redirect info :)
         <success>
           <message>The resource has been saved</message>
         </success>                      

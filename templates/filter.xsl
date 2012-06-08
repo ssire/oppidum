@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xt="http://ns.inria.org/xtiger" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xt="http://ns.inria.org/xtiger" xmlns:xhtml="http://www.w3.org/1999/xhtml" version="1.0">
 <!-- 
 
      Author: Stéphane Sire <s.sire@opppidoc.fr>
@@ -42,7 +42,9 @@
             <xsl:value-of select="normalize-space($value)"/>
         </xsl:attribute>
     </xsl:template>
-    
+
+    <xsl:template match="xhtml:link"></xsl:template>
+
     <!-- copy all -->
     <xsl:template match="*|@*|processing-instruction()|text()|comment()">
         <xsl:copy>

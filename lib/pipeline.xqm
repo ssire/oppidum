@@ -347,7 +347,7 @@ declare function gen:check($cmd as element(), $pipeline as element()) as element
       gen:error($cmd, 'URI-NOT-SUPPORTED', ())
   else
     if (not($pipeline/(model | view | epilogue))) then
-      if ((string($cmd/@action) = 'GET') and ($cmd/@format)) then
+      if ((string($cmd/@action) = 'GET') and ($cmd/@format and ($cmd/@format != 'debug'))) then
         gen:error($cmd, 'FORMAT-NOT-AVAILABLE', $cmd/@format)
       else        
         gen:error($cmd, 'NO-PIPELINE-ERROR', ())

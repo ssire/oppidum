@@ -87,7 +87,7 @@ declare function command:expand-paths( $exp as xs:string, $tokens as xs:string* 
       '')
 };
 
-declare function command:parse-token-iter(
+declare function command:match-token-iter(
   $method as xs:string,
   $index as xs:integer,
   $tokens as xs:string*,
@@ -96,10 +96,11 @@ declare function command:parse-token-iter(
   $inherit-resource as xs:string?,   
   $inherit-collection as xs:string?,
   $inherit-suffix as xs:string?,
-  $inherit-access as xs:string?
+  $inherit-access as xs:string?,
+  $greedy as xs:boolean
 ) as node()*
-{     
-  let          
+{
+  let
     $curtoken := $tokens[$index],
     $count := count($tokens),
     $last := $index = $count,
@@ -120,17 +121,117 @@ declare function command:parse-token-iter(
     $collection : = if ($page/@collection) then $page/@collection else $inherit-collection,
     $suffix : = if ($page/@suffix) then $page/@suffix else $inherit-suffix,
     $access : = if ($page/@access) then $page/@access else $inherit-access
+(:  $log := oppidum:debug(('match-token-iter with $cur', $tokens[$index], ' and $greedy=', if ($greedy) then 'true' else 'false', ' name=', string($mapping/@name), ' page=', string($page/@name))):)
   return 
-    if (not($last) and $page) then 
-      (: recurse :)
-      command:parse-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access)       
-    else (
-      (: terminate, either it is an error or a recognized command :)    
+    if (not($last)) then 
+      if ($greedy) then
+        if ($page[@name]) then (: switch to non greedy iteration on the new branch :)
+          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access, false())
+        else 
+          let $nextok := $tokens[$index+1] (: look ahead 1 token :)
+          return
+            if ($page[not(@name)] and 
+                (($page/(item|collection)[@name = $nextok]) or ($nextok = tokenize($page/@supported, ' ')))) then
+              command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access, false())
+            else (: continue with greedy iteration same branch :)
+              command:match-token-iter($method, $index + 1, $tokens, $mapping, $db, $resource, $collection, $suffix, $access, $greedy)
+      else
+        if ($page[not(@name)]) then (: switch to greedy iteration on the new branch :)
+          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access, true())
+        else 
+          if ($page[@name]) then (: continue with greedy iteration on the new branch :)
+            command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access, false())
+          else  (: no page and not greedy : failure :)
+            ()
+    else 
+      if (not($page) and not($greedy)) then (: failure : backtracking :)
+        ()
+      else (: success : $page or $greedy :) 
+        (
+        (: either it's an identified resource / facet / action or a greedy method (GET or POST) :)
+        command:gen-trail(boolean($action-name), $tokens, $count),
+        let 
+          $verb := if (($method = 'GET') or ($method = tokenize($page/@method, ' '))) then $method else 'not-supported',
+          $action := if ($action-name) then $action-name else $verb
+          (: actions :)
+        return
+          if ($action = 'not-supported') then
+            attribute { 'error' } { 'not-supported' }
+          else (
+            attribute { 'action' } { $action },
+            attribute { 'type' } { name($page) },
+            element { 'resource' } {
+              if (($count > 1) or ($action-name = '')) then 
+                attribute { 'name' } { if ($action-name) then $tokens[$index - 1] else $tokens[$index] } 
+              else 
+                (),
+              if ($db) then attribute { 'db' } { command:expand-paths($db, $tokens) } else (),
+              if ($resource) then attribute { 'resource' } { command:expand-paths($resource, $tokens) } else (),
+              if ($collection) then attribute { 'collection' } { command:expand-paths($collection, $tokens) } else (),
+              if ($suffix) then attribute { 'suffix' } { $suffix } else (),
+              if ($access) then attribute { 'access' } { $access } else (),
+              $page/(@template | @check | @epilogue | @supported | @method),
+              if ($page) then
+                $page/(model | view)
+              else 
+                $mapping/(model | view),
+              $page/(action[@name=$action] | collection | access | variant)
+            }
+          )
+      ) 
+};
+
+declare function command:parse-token-iter(
+  $method as xs:string,
+  $index as xs:integer,
+  $tokens as xs:string*,
+  $mapping as element(),
+  $inherit-db as xs:string?,
+  $inherit-resource as xs:string?,   
+  $inherit-collection as xs:string?,
+  $inherit-suffix as xs:string?,
+  $inherit-access as xs:string?
+) as node()*
+{ 
+  let
+    $curtoken := $tokens[$index],
+    $count := count($tokens),
+    $last := $index = $count,
+    $action-name := if ($last and ($curtoken = tokenize($mapping/@supported, ' '))) then $curtoken else '',
+    $page := if ($action-name) then $mapping 
+             else 
+               let $match := $mapping/(item|collection)[@name = $curtoken]
+               return 
+                 if ($match) then $match
+                 else  
+                    let $match := $mapping/item[not(@name)]
+                    return 
+                      if ($match) then $match[1] 
+                      else
+                        let $match := $mapping/(item|collection)[@name = '*']
+                        return
+                          if ($match) then $match[1] else (),
+                      (: maybe we ought to generate <item/> if $mapping is a 'collection'...? :)
+    (: inherited attributes :)
+    $db := if ($page/@db) then $page/@db else $inherit-db,
+    $resource := if ($page/@resource) then $page/@resource else $inherit-resource,
+    $collection : = if ($page/@collection) then $page/@collection else $inherit-collection,
+    $suffix : = if ($page/@suffix) then $page/@suffix else $inherit-suffix,
+    $access : = if ($page/@access) then $page/@access else $inherit-access
+  return 
+    if ($page[@name = '*']) then (: recurse in greedy mode starting at self :)
+      let $res := command:match-token-iter($method, $index, $tokens, $page, $db, $resource, $collection, $suffix, $access, true())
+      return
+        if ($res) then $res else attribute { 'error' } { 'not-found' }
+    else if (not($last) and $page) then (: recurse :)
+      command:parse-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $suffix, $access)
+    else (: terminate, either it is an error or a recognized command :)    
+      (
       command:gen-trail(boolean($action-name), $tokens, $count),
       if (not($page)) then
         attribute { 'error' } { 'not-found' }
       else (: that branch assumes $last is true :)
-        let 
+        let
           $verb := if (($method = 'GET') or ($method = tokenize($page/@method, ' '))) then $method else 'not-supported',
           $action := if ($action-name) then $action-name else $verb     
           (: actions :)
@@ -163,9 +264,9 @@ declare function command:parse-token-iter(
               $page/variant
             }
           )
-    )        
-};  
-                           
+    )
+};
+
 (: ========================================================================
    Converts the path entered by the user on the URL to an XML description
    of the targeted resources and actions.
@@ -183,7 +284,7 @@ declare function command:parse-url(
   $method as xs:string,
   $mapping as element(),
   $lang as xs:string ) as element()
-{                    
+{         
   let
     $extension := if (contains($url, '.')) then substring-after($url, '.') else '',
     $raw-payload := if ($extension != '') then substring-before($url, '.') else $url,  
