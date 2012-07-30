@@ -31,6 +31,7 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
   <group name="config" mandatory="true">
     <collection name="/db/www/oppidum/config">
       <files pattern="init/errors.xml"/>
+      <files pattern="init/skin.xml"/>
     </collection>
   </group>
   <group name="mesh" mandatory="true">

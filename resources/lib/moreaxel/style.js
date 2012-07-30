@@ -155,3 +155,34 @@
   // Do not forget to register your filter on any compatible primitive editor plugin
   xtiger.editor.Plugin.prototype.pluginEditors['text'].registerFilter('style', _StyleFilter);
   xtiger.editor.Plugin.prototype.pluginEditors['select'].registerFilter('style', _StyleFilter);
+
+
+  /**
+    * Class _SMRefFilter (mixin filter)
+    */
+   var _SMRefFilter  = (function _SMRefFilter () {    
+
+    return {  
+
+       ///////////////////////////////////////////////////
+       /////     Instance Clear Mixin Part    ////////
+       ///////////////////////////////////////////////////
+
+      // Property remapping for chaining
+      '->': {
+        'load': '__SMRefFilterSuperLoad', 
+      },   
+
+      load : function (aPoint, aDataSrc) {
+        this.__SMRefFilterSuperLoad(aPoint, aDataSrc);
+        var val = this.getData();
+        window.console.log('Checking REF ' + val);
+        if (val !== "-1") { 
+          $(this.getHandle(true)).after("<a target='_blank' href='preview?page=" + val + "'><img src='" + this.getParam('smreflink_icon') + "' alt='lien'/></a>");
+        }
+      },
+     }
+   })();
+
+   // Do not forget to register your filter on any compatible primitive editor plugin
+   xtiger.editor.Plugin.prototype.pluginEditors['text'].registerFilter('smreflink', _SMRefFilter);

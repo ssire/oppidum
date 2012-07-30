@@ -87,6 +87,120 @@ declare function command:expand-paths( $exp as xs:string, $tokens as xs:string* 
       '')
 };
 
+(: ======================================================================
+   Rewrite the $source module to correctly set :
+   - $__collection, $_resource, $__template, $__epilogue variables
+   - $nb variables
+   - <param> elements
+   with their value inherited from the current context.
+   ======================================================================
+:)
+declare function local:rewrite-module( $source, $vars, $delta, $param ) {
+  element { node-name($source) }
+  {
+    for $attr in $source/@*
+    return
+      if (starts-with($attr, '$__')) then
+        (: limited named variables substitution :)
+        if (starts-with($attr, '$__collection')) then 
+          attribute { name($attr) } { concat($vars[1], substring-after($attr, '$__collection')) }
+        else if (starts-with($attr, '$__resource')) then 
+          attribute { name($attr) } { concat($vars[2], substring-after($attr, '$__resource')) }
+        else if (starts-with($attr, '$__template')) then 
+          attribute { name($attr) } { concat($vars[3], substring-after($attr, '$__template')) }
+        else if (starts-with($attr, '$__epilogue')) then 
+          attribute { name($attr) } { concat($vars[4], substring-after($attr, '$__epilogue')) }
+        else
+          ()
+      else if (matches($attr,'\$\d')) then
+       let $log := oppidum:debug(('rewrite ',  name($attr), '=', string($attr), ' delta=', string($delta)))
+       return
+        (: path steps variables increment (e.g. '$2/images' becomes '$4/images') :)
+        attribute  { name($attr) } { 
+          string-join(
+            for $t in tokenize($attr, '/') 
+            return 
+              if (starts-with($t, '$')) then 
+                concat('$', number(substring-after($t, '$')) + $delta) 
+              else $t
+              , '/'
+          )
+        }
+      else
+        $attr,
+    for $child in $source/node()
+    return  
+      if (local-name($child) eq 'param' ) then (: parameters value substitution :)
+        let $key := concat($child/@name,'=')
+        return
+          if (contains($param, $key)) then
+            let $preval := substring-after($param, $key)
+            let $value := if (contains($preval, ';')) then substring-before($preval, ';') else $preval
+            return
+              element { node-name($child) } {
+                $child/@name,
+                attribute { 'value' } { normalize-space($value) }
+              }
+        else
+          $child
+      else 
+        local:rewrite-module($child, $vars, $delta, $param)
+  }
+};
+
+declare function local:dump-tree ( $source as node() ) 
+as xs:string*
+{
+    concat(
+      '<', local-name($source), ' ',
+      for $attr in $source/@*
+      return
+        concat(name($attr), '=', string($attr), ' '), '>',
+      for $child in $source/node()
+      return  
+        local:dump-tree($child),
+      '</', local-name($source), '>')
+};
+  
+(: ======================================================================
+   Searches for an imported module that matches $curtoken
+   Returns ($found, $import) where $found is the the module and $import
+   is the corresponding import statement if a match was found, or the 
+   empty sequence otherwise.
+   ======================================================================
+:)
+declare function local:match-import-iter (
+  $index as xs:integer,
+  $curtoken as xs:string,
+  $confbase as xs:string,
+  $vars as xs:string*,
+  $imports as element()*
+) as element()* {
+  if ($imports) then
+    let $log := oppidum:debug(('match-import-iter for ',  $curtoken, ' inside ', concat($confbase,'/config/modules.xml'),' and #imports=', for $i in $imports return $i/@module))
+    let $cur := $imports[1]
+    let $mods := doc(concat($confbase,'/config/modules.xml'))/modules
+    let $m := $mods/module[(@id = $cur/@module)]
+(:    let $log := oppidum:debug(('*** found module ', local:dump-tree($m))):)
+    let $found := 
+      if ($m/(item|collection)[@name = $curtoken]) then 
+        $m/(item|collection)[@name = $curtoken]
+      else 
+        if ($mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $curtoken]) then 
+          $mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $curtoken]
+        else 
+          ()
+    return
+      if ($found) then 
+        local:rewrite-module($found, $vars, $index, $cur/@param)
+      else 
+        local:match-import-iter($index, $curtoken, $confbase, $vars, subsequence($imports,2))
+  else 
+    let $log := oppidum:debug(('match-import-iter for ', $curtoken, ' and no imports'))
+    return
+      ()
+};
+
 declare function command:match-token-iter(
   $method as xs:string,
   $index as xs:integer,
@@ -202,16 +316,31 @@ declare function command:parse-token-iter(
              else 
                let $match := $mapping/(item|collection)[@name = $curtoken]
                return 
-                 if ($match) then $match
-                 else  
-                    let $match := $mapping/item[not(@name)]
-                    return 
-                      if ($match) then $match[1] 
+                if ($match) then $match
+                else
+                 (: tries to resolve within import statements :)
+                 let $vars := (
+                   if ($mapping/@collection) then $mapping/@collection else $inherit-collection,
+                   if ($mapping/@resource) then $mapping/@resource else $inherit-resource,
+                   $mapping/@template,
+                   $mapping/@epilogue
+                   )
+                 let $match := local:match-import-iter($index - 1, $curtoken, '/db/www/oppidoc', $vars, $mapping/import)
+                 return
+                   if ($match) then $match
+                   else
+                    let $match := $mapping/(item|collection)[@name = $curtoken]
+                    return
+                      if ($match) then $match
                       else
-                        let $match := $mapping/(item|collection)[@name = '*']
-                        return
-                          if ($match) then $match[1] else (),
-                      (: maybe we ought to generate <item/> if $mapping is a 'collection'...? :)
+                        let $match := $mapping/item[not(@name)]
+                        return 
+                          if ($match) then $match[1] 
+                          else
+                            let $match := $mapping/(item|collection)[@name = '*']
+                            return
+                              if ($match) then $match[1] else (),
+                          (: maybe we ought to generate <item/> if $mapping is a 'collection'...? :)
     (: inherited attributes :)
     $db := if ($page/@db) then $page/@db else $inherit-db,
     $resource := if ($page/@resource) then $page/@resource else $inherit-resource,

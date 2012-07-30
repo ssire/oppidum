@@ -11,11 +11,11 @@ xquery version "1.0";
 
 module namespace epilogue = "http://oppidoc.com/oppidum/epilogue";
 
-declare namespace xhtml = "http://www.w3.org/1999/xhtml";                                                                       
+declare namespace xhtml = "http://www.w3.org/1999/xhtml";
 declare namespace request = "http://exist-db.org/xquery/request";
 declare namespace response="http://exist-db.org/xquery/response";
 declare namespace site = "http://oppidoc.com/oppidum/site";
-import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../oppidum/lib/util.xqm";
+import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";
 
 (: ======================================================================
    Returns a URL prefix pointing to the static resources of a given package 
@@ -33,6 +33,7 @@ declare function epilogue:make-static-base-url-for( $package as xs:string ) as x
 
 (: ======================================================================
    Returns static CSS link elements pointing to the given package 
+   DEPRECATED: use skin:gen-skin() instead
    ======================================================================
 :) 
 declare function epilogue:css-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as node()*
@@ -62,6 +63,8 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
         <link rel="stylesheet" href="{$base}lib/axel/bundles/photo/photo.css" type="text/css" />
       else if ($p = 'date') then
         <link rel="stylesheet" href="{$base}contribs/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css" type="text/css" />
+      else if ($p = 'pro_dropdown_2') then
+        <link rel="stylesheet" href="{$base}contribs/pro_dropdown_2/pro_dropdown_2.css" type="text/css" />
       else
         ()
   )
@@ -69,6 +72,7 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
 
 (: ======================================================================
    Returns static Javascript script elements pointing to the given package
+   DEPRECATED: use skin:gen-skin() instead
    ======================================================================
 :) 
 declare function epilogue:js-link( $package as xs:string, $files as xs:string*, $predefs as xs:string* ) as node()*
@@ -87,10 +91,14 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
         <script type="text/javascript" src="{$base}lib/flash.js">//</script>
       else if ($p = 'jquery') then
         <script type="text/javascript" src="{$base}contribs/jquery/js/jquery-1.7.1.min.js">//</script>
-(:        <script type="text/javascript" src="{$base}lib/jquery-1.5.1.min.js">//</script>:)
       else if ($p = 'axel') then (
         <script type="text/javascript" src="{$base}lib/axel/axel.js">//</script>,
         <script data-bundles-path="{$base}lib/axel/bundles" type="text/javascript" src="{$base}lib/editor.js">//</script>
+        )
+      else if ($p = 'axel+oppi') then (
+        <script type="text/javascript" src="{$base}contribs/modernizr/modernizr.custom.12261.js">//</script>,
+        <script type="text/javascript" src="{$base}lib/axel/axel.js">//</script>,
+        <script data-bundles-path="{$base}lib/axel/bundles" type="text/javascript" src="{$base}lib/oppidum.js">//</script>
         )
       else if ($p = 'photo') then
         <script type="text/javascript">
@@ -118,6 +126,8 @@ declare function epilogue:js-link( $package as xs:string, $files as xs:string*, 
                 comment { 'Google Analytics tracker code not found' }
           else
             comment { 'comment to be replaced with Google Analytics tracker code in production' }
+      else if ($p = 'pro_dropdown_2') then
+        <script type="text/javascript" src="{$base}contribs/pro_dropdown_2/stuHover.js">//</script>
       else
         ()
   )
@@ -227,7 +237,7 @@ declare function epilogue:my-pregen-error-mesh() as element()
 };
 
 (: ======================================================================
-   Returns the mesh to render the current page, or the empty element 
+   Returns the mesh to render the current page, or the empty element
    if the model has asked a redirection
    ======================================================================
 :)

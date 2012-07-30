@@ -69,7 +69,12 @@ declare variable $mapping := <site startref="home" supported="login logout insta
     <model src="models/scaffold.xql"/>
     <view src="views/scaffold.xsl"/>
   </item>
+  <collection name="test">
+    <item name="skin">
+      <model src="test/skin.xql"/>
+    </item>
+  </collection>
 </site>;
-                          
+
 (: NOTE : call oppidum:process with false() to disable ?debug=true mode :)
 gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)
