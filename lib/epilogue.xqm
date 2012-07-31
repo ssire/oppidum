@@ -19,6 +19,7 @@ import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm
 
 (: ======================================================================
    Returns a URL prefix pointing to the static resources of a given package 
+   TODO : - cache results
    ======================================================================
 :) 
 declare function epilogue:make-static-base-url-for( $package as xs:string ) as xs:string 
@@ -63,8 +64,6 @@ declare function epilogue:css-link( $package as xs:string, $files as xs:string*,
         <link rel="stylesheet" href="{$base}lib/axel/bundles/photo/photo.css" type="text/css" />
       else if ($p = 'date') then
         <link rel="stylesheet" href="{$base}contribs/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css" type="text/css" />
-      else if ($p = 'pro_dropdown_2') then
-        <link rel="stylesheet" href="{$base}contribs/pro_dropdown_2/pro_dropdown_2.css" type="text/css" />
       else
         ()
   )

@@ -1,20 +1,34 @@
+(: ------------------------------------------------------------------
+   Oppidum framework skin
+
+   Author: Stéphane Sire <s.sire@opppidoc.fr>
+
+   Test file for skin.xqm
+
+   July 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
+   ------------------------------------------------------------------ :)
+
 declare namespace request = "http://exist-db.org/xquery/request";
 
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 import module namespace skin = "http://oppidoc.com/oppidum/skin" at "../lib/skin.xqm";
 
-declare option exist:serialize "method=html media-type=text/html";
+declare option exist:serialize "method=html5 media-type=text/html";
 
 let $cmd := request:get-attribute('oppidum.command')
 let $pkg := request:get-parameter("pkg", 'oppidoc')
 let $mesh := request:get-parameter("mesh", 'standard')
-let $skin := request:get-parameter("skin", 'foobar')
+let $skin := request:get-parameter("skin", ())
 let $confbase := request:get-parameter("confbase", '/db/www/oppidoc')
+let $base-url := request:get-parameter("base-url", $cmd/@base-url/string())
 let $trail := request:get-parameter("trail", '')
 let $mode := request:get-parameter("mode", 'test')
 let $error := if (request:get-parameter("error", ())) then oppidum:add-error('ERROR', (), false()) else ()
 let $message := if (request:get-parameter("message", ())) then oppidum:add-message('MESSAGE', (), false()) else ()
-let $fakecommand := <command mode="{$mode}" trail="{$trail}" confbase="{$confbase}" base-url="{$cmd/@base-url}"/>
+let $fakecommand := 
+  <command mode="{$mode}" trail="{$trail}" confbase="{$confbase}" base-url="{$base-url}">
+    <resource epilogue="{$mesh}"/>
+  </command>
 let $sideeffect := request:set-attribute('oppidum.command', $fakecommand)
 let $result := skin:gen-skin($pkg, $mesh, $skin)
 return 
@@ -37,11 +51,8 @@ return
     </head>
     <body style="margin: 2em 2em">
       <h1>Oppidum skin test</h1>
-      <h2>Input parameters</h2>
-      <p>package: {$pkg}</p>
-      <p>mesh: {$mesh}</p>
-      <p>skin: {$skin}</p>
-      <h2>Skin output</h2>
+      <p><b>Current parameters</b>: package ({$pkg}), mesh: ({$mesh}), skin: ({$skin})</p>
+      <h2>Generated links and scripts</h2>
       <div>
         {
         for $item in $result 
@@ -61,13 +72,14 @@ return
         }
         <p><i>View window source to get exact content</i></p>
       </div>
-      <h2>New parameters</h2>
+      <h2>New simulation</h2>
       <form action="skin" method="get">
         <p>package: <input type="text" name="pkg" value="{$pkg}"/></p>
         <p>mesh: <input type="text" name="mesh" value="{$mesh}"/></p>
         <p>skin: <input type="text" name="skin" value="{$skin}"/></p>
         <fieldset>
           <legend>command</legend>
+          <p>base-url: <input type="text" name="base-url" value="{$base-url}"/></p>
           <p>confbase: <input type="text" name="confbase" value="{$confbase}"/></p>
           <p>trail: <input type="text" name="trail" value="{$trail}"/></p>
           <p>mode: <input type="text" name="mode" value="{$mode}"/></p>

@@ -9,9 +9,7 @@
  *
  * Prerequisites: jQuery + AXEL (https://github.com/ssire/axel)
  *
- * TODO:
- * - use jQuery for initial XML resource loading to trap error 401
- *
+ * DEPRECATED: to be replaced by oppidum.js
  */   
 
 (function () { 
@@ -100,28 +98,46 @@ function saveErrorCb (xhr, status, e) {
     logError('Error (' + xhr.status + ')');
   }
 }
-                 
+
+// Saves using a pre-defined form element identified by its id
+// using a 'data' input field (both must be defined)
+// Note in that case there is no success/error feedback
+function submitForm(formid, data) {
+  var f = $('#' + formid),
+      d = $('#' + formid + ' > input[name="data"]' );
+  if ((f.length > 0) && (d.length > 0)) {
+    d.val(data);
+    f.submit();
+  } else {
+    logError('Incomplete or missing form element for submission, contact the webmaster');
+  }
+}
+
 function save (event) {
   var logger = new xtiger.util.DOMLogger();
   var url = event.data.url;
-  form.serializeData(logger);
-  if (event.data.transaction) {
-    url = url + '?transaction=' + event.data.transaction;
+  form.serializeData(logger);  
+  if (event.data.formid) {
+    submitForm(event.data.formid, logger.dump());
+  } else {
+    if (event.data.transaction) {
+      url = url + '?transaction=' + event.data.transaction;
+    }
+    $.ajax({
+      url : url,
+      type : 'POST', // FIXME: event.data.method
+      data : logger.dump(),
+      dataType : 'xml',
+      cache : false,
+      timeout : 5000,
+      contentType : "application/xml; charset=UTF-8",
+      success : saveSuccessCb,
+      error : saveErrorCb
+      });
+      saved = true; // we could aswell unsubscribe from 'unload'
+      // FIXME: include jQuery UI buttons to be able to call
+      // $('#oppidum-save').button('disable');
   }
-  $.ajax({
-    url : url,
-    type : 'POST', // FIXME: event.data.method
-    data : logger.dump(),
-    dataType : 'xml',
-    cache : false,
-    timeout : 5000,
-    contentType : "application/xml; charset=UTF-8",
-    success : saveSuccessCb,
-    error : saveErrorCb
-    });
-    saved = true; // we could aswell unsubscribe from 'unload'
-    // FIXME: include jQuery UI buttons to be able to call
-    // $('#oppidum-save').button('disable');
 }     
 
 function cancel (event) {
@@ -153,7 +169,7 @@ function install () {
     cancelUrl = spec.attr('data-cancel'),
     transaction = spec.attr('data-transaction'),
     axelPath = $('script[data-bundles-path]').attr('data-bundles-path'),
-    saveBtn = $('button[data-role="save"]').first(),
+    // saveBtn = $('button[data-role="save"]').first(),
     errLog = new xtiger.util.Logger(),
     template, data, tmp;
   
@@ -181,12 +197,12 @@ function install () {
           } else {
             dataFeed = new xtiger.util.DOMDataSource(data);
             form.loadData(dataFeed, errLog);
-            $('#oppidum-save').bind('click', { url : dataSrc, method : 'PUT', transaction : transaction  }, save);
+            $('#oppidum-save').bind('click', { url : dataSrc, method : 'PUT', transaction : transaction, formid: spec.attr('data-form')  }, save);
           }
         }
       } else {
         // 2.2 creating a new page
-        $('#oppidum-save').bind('click', { url : '.', method : 'POST', transaction : transaction }, save);
+        $('#oppidum-save').bind('click', { url : '.', method : 'POST', transaction : transaction, formid: spec.attr('data-form') }, save);
       }                        
       // 3. install Preview button
       tmp = $('#oppidum-preview');

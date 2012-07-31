@@ -6,11 +6,20 @@ xquery version "1.0";
 
    Utility function to generate <link> and <script> tags 
    from on a skin.xml configuration file
+   
+   TODO :
+   - find a way to push a script at the end (e.g. google analytics)
+   - attach conditions (meet, avoid) to a profile (factorization)
+   - insert carriage return before IE conditional links (esthetical)
+     or replace conditional links with server side browser sniffing
+   - add function rewrite-js-link(package, <site:scripts>)
 
    July 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
    ------------------------------------------------------------------ :)
 
 module namespace skin = "http://oppidoc.com/oppidum/skin";
+
+declare default element namespace "http://www.w3.org/1999/xhtml";
 
 declare namespace xhtml = "http://www.w3.org/1999/xhtml";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";
@@ -18,10 +27,10 @@ import module namespace epilogue = "http://oppidoc.com/oppidum/epilogue" at "epi
 
 declare function skin:_script-error( $msg as xs:string ) as element()
 {
-  <script type="text/javascript" data-error="true">window.console.log('{$msg}')</script>
+  <script type="text/javascript" data-error="true">if (typeof(console) != undefined) {{ console.log('{$msg}') }}</script>
 };
 
-declare function skin:_css-link( $link as element(), $base as xs:string ) as node()*
+declare function skin:_css-link( $link as element(), $base as xs:string ) as node()
 {
   if (starts-with($link/@href, '[')) then (: conditional link inside comment for IE :)
     let $cond := substring-before($link/@href, ']')
@@ -38,7 +47,7 @@ declare function skin:_css-link( $link as element(), $base as xs:string ) as nod
     </link>
 };
 
-declare function skin:_js-link( $script as element(), $cmd as element(), $base as xs:string ) as node()*
+declare function skin:_js-link( $script as element(), $cmd as element(), $base as xs:string ) as node()
 {
   if ($script/@resource) then (: script element pulled from database :)
     let $src := concat($cmd/@confbase,'/',$script/@resource)
@@ -57,7 +66,10 @@ declare function skin:_js-link( $script as element(), $cmd as element(), $base a
         if (starts-with($script/@src,'http')) then $script/@src else attribute { 'src' } { concat($base, $script/@src) } 
       else 
         (),
-      $script/@data-bundles-path,
+      if ($script/@data-bundles-path) then
+        attribute { 'data-bundles-path' } { concat($base, $script/@data-bundles-path) }
+      else
+        (),
       attribute { 'type' } { 'text/javascript' }, 
       if (not($script/@src)) then 
         $script/text()
@@ -81,9 +93,11 @@ declare function skin:_eval-condition( $str as xs:string, $cmd as element(), $to
     else if ($p = 'message') then 
       oppidum:has-message()
     else if (($p = 'trail') and $a) then
-      matches($a, $cmd/@trail)
+      matches($cmd/@trail, $a)
     else if (($p = 'skin') and $a) then 
       $tokens = $a
+    else if (($p = 'mesh') and $a) then 
+      oppidum:get-resource($cmd)/@epilogue = $a
     else
       false()
 };
@@ -91,7 +105,7 @@ declare function skin:_eval-condition( $str as xs:string, $cmd as element(), $to
 declare function skin:_test-condition( $item as element(), $cmd as element(),$tokens as xs:string* ) as xs:boolean
 {
   let $meet := not($item/@meet) or (skin:_eval-condition(string($item/@meet), $cmd, $tokens) = true())
-  let $avoid := not($item/@avoid) or not(skin:_eval-condition(string($item/@meet), $cmd, $tokens) = true())
+  let $avoid := not($item/@avoid) or not(skin:_eval-condition(string($item/@avoid), $cmd, $tokens) = true())
   return
     $meet and $avoid
 };
@@ -128,35 +142,40 @@ declare function skin:_render-profiles( $pkg as xs:string, $profiles as element(
 
 declare function skin:_gen-skin-I( $pkg as xs:string, $mesh as xs:string?, $tokens as xs:string* ) as node()*
 {
-  let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin
-  let $mprofdef := $skin/profile[(@type = 'mesh') and (@name = '*')]
+  let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin:skin
+  let $handlers := if (oppidum:has-error() or oppidum:has-message()) then 
+                    let $err-or-msg := $skin/skin:handler[@name = 'msg-or-err'] 
+                    return $err-or-msg
+                  else 
+                    ()
+  let $mprofdef := $skin/skin:profile[(@type = 'mesh') and (@name = '*')]
   let $mprof := 
     if ($mesh) then 
-      let $found := $skin/profile[(@type = 'mesh') and (@name = $mesh)]
+      let $found := $skin/skin:profile[(@type = 'mesh') and (@name = $mesh)]
       return
-        if ($found) then $found else <profile missing="{$mesh} (mesh)"/>
+        if ($found) then $found else <skin:profile missing="{$mesh} (mesh)"/>
     else 
       ()
-  let $profdef := $skin/profile[not(@type) and (@name = '*')]
+  let $profdef := $skin/skin:profile[not(@type) and (@name = '*')]
   let $prof := 
     for $n in $tokens
-    let $found := ($skin/profile[not(@type) and ($n = @name)])
+    let $found := ($skin/skin:profile[not(@type) and ($n = @name)])
     return
-      if ($found) then $found else <profile missing="{$n}"/>
+      if ($found) then $found else <skin:profile missing="{$n}"/>
   return
-    let $all := ($mprofdef, $mprof, $profdef, $prof)
+    let $all := ($handlers, $mprofdef, $mprof, $profdef, $prof)
     return skin:_render-profiles($pkg, $all, $tokens)
 };
 
 declare function skin:_gen-skin-II( $pkg as xs:string, $names as xs:string*, $tokens as xs:string* ) as node()*
 {
   if (count($names) > 0) then
-    let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin
+    let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin:skin
     let $profiles := 
       for $n in $names
-      let $found := $skin/profile[(@type = 'predef') and ($n = @name)]
+      let $found := $skin/skin:profile[(@type = 'predef') and ($n = @name)]
       return
-        if ($found) then $found else <profile missing='{$n} ("{$pkg}" predef)'/>
+        if ($found) then $found else <skin:profile missing='{$n} ("{$pkg}" predef)'/>
     return
       skin:_render-profiles($pkg, $profiles, $tokens)
   else 
@@ -167,7 +186,7 @@ declare function skin:gen-skin( $pkg as xs:string, $mesh as xs:string?, $skin as
 {
   let $tokens := if ($skin) then tokenize($skin, '\s+') else ()
   let $pass1 := skin:_gen-skin-I($pkg, $mesh, $tokens)
-  let $pass2 := 
+  let $pass2 :=  (: predef resolution :)
       (
       skin:_gen-skin-II($pkg, $pass1[(local-name(.) = 'predef') and not(@module)]/text(), $tokens),
       for $mod in distinct-values($pass1/@module)
@@ -177,11 +196,29 @@ declare function skin:gen-skin( $pkg as xs:string, $mesh as xs:string?, $skin as
       )
   return (: returns link elements before script elements :)
     (
-    $pass2[local-name(.) = 'link'],
-    $pass1[local-name(.) = 'link'],
-    $pass2[local-name(.) = 'script'],
-    $pass1[local-name(.) = 'script'],
-    $pass2[./self::comment()],
-    $pass1[./self::comment()]
+    $pass2[. instance of comment()], (: IE conditional links :)
+    $pass1[. instance of comment()], (: IE conditional links :)
+    $pass2[. instance of element(link)],
+    $pass1[. instance of element(link)],
+    $pass2[. instance of element(script)],
+    $pass1[. instance of element(script)]
     )
+};
+
+(: TODO :
+   - merge with skin:gen-skin ?
+   - performances (multiple calls to make-static-base-url-for) 
+:)
+declare function skin:rewrite-css-link( $key as xs:string, $links as element() ) as element()*
+{
+  for $l in $links/skin:link
+  let $href := $l/@href/string()
+  return
+    if (starts-with($href,'http')) then
+      <link href="{$href}" rel="stylesheet" type="text/css" />
+    else
+      let $pkg := if ($l/@module) then $l/@module/string() else $key
+      let $base := epilogue:make-static-base-url-for($pkg)
+      return
+        <link href="{$base}{$href}" rel="stylesheet" type="text/css" />
 };

@@ -28,11 +28,12 @@ import module namespace command = "http://oppidoc.com/oppidum/command" at "comma
 :)
 declare function gen:path-to-static-resource($app-root as xs:string, $exist-path as xs:string, $payload as xs:string, $mkey as xs:string) as xs:string
 {
-  let $local-path := concat('resources/', substring-after(substring-after($payload, '/static/'), '/'))
+  let $tail := substring-after($payload, '/static/')
+  let $local-path := concat('resources/', substring-after($tail, '/'))
+  let $pkg := substring-before($tail, '/')
   return  
-    (: currently we handle only one module for "oppidum" resources :) 
-    if (starts-with($payload, '/static/oppidum')) then 
-      gen:path-to-lib($app-root, $exist-path, $local-path, 'oppidum')
+    if ($pkg != $mkey) then 
+      gen:path-to-lib($app-root, $exist-path, $local-path, $pkg)
     else
       gen:path-to($app-root, $exist-path, $local-path, $mkey)
 };
