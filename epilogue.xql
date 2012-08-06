@@ -107,7 +107,7 @@ declare function local:render( $cmd as element(), $source as element(), $view as
         else
          $child
   }
-};        
+};
 
 (: ======================================================================
    Epilogue entry point

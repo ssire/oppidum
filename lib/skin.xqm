@@ -97,7 +97,9 @@ declare function skin:_eval-condition( $str as xs:string, $cmd as element(), $to
     else if (($p = 'skin') and $a) then 
       $tokens = $a
     else if (($p = 'mesh') and $a) then 
-      oppidum:get-resource($cmd)/@epilogue = $a
+      oppidum:get-resource($cmd)/@epilogue/string() = $a
+    else if (($p = 'action') and $a) then 
+      $cmd/@action/string() = $a
     else
       false()
 };

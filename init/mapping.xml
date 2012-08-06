@@ -1,0 +1,43 @@
+<site startref="home" supported="login logout install" db="/db/www/oppidum"
+  confbase="/db/www/oppidum" key="oppidum" mode="test">
+  <!-- <error mesh="standard"/> -->
+  <item name="home" supported="bark">
+    <model src="models/version.xql"/>
+    <action name="bark" collection="BARK">
+      <model src="oppidum:barl.xql"/>
+    </action>
+    <collection name="vide"/>
+  </item>
+  <!-- Oppidum administration module (backup / restore) -->
+  <item name="admin" resource="none" method="POST">
+    <access>
+      <rule action="GET POST" role="u:admin" message="admin"/>
+    </access>
+    <model src="oppidum:modules/admin/restore.xql"/>
+    <view src="oppidum:modules/admin/restore.xsl"/>
+    <action name="POST">
+      <model src="oppidum:modules/admin/restore.xql"/>
+      <view src="oppidum:modules/admin/restore.xsl"/>
+    </action>
+  </item>
+  <item name="scaffold" collection="monappli" resource="none">
+    <model src="models/scaffold.xql"/>
+    <view src="views/scaffold.xsl"/>
+  </item>
+  <collection name="test" supported="action" collection="$1" resource="main" template="MAIN" epilogue="MAIN">
+    <model src="test-get-implicit.xql">
+      <param name="foo" value="MAIN"/>
+      <param name="bar" value="MAIN"/>
+    </model>
+    <action name="action">
+      <model src="test-action.xql">
+        <param name="foo" value="MAIN"/>
+        <param name="bar" value="MAIN"/>
+      </model>
+    </action>
+    <item name="generator">
+      <model src="test/generator.xql"/>
+    </item>
+    <import module="test-a" param="foo=REWRITTEN"/>
+  </collection>
+</site>

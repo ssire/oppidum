@@ -1,0 +1,64 @@
+<modules>
+  <module id="test-a">
+    <action name="GET">
+      <model src="test-a-imported-get.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+    </action>
+    <action name="POST">
+      <model src="test-a-imported-post.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+    </action>
+    <action name="action">
+      <model src="test-a-imported-action.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+    </action>
+    <item name="item-1" supported="action" collection="$__collection">
+      <model src="test-a-imported-item-1-get-implicit.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+      <action name="action" epilogue="$__epilogue">
+        <model src="test-a-imported-item-1-action.xql">
+          <param name="foo" value="ORIGINAL"/>
+          <param name="bar" value="ORIGINAL"/>
+        </model>
+      </action>
+    </item>
+    <collection name="collection-1" supported="action" access="u:admin" template="$__template">
+      <import module="test-b"/>
+    </collection>
+  </module>
+  <module id="test-b">
+    <action name="GET" epilogue="$__epilogue">
+      <model src="test-b-get-imported.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+    </action>
+    <item name="item-1" supported="action" resource="$__resource" collection="ORIGINAL"
+      template="$__template" epilogue="$__epilogue">
+      <model src="test-b-imported-item-1-get-implicit.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+      <action name="action" epilogue="$__epilogue">
+        <model src="test-b-imported-item-1-action.xql">
+          <param name="foo" value="ORIGINAL"/>
+          <param name="bar" value="ORIGINAL"/>
+        </model>
+      </action>
+    </item>
+    <action name="action" epilogue="$__epilogue">
+      <model src="test-b-imported-action.xql">
+        <param name="foo" value="ORIGINAL"/>
+        <param name="bar" value="ORIGINAL"/>
+      </model>
+    </action>
+  </module>
+</modules>

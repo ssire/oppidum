@@ -23,14 +23,14 @@ import module namespace gen = "http://oppidoc.com/oppidum/generator" at "../oppi
 
 (: ======================================================================
                   Site default access rights
-   ====================================================================== :)                 
+   ====================================================================== :)
 declare variable $access := <access>
   <rule action="POST" role="u:admin" message="database administrator"/>
 </access>;
 
 (: ======================================================================
                   Site default actions
-   ====================================================================== :)                 
+   ====================================================================== :)
 declare variable $actions := <actions error="models/error.xql">
   <action name="login" depth="0"> <!-- may be GET or POST --> 
     <model src="oppidum:actions/login.xql"/>
@@ -69,10 +69,14 @@ declare variable $mapping := <site startref="home" supported="login logout insta
     <model src="models/scaffold.xql"/>
     <view src="views/scaffold.xsl"/>
   </item>
-  <collection name="test">
-    <item name="skin">
-      <model src="test/skin.xql"/>
+  <collection name="test" supported="naction">
+    <item name="generator">
+      <model src="oppidum:test/generator.xql"/>
     </item>
+    <item name="skin">
+      <model src="oppidum:test/skin.xql"/>
+    </item>
+    <!-- <import module="test"/> -->
   </collection>
 </site>;
 

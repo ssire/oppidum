@@ -9,7 +9,7 @@ xquery version "1.0";
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
    
-module namespace gen = "http://oppidoc.com/oppidum/generator";                          
+module namespace gen = "http://oppidoc.com/oppidum/generator";
 
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace request="http://exist-db.org/xquery/request";
@@ -254,22 +254,25 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
               {
               if ($variant/@epilogue) then $variant/@epilogue else $cmd/resource/@epilogue,
               if ($variant/@check) then $variant/@check else $cmd/resource/@check,
-              if ($variant/model) then $variant/model else $cmd/resource/model,
-              if ($variant/view) then $variant/view else $cmd/resource/view
+              if ($variant/model) then $variant/model else if ($cmd/resource/action/model) then $cmd/resource/action/model else $cmd/resource/model,
+              if ($variant/view) then $variant/view else if ($cmd/resource/action/view) then $cmd/resource/action/view else $cmd/resource/view
               }
               </action> 
             else  
               <action/> (: no variant for the given format, that's an error unless there is a default action - FIXME Issue #16 :)   
-        else  
-          (: syntactic sugar : implicit action :)
-          <action>
-          {
-          $cmd/resource/@epilogue,
-          $cmd/resource/@check,
-          $cmd/resource/model,
-          $cmd/resource/view
-          }
-          </action> 
+        else
+          if ($cmd/resource/action) then 
+            $cmd/resource/action
+          else
+            (: syntactic sugar : implicit action :)
+            <action>
+            {
+            $cmd/resource/@epilogue,
+            $cmd/resource/@check,
+            $cmd/resource/model,
+            $cmd/resource/view
+            }
+            </action> 
       else        
         $cmd/resource/action
        
@@ -558,9 +561,9 @@ declare function gen:process(
             $dbg1 := request:set-attribute('oppidum.debug.implementation', $pipeline),
             $dbg2 := request:set-attribute('oppidum.debug.default', $default)
           return
-             gen:debug-command($cmd)            
+            gen:debug-command($cmd)
         else
-          $pipeline  
+          $pipeline
 };
 
 (:let $null := oppidum:log-parameters( <parameters>

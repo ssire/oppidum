@@ -15,6 +15,7 @@ import module namespace skin = "http://oppidoc.com/oppidum/skin" at "../lib/skin
 
 declare option exist:serialize "method=html5 media-type=text/html";
 
+let $start := util:system-time()
 let $cmd := request:get-attribute('oppidum.command')
 let $pkg := request:get-parameter("pkg", 'oppidoc')
 let $mesh := request:get-parameter("mesh", 'standard')
@@ -31,6 +32,8 @@ let $fakecommand :=
   </command>
 let $sideeffect := request:set-attribute('oppidum.command', $fakecommand)
 let $result := skin:gen-skin($pkg, $mesh, $skin)
+let $end := util:system-time()
+let $runtimems := (($end - $start) div xs:dayTimeDuration('PT1S'))  * 1000 
 return 
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
@@ -40,8 +43,17 @@ return
       p {{
         margin: 0;
       }}
-      p.source {{
-        font-family: courrier;
+      div.code {{
+        margin: 1em 2em 2em 1em;
+        border: solid 1px black;
+        padding: 1em 2em;
+      }}
+      pre {{
+        white-space: pre-wrap; /* css-3 */
+        white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+        white-space: -pre-wrap; /* Opera 4-6 */
+        white-space: -o-pre-wrap; /* Opera 7 */
+        word-wrap: break-word; /* Internet Explorer 5.5+ */
       }}
       .error {{
         color:red
@@ -52,25 +64,29 @@ return
     <body style="margin: 2em 2em">
       <h1>Oppidum skin test</h1>
       <p><b>Current parameters</b>: package ({$pkg}), mesh: ({$mesh}), skin: ({$skin})</p>
-      <h2>Generated links and scripts</h2>
-      <div>
-        {
-        for $item in $result 
-        return
-          if (local-name($item) = 'link') then 
-            <p class="code">link href="{$item/@href/string()}"</p>
-          else if (local-name($item) = 'script') then
-            if (not($item/@src)) then 
-              if ($item/@data-error) then 
-                <p class="code error">script error (see console)</p>
-              else
-                <p class="code">script with inline content</p>                
+      <p><b>Generated links and scripts</b> in {$runtimems} ms</p>
+      <p><b>Summary</b></p>
+      {
+      for $item in $result
+      return
+        if (local-name($item) = 'link') then 
+          <p class="code">link href="{$item/@href/string()}"</p>
+        else if (local-name($item) = 'script') then
+          if (not($item/@src)) then 
+            if ($item/@data-error) then 
+              <p class="code error">script error (see console)</p>
             else
-              <p class="code">script src="{$item/@src/string()}"</p> 
+              <p class="code">script with inline content</p>                
           else
-            <p class="code">{local-name($item)}</p>
-        }
-        <p><i>View window source to get exact content</i></p>
+            <p class="code">script src="{$item/@src/string()}"</p> 
+        else
+          <p class="code">{local-name($item)}</p>
+      }
+      <p><b>Source</b></p>
+      <div class="code">
+        <pre>
+          { replace(replace(util:serialize($result, ()), '<', '&lt;'), 'xmlns="http://www.w3.org/1999/xhtml"', '') }
+        </pre>
       </div>
       <h2>New simulation</h2>
       <form action="skin" method="get">
