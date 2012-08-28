@@ -8,12 +8,13 @@ xquery version "1.0";
    from on a skin.xml configuration file
    
    TODO :
+   - support href="module:..." syntax for link elements
    - find a way to push a script at the end (e.g. google analytics)
    - attach conditions (meet, avoid) to a profile (factorization)
    - insert carriage return before IE conditional links (esthetical)
      or replace conditional links with server side browser sniffing
    - add function rewrite-js-link(package, <site:scripts>)
-
+   
    July 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
    ------------------------------------------------------------------ :)
 
@@ -40,7 +41,17 @@ declare function skin:_css-link( $link as element(), $base as xs:string ) as nod
   else
     <link>
       {
-      if (starts-with($link/@href,'http')) then $link/@href else attribute { 'href' } { concat($base, $link/@href) },
+      if (starts-with($link/@href,'http')) then 
+        $link/@href 
+      else 
+        attribute { 'href' } { 
+          if (contains($link/@href,':')) then 
+            let $pkg := substring-before($link/@href, ':')
+            let $src := substring-after($link/@href, ':')
+            return concat(epilogue:make-static-base-url-for($pkg), $src)
+          else
+            concat($base, $link/@href) 
+        },
       if ($link/@rel) then $link/@rel else attribute { 'rel' } { 'stylesheet' },
       if ($link/@type) then $link/@type else attribute { 'type' } { 'text/css' }
       }
@@ -63,7 +74,17 @@ declare function skin:_js-link( $script as element(), $cmd as element(), $base a
     <script>
       {
       if ($script/@src) then 
-        if (starts-with($script/@src,'http')) then $script/@src else attribute { 'src' } { concat($base, $script/@src) } 
+        if (starts-with($script/@src,'http')) then 
+          $script/@src 
+        else 
+          attribute { 'src' } { 
+            if (contains($script/@src,':')) then 
+              let $pkg := substring-before($script/@src, ':')
+              let $src := substring-after($script/@src, ':')
+              return concat(epilogue:make-static-base-url-for($pkg), $src)
+            else
+              concat($base, $script/@src) 
+          }
       else 
         (),
       if ($script/@data-bundles-path) then

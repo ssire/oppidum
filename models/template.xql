@@ -34,8 +34,8 @@ declare option exist:serialize "method=xml media-type=application/xhtml+xml";
 (:let $col-uri := oppidum:path-to-ref-col()
 let $template-uri := oppidum:path-to-ref() :)
 let $cmd := request:get-attribute('oppidum.command')
-let $col-uri := concat($cmd/@confbase, '/', $cmd/resource/@collection)
-(:let $col-uri := concat($cmd/resource/@db, '/', $cmd/resource/@collection):)
+(:let $col-uri := concat($cmd/@confbase, '/', $cmd/resource/@collection):)
+let $col-uri := concat($cmd/resource/@db, '/', $cmd/resource/@collection)
 let $template-uri := concat($col-uri, '/', $cmd/resource/@resource)
 return  
   if (doc-available(concat($col-uri, '/filter.xsl'))) then

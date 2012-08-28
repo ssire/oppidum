@@ -197,8 +197,8 @@
         $oppidum.logError('Cannot start editing because AXEL library path is unspecified');
       }
     }
-    // creates commands (button with 'data-command')
-    $('button[data-command]').each(
+    // creates commands
+    $('*[data-command]').each(
       function (index, elt) {
         $oppidum.createCommand(elt);
       }

@@ -70,13 +70,20 @@ declare variable $mapping := <site startref="home" supported="login logout insta
     <view src="views/scaffold.xsl"/>
   </item>
   <collection name="test" supported="naction">
+    <!-- <import module="test"/> -->
     <item name="generator">
       <model src="oppidum:test/generator.xql"/>
     </item>
     <item name="skin">
       <model src="oppidum:test/skin.xql"/>
     </item>
-    <!-- <import module="test"/> -->
+    <item name="inspect" supported="POST">
+      <model src="oppidum:models/inspect.xql"/>
+      <view/>
+      <action name="POST">
+        <model src="oppidum:models/inspect.xql"/>
+      </action>
+    </item>
   </collection>
 </site>;
 

@@ -18,6 +18,11 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 
 declare variable $oppidum:DEFAULT_ERR_LOC := '/db/www/oppidum/config/errors.xml';
 
+declare function oppidum:get-command () as element()
+{         
+  request:get-attribute('oppidum.command')
+}; 
+
 declare function oppidum:path-to-ref () as xs:string
 {         
   let $r := request:get-attribute('oppidum.command')/resource

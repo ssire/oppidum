@@ -51,7 +51,7 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
       <files pattern="modules/**/*.xsl" preserve="true"/>
       <files pattern="scripts/filter-transfo.xsl" preserve="true"/>
 <!--  <files pattern="scripts/filter-template.xsl" preserve="true"/> -->
-<!--      <files pattern="templates/**/*.xhtml" preserve="true"/>:) -->
+<!--  <files pattern="templates/**/*.xhtml" preserve="true"/> -->
       <files pattern="views/**/*.xsl" preserve="true"/>
     </collection>
   </group>

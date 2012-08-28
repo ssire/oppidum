@@ -118,10 +118,10 @@ declare function local:rewrite-module(
     return
       if (starts-with($attr, '$__')) then
         (: limited named variables substitution :)
-        if (starts-with($attr, '$__collection')) then 
-          attribute { name($attr) } { concat($vars[1], substring-after($attr, '$__collection')) }
-        else if (starts-with($attr, '$__resource')) then 
-          attribute { name($attr) } { concat($vars[2], substring-after($attr, '$__resource')) }
+        if (starts-with($attr, '$__resource')) then 
+          attribute { name($attr) } { concat($vars[1], substring-after($attr, '$__resource')) }
+        else if (starts-with($attr, '$__collection')) then 
+          attribute { name($attr) } { concat($vars[2], substring-after($attr, '$__collection')) }
         else if (starts-with($attr, '$__template')) then 
           attribute { name($attr) } { concat($vars[3], substring-after($attr, '$__template')) }
         else if (starts-with($attr, '$__epilogue')) then 
@@ -273,6 +273,7 @@ declare function command:gen-resource(
           if ($collection) then attribute { 'collection' } { command:expand-paths($collection, $tokens) } else (),
           (: optional attributes from target item or collection :)
           $page/(@access | @template | @check | @epilogue | @supported | @method | @redirect),
+          $page/(access|variant),
           $action-spec
           (: debug :)
 (:          $page/access,
@@ -343,15 +344,14 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
   let $found := 
     if ($m/(item|collection)[@name = $name]) then (: exact match :)
       $m/(item|collection)[@name = $name][1]
+    else if ($mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $name]) then (: exact match :)
+      $mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $name][1]
     else if ($m/item[not(@name)]) then (: anonymous item :)
       $m/(item[not(@name)])[1]
     else if ($m/collection[@name = '*']) then (: star collection :)
       $m/(collection[@name = '*'])[1]
-    else 
-      if ($mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $name]) then (: exact match :)
-        $mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $name][1]
-      else (: FIXME : does not look for 2nd level anonymous item or star collection :)
-        ()
+    else (: FIXME : does not look for 2nd level anonymous item or star collection :)
+      ()
   return
     if ($found) then 
       ($found, $cur/@param/string())

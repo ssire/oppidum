@@ -38,12 +38,12 @@
       }}
         </script>
     </profile>
-    <profile name="axel+oppi" type="predef">
+    <profile name="axel-forms" type="predef">
         <link href="css/Preview.css"/>
         <link href="lib/axel/axel.css"/>
         <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
         <script src="lib/axel/axel.js"/>
-        <script data-bundles-path="lib/axel/bundles" src="lib/oppidum.js"/>
+        <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
     </profile>
     <profile name="jquery" type="predef">
         <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
@@ -59,8 +59,7 @@
         <script src="lib/moreaxel/style.js"/>
     </profile>
     <profile name="analytics" type="predef">
-<!--        <script meet="mode(prod)" resource="config/ga.xml"/>-->
-        <script meet="mode(dev)">window.console.log('analytics')</script>
+      <script meet="mode(prod)" resource="config/ga.xml"/>
     </profile>
     <profile name="pro_dropdown_2" type="predef">
         <link href="contribs/pro_dropdown_2/pro_dropdown_2.css"/>
