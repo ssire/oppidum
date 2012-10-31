@@ -11,9 +11,9 @@ xquery version "1.0";
 	 -------------------------------------- :)
 declare namespace request = "http://exist-db.org/xquery/request";
 
-declare option exist:serialize "method=xml media-type=application/xml";      
+declare option exist:serialize "method=xml media-type=application/xml";
 
-let                             
+let
   $base-url := request:get-attribute('oppidum.base-url'),
   $cmd := request:get-attribute('oppidum.command'),
   $pipeline := request:get-attribute('oppidum.pipeline'),
@@ -24,10 +24,10 @@ let
   $err-type := request:get-attribute('oppidum.error.type'),
   $err-clue := request:get-attribute('oppidum.error.clue'),
   $rc := codepoints-to-string(13)
-  
-return	            
+
+return	
   <result>
-   {        
+   {
    $rc,
    comment { 'oppidum.error.type' },
    $err-type,
@@ -35,19 +35,19 @@ return
    comment { 'oppidum.error.clue' },
    $err-clue,
    $rc,
-   comment { 'oppidum.base-url (may be deprecated soon)' },     
-   $base-url,                              
+   comment { 'oppidum.base-url (may be deprecated soon)' },
+   $base-url,
    $rc,
-   comment { 'oppidum.command' },     
-   $cmd,                              
+   comment { 'oppidum.command' },
+   $cmd,
    $rc,
-   comment { 'oppidum.pipeline' },     
-   $pipeline,             
+   comment { 'oppidum.pipeline' },
+   $pipeline,
    $rc,
-   comment { 'oppidum.granted' },     
+   comment { 'oppidum.granted' },
    $granted,
    $rc,
-   comment { 'oppidum.rights' },     
+   comment { 'oppidum.rights' },
    xs:string($rights),
    $rc,
    comment { 'exist generated pipeline (available only for debug)' },
@@ -57,5 +57,5 @@ return
    $def
    }
  </result>
-   
- 
+
+

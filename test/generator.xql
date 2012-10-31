@@ -85,6 +85,12 @@ return
         margin: 0;
       }}
       </style>
+      <script type="text/javascript" charset="utf-8">
+function run() {{
+  var url = document.forms[0]['base-url'].value + document.forms[0].path.value;
+  window.open(url);
+}}
+      </script>
     </head>
     <body style="margin: 2em 2em">
       <h1>Oppidum Generator Test</h1>
@@ -111,7 +117,7 @@ return
           <p>mode: <input type="text" name="mode" value="{$mode}"/></p>
           <p>method: <input type="text" name="method" value="{$method}"/></p>
         </fieldset>
-        <p>Generate : <input type="submit" name="type" value="Command"/> <input type="submit" name="type" value="Pipeline"/></p>
+        <p>Generate : <input type="submit" name="type" value="Command"/> <input type="submit" name="type" value="Pipeline"/> <a href="javascript:run()">run command</a></p>
       </form>
     </body>
   </html>

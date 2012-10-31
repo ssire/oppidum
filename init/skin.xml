@@ -45,6 +45,12 @@
         <script src="lib/axel/axel.js"/>
         <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
     </profile>
+    <profile name="axel-1.3" type="predef">
+        <link href="lib/axel-1.3/axel.css"/>
+        <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
+        <script src="lib/axel-1.3/axel.js"/>
+        <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
+    </profile>    
     <profile name="jquery" type="predef">
         <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
     </profile>

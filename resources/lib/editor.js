@@ -9,7 +9,7 @@
  *
  * Prerequisites: jQuery + AXEL (https://github.com/ssire/axel)
  *
- * DEPRECATED: to be replaced by oppidum.js
+ * DEPRECATED: replace with axel-forms.js instead !
  */   
 
 (function () { 

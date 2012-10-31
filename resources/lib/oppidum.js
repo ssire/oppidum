@@ -8,6 +8,8 @@
  * Script to invoke inplace editing with AXEL + oppidum microformat
  *
  * Prerequisites: jQuery + AXEL (https://github.com/ssire/axel)
+ *
+ * DEPRECATED: replace with axel-forms.js instead !
  */   
 
 // TODO

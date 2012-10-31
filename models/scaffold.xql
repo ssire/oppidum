@@ -16,7 +16,7 @@ declare option exist:serialize "method=xml media-type=application/xml";
 
 let $cmd := request:get-attribute('oppidum.command')
 let $ref-col-uri := oppidum:path-to-ref-col()
-return          
+return
   <scaffold>
     <meta>
       <page>{string($cmd/resource/@name)}</page>
@@ -24,13 +24,13 @@ return
       <reference>
         <collection>{$ref-col-uri}</collection>
         <resource>{string($cmd/resource/@resource)}</resource>
-      </reference>      
+      </reference>
     </meta>
     <content>
     {
-    if ($cmd/@lang = 'fr') then 
+    if ($cmd/@lang = 'fr') then
       <p>Cette fonctionnalité sera bientôt disponible...</p>
-    else 
+    else
       <p>This functionality will be available soon...</p>
     }
     </content>

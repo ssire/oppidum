@@ -1,45 +1,45 @@
-xquery version "1.0";      
+xquery version "1.0";
 (: -----------------------------------------------
    Oppidum framework command generator
 
-   Oppidum HTTP request parser that generates the <command> 
+   Oppidum HTTP request parser that generates the <command>
    from the mapping. Detects two types of early errors:
    - not-found when the URL has no mapping entry
    - not-supported when the URL refers to an action not supported
      by the target mapping entry
 
    Author: Stéphane Sire <s.sire@free.fr>
-   
-   TODO : 
-   - merge param fields when rewriting importing modules 
+
+   TODO :
+   - merge param fields when rewriting importing modules
      (currently only keep top level param)
-   - implement a @method attribute on <action> as currently 
+   - implement a @method attribute on <action> as currently
      an action may implement any HTTP verb
    - DEPRECATE default action in favour of module importation ?
 
    August 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
    ----------------------------------------------- :)
-   
+
 module namespace command = "http://oppidoc.com/oppidum/command";
 
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
-import module namespace text="http://exist-db.org/xquery/text";     
-import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";   
+import module namespace text="http://exist-db.org/xquery/text";
+import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";
 
 (: ======================================================================
    Recreates the local part of the URI as string, removing the last token if it
    has been recognized as an action
    ======================================================================
-:) 
+:)
 declare function command:gen-trail(
   $is-action as xs:boolean,
   $tokens as xs:string*,
   $count as xs:integer ) as attribute()
-{        
+{
   attribute { 'trail' } {
-    if ($is-action) then 
-      string-join($tokens[position() < $count], '/') 
+    if ($is-action) then
+      string-join($tokens[position() < $count], '/')
     else
       string-join($tokens, '/')
   }
@@ -49,12 +49,12 @@ declare function command:gen-trail(
    pre-condition: $from and $to same size
    ======================================================================
 :)
-declare function command:star-distance-iter( 
-  $index as xs:decimal, 
-  $from as xs:string*, 
-  $to as xs:string*, 
+declare function command:star-distance-iter(
+  $index as xs:decimal,
+  $from as xs:string*,
+  $to as xs:string*,
   $sum as xs:decimal ) as xs:decimal
-{ 
+{
   if ($index > count($from)) then
     $sum
   else
@@ -62,34 +62,34 @@ declare function command:star-distance-iter(
       command:star-distance-iter($index + 1, $from, $to, $sum)
     else if ($from[$index] = $to[$index]) then
       command:star-distance-iter($index + 1, $from, $to, $sum + 1)
-    else 
-      command:star-distance-iter($index + 1, $from, $to, $sum - 1000) 
+    else
+      command:star-distance-iter($index + 1, $from, $to, $sum - 1000)
       (: -1000 to get a negative result in all cases :)
-}; 
-                                        
+};
+
 declare function command:get-default-action( $cmd as element(), $actions as element() ) as element()*
 {
   let $tokens := tokenize($cmd/@trail, '/')[. != '']
-  return        
+  return
     (
     for $c in $actions/action[(@name = $cmd/@action) and (@depth = count($tokens))]
     let
       $slash := ends-with($c/@trail, '/'),
-      $compatible := not($slash) or (name($cmd/*[1]) = 'collection'),                     
+      $compatible := not($slash) or (name($cmd/*[1]) = 'collection'),
       $bonus := if ($slash and $compatible) then 1 else 0,
       $d := command:star-distance-iter(1, tokenize($c/@trail, '/')[. != ''], $tokens, 0) + $bonus
     where ($d >= 0) and $compatible
-    order by $d                                                                           
-    return                                            
+    order by $d
+    return
       $c
     )[last()]
 };
 
 declare function command:expand-paths( $exp as xs:string, $tokens as xs:string* ) as xs:string
-{                                                                                
+{
   let $expanded := replace($exp, "\$(\d)", "|var=$1|")
-  return 
-    string-join( 
+  return
+    string-join(
       for $t in tokenize($expanded, "\|")
       let $index := substring-after($t, 'var=')
       return
@@ -106,7 +106,7 @@ declare function command:expand-paths( $exp as xs:string, $tokens as xs:string* 
    ======================================================================
 :)
 declare function local:rewrite-module(
-  $source as element(), 
+  $source as element(),
   $vars as xs:string*,
   $delta as xs:integer,
   $param as xs:string?
@@ -118,41 +118,44 @@ declare function local:rewrite-module(
     return
       if (starts-with($attr, '$__')) then
         (: limited named variables substitution :)
-        if (starts-with($attr, '$__resource')) then 
+        if (starts-with($attr, '$__resource')) then
           attribute { name($attr) } { concat($vars[1], substring-after($attr, '$__resource')) }
-        else if (starts-with($attr, '$__collection')) then 
+        else if (starts-with($attr, '$__collection')) then
           attribute { name($attr) } { concat($vars[2], substring-after($attr, '$__collection')) }
-        else if (starts-with($attr, '$__template')) then 
+        else if (starts-with($attr, '$__template')) then
           attribute { name($attr) } { concat($vars[3], substring-after($attr, '$__template')) }
-        else if (starts-with($attr, '$__epilogue')) then 
+        else if (starts-with($attr, '$__epilogue')) then
           attribute { name($attr) } { concat($vars[4], substring-after($attr, '$__epilogue')) }
         else
           ()
       else if (matches($attr,'\$\d')) then
-        (: path steps variables increment (e.g. '$2/images' becomes '$4/images') :)
-        attribute  { name($attr) } { 
+        (: path steps variables increment (e.g. '$2/images' becomes '$4/images', '$1.xml' becomes '$3.xml') :)
+        attribute  { name($attr) } {
           string-join(
-            for $t in tokenize($attr, '/') 
-            return 
-              if (starts-with($t, '$')) then 
-                concat('$', number(substring-after($t, '$')) + $delta) 
+            for $t in tokenize($attr, '/')
+            return
+              if (starts-with($t, '$')) then
+                if (contains($t, '.')) then
+                  concat('$', number(substring-after(substring-before($t, '.'), '$')) + $delta, '.', substring-after($t, '.'))
+                else
+                  concat('$', number(substring-after($t, '$')) + $delta)
               else $t
               , '/'
           )
         }
-      else if (local-name($attr) = 'param') then 
+      else if (local-name($attr) = 'param') then
         if ($param) then (: propagates param from the current import statement :)
           attribute { 'param' } { $param } (: FIXME: merge $param with $attr instead :)
         else
           $attr
       else
         $attr,
-    if ((local-name($source) = 'import') and not($source/@param) and $param) then 
+    if ((local-name($source) = 'import') and not($source/@param) and $param) then
       attribute { 'param' } { $param } (: generates it in case it was not defined :)
     else
       (),
     for $child in $source/*
-    return  
+    return
       if (local-name($child) eq 'param') then (: parameters value substitution :)
         let $key := concat($child/@name,'=')
         return
@@ -166,7 +169,7 @@ declare function local:rewrite-module(
               }
           else
             $child
-      else 
+      else
         local:rewrite-module($child, $vars, $delta, $param)
   }
 };
@@ -181,14 +184,14 @@ declare function command:import-action(
   $name as xs:string,
   $mapping as element(),
   $inres as xs:string?,
-  $incol as xs:string?, 
+  $incol as xs:string?,
   $confbase as xs:string
   ) as element()?
 {
   let $imports := $mapping/import
   let $match := if ($imports) then local:import-action-iter($name, $confbase, $imports) else ()
   return
-    if ($match) then 
+    if ($match) then
       let $vars := (
                     if ($mapping/@resource) then $mapping/@resource else if ($inres) then $inres else '-1',
                     if ($mapping/@collection) then $mapping/@collection else if ($incol) then $incol else '-1',
@@ -204,58 +207,58 @@ declare function local:import-action-iter( $name as xs:string, $confbase as xs:s
   let $mods := doc(concat($confbase,'/config/modules.xml'))/modules
   let $m := $mods/module[(@id = $cur/@module)]
   (: search in the imported module or in an imported module inside it - NO MORE :)
-  let $found := 
-    if ($m/action[@name = $name]) then 
+  let $found :=
+    if ($m/action[@name = $name]) then
       ($m/action[@name = $name])
-    else 
+    else
       $mods/module[(@id = $m/import/@module)]/action[@name = $name]
   return
     if ($found) then
       ($found, $cur/@param/string())
-    else 
+    else
       let $next := subsequence($imports,2)
-      return 
+      return
         if ($next) then local:import-action-iter($name, $confbase, $next) else ()
 };
 
 (: ======================================================================
    Generates @error(not-supported) if $method HTTP verb is not supported
-   by $page item or collection (note that GET is always supported), 
-   otherwise returns an @action, @type and <resource> element 
+   by $page item or collection (note that GET is always supported),
+   otherwise returns an @action, @type and <resource> element
    generated from the mapping $page.
    Takes into account the implicit GET action of $page if present;
    search missing actions inside any $page <import>.
-   It may return an empty <resource> element if no action definition 
+   It may return an empty <resource> element if no action definition
    is found, which should be interpreted as NO-PIPELINE-ERROR later.
    ======================================================================
 :)
 declare function command:gen-resource(
-  $method as xs:string, 
-  $action-token as xs:string?, 
+  $method as xs:string,
+  $action-token as xs:string?,
   $index as xs:integer,
   $tokens as xs:string*,
   $page as element(),
-  $db as xs:string?, 
-  $resource as xs:string?, 
+  $db as xs:string?,
+  $resource as xs:string?,
   $collection as xs:string?,
   $confbase as xs:string
 ) as node()*
-{ 
+{
   (: check HTTP verb is supported by target item or collection :)
-  if (($method = 'GET') or $action-token or ($method = tokenize($page/@method, ' '))) then 
+  if (($method = 'GET') or $action-token or ($method = tokenize($page/@method, ' '))) then
     (: build action specification taking implicit GET action into account :)
-    let $action-spec :=  
+    let $action-spec :=
       if ($action-token) then
-        if ($page/action[@name=$action-token]) then 
+        if ($page/action[@name=$action-token]) then
           $page/action[@name=$action-token]
         else
           command:import-action($index, $action-token, $page, $resource, $collection, $confbase)
-      else 
+      else
         (: request is an HTTP verb on item or collection :)
         if (($method = 'GET') and (count($page/(model |view))>0)) then (: implicit 'GET' action :)
           $page/(model | view)
-        else 
-          if ($page/action[@name=$method]) then 
+        else
+          if ($page/action[@name=$method]) then
             $page/action[@name=$method]
           else
             command:import-action($index, $method, $page, $resource, $collection, $confbase)
@@ -303,14 +306,14 @@ declare function command:find-item-or-collection(
   $name as xs:string,
   $mapping as element(),
   $inres as xs:string?,
-  $incol as xs:string?, 
+  $incol as xs:string?,
   $confbase as xs:string
   ) as element()?
 {
   if ($mapping/(item|collection)[@name = $name]) then (: exact match :)
     $mapping/(item|collection)[@name = $name]
   else
-    let $imports := $mapping/import 
+    let $imports := $mapping/import
     let $match := if ($imports) then local:import-iter($name, $confbase, $imports) else ()
     return
       if ($match) then
@@ -320,16 +323,16 @@ declare function command:find-item-or-collection(
                      if ($mapping/@template) then $mapping/@template else '-1',
                      if ($mapping/@epilogue) then $mapping/@epilogue else '-1'
                      )
-        return 
+        return
           local:rewrite-module($match[1], $vars, $index - 1, $match[2])
       else
         let $match := $mapping/item[not(@name)] (: anonymous item :)
-        return 
+        return
           if ($match) then $match[1] else ()
 };
 
 (: ======================================================================
-   Searches for an <item> or <collection> in $mapping imported modules 
+   Searches for an <item> or <collection> in $mapping imported modules
    matching $name. Returns it or the empty sequence.
    ======================================================================
 :)
@@ -340,8 +343,8 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
   let $mods := doc(concat($confbase,'/config/modules.xml'))/modules
   let $m := $mods/module[(@id = $cur/@module)]
   (:  let $log := oppidum:debug(('*** found module ', util:serialize($m, ()))) :)
-  (: search in the imported module or in an imported module inside it - NO MORE :)  
-  let $found := 
+  (: search in the imported module or in an imported module inside it - NO MORE :)
+  let $found :=
     if ($m/(item|collection)[@name = $name]) then (: exact match :)
       $m/(item|collection)[@name = $name][1]
     else if ($mods/module[(@id = $m/import/@module)]/(item|collection)[@name = $name]) then (: exact match :)
@@ -353,11 +356,11 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
     else (: FIXME : does not look for 2nd level anonymous item or star collection :)
       ()
   return
-    if ($found) then 
+    if ($found) then
       ($found, $cur/@param/string())
-    else 
+    else
       let $next := subsequence($imports,2)
-      return 
+      return
         if ($next) then local:import-iter($name, $confbase, $next) else ()
 };
 
@@ -371,7 +374,7 @@ declare function command:match-token-iter(
   $tokens as xs:string*,
   $mapping as element(),
   $indb as xs:string?,
-  $inres as xs:string?,   
+  $inres as xs:string?,
   $incol as xs:string?,
   $confbase as xs:string,
   $greedy as xs:boolean
@@ -380,26 +383,26 @@ declare function command:match-token-iter(
   let $curtoken := $tokens[$index]
   let $count := count($tokens)
   let $last := $index >= $count
-  let $action := if ($last and ($curtoken = tokenize($mapping/@supported, ' '))) 
-                  then $curtoken 
+  let $action := if ($last and ($curtoken = tokenize($mapping/@supported, ' ')))
+                  then $curtoken
                   else ''
-  let $page :=  if ($action) 
-                  then $mapping 
+  let $page :=  if ($action)
+                  then $mapping
                   else command:find-item-or-collection($index, $curtoken, $mapping, $inres, $incol, $confbase)
   (: "inherits"" attributes :)
   let $db := if ($page/@db) then $page/@db else $indb
   let $resource := if ($page/@resource) then $page/@resource else $inres
   let $collection : = if ($page/@collection) then $page/@collection else $incol
   (:  $log := oppidum:debug(('match-token-iter with $cur', $tokens[$index], ' and $greedy=', if ($greedy) then 'true' else 'false', ' name=', string($mapping/@name), ' page=', string($page/@name))):)
-  return 
-    if (not($last)) then 
+  return
+    if (not($last)) then
       if ($greedy) then
         if ($page[@name]) then (: switch to non greedy iteration on the new branch :)
           command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
-        else 
+        else
           let $nextok := $tokens[$index+1] (: look ahead 1 token :)
           return
-            if ($page[not(@name)] and 
+            if ($page[not(@name)] and
                 (($page/(item|collection)[@name = $nextok]) or ($nextok = tokenize($page/@supported, ' ')))) then
               command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
             else (: continue with greedy iteration same branch :)
@@ -407,15 +410,15 @@ declare function command:match-token-iter(
       else
         if ($page[not(@name)]) then (: switch to greedy iteration on the new branch :)
           command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, true())
-        else 
+        else
           if ($page[@name]) then (: continue with greedy iteration on the new branch :)
             command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
           else  (: no page and not greedy : failure :)
             ()
-    else 
+    else
       if (not($page) and not($greedy)) then (: failure : backtracking :)
         ()
-      else (: success : $page or $greedy :) 
+      else (: success : $page or $greedy :)
         (
         command:gen-trail(boolean($action), $tokens, $count),
         if (not($page)) then
@@ -432,31 +435,31 @@ declare function command:parse-token-iter(
   $mapping as element(),
   $indb as xs:string?,
   $inres as xs:string?,
-  $incol as xs:string?, 
+  $incol as xs:string?,
   $confbase as xs:string
 ) as node()*
-{ 
+{
   let $curtoken := $tokens[$index]
   let $count := count($tokens)
   let $last := $index = $count
   let $action := if ($last and ($curtoken = tokenize($mapping/@supported, ' '))) then $curtoken else ()
-  let $page := if ($action) then 
+  let $page := if ($action) then
                  $mapping
-               else 
+               else
                  let $match := command:find-item-or-collection($index, $curtoken, $mapping, $inres, $incol, $confbase)
-                 return 
+                 return
                    if ($match) then $match[1] else  $mapping/(item|collection)[@name = '*'][1] (: star collection :)
   (: compute inherited attributes :)
   let $db := if ($page/@db) then $page/@db else $indb
   let $resource := if ($page/@resource) then $page/@resource else $inres
   let $collection : = if ($page/@collection) then $page/@collection else $incol
-  return 
-    if ($page[@name = '*']) then 
+  return
+    if ($page[@name = '*']) then
       (: recurse in greedy mode starting at self :)
       let $res := command:match-token-iter($method, $index, $tokens, $page, $db, $resource, $collection, $confbase, true())
       return
         if ($res) then $res else attribute { 'error' } { 'not-found' }
-    else if (not($last) and $page) then 
+    else if (not($last) and $page) then
       (: recurse :)
       command:parse-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase)
     else (: assumes $last is true :)
@@ -474,11 +477,11 @@ declare function command:parse-token-iter(
    Pre-condition: space in $url has been normalized and minimal url is '/'
    ========================================================================
 :)
-declare function command:parse-url( 
+declare function command:parse-url(
   $base-url as xs:string,
   $exist-root as xs:string,
   $exist-path as xs:string,
-  $url as xs:string, 
+  $url as xs:string,
   $method as xs:string,
   $mapping as element(),
   $lang as xs:string ) as element()
@@ -494,7 +497,7 @@ declare function command:parse-url(
       attribute base-url { $base-url },
       attribute app-root { $exist-root },
       attribute exist-path { $exist-path },
-      attribute lang { $lang },      
+      attribute lang { $lang },
       attribute db { $mapping/@db },
       $mapping/@confbase,
       $mapping/@mode,

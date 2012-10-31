@@ -19,6 +19,10 @@
     <message lang="fr">Pas de pipeline</message>
     <message lang="en">No pipeline</message>
   </error>     
+  <error type="PIPELINE-WRONG-PARAM" code="500">
+    <message lang="fr">Paramètre “%s” invalide dans le pipeline</message>
+    <message lang="en">Wrong pipeline parameter “%s”</message>
+  </error>     
   <error type="ACTION-EDIT-NO-TEMPLATE" code="500">
     <message lang="fr">Pas de template déclaré pour éditer la page</message>
     <message lang="en">No template declared to edit the page</message>
@@ -62,5 +66,8 @@
   </error>   
   <error type="LOGIN-WRITE-FAILED" code="500">
     <message lang="fr">L'enregistrement de l'utilisateur dans la base de donnée a échoué</message>
+  </error>     
+  <error type="REGISTRATION-DUPLICATE" code="409">
+    <message lang="fr">Un utilisateur s'est déjà enregistré avec le même nom et la même adresse de courrier électronique, il est inutile de l'inscrire deux fois</message>
   </error>     
 </errors>

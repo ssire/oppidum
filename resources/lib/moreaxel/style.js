@@ -5,13 +5,12 @@
  * license     : proprietary (this is part of the Oppidum framework)
  *
  * April 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
+ *
+ * DEPRECATED: this is part of axel.js since 1.3.0 !
  */
 
-/** Requires JQUery
-  *
-  */
- var _WidthFilter  = (function _WidthFilter () {    
-   
+ var _WidthFilter  = (function _WidthFilter () {
+
    var _getTarget = function (me) {
      var rootcn = me.getParam('width_root_class');
      var targetcn = me.getParam('width_target_class');
@@ -23,7 +22,7 @@
      return res;
    }
 
-  return {  
+  return {
 
      ///////////////////////////////////////////////////
      /////     Instance Clear Mixin Part    ////////
@@ -31,12 +30,12 @@
 
     // Property remapping for chaining
     '->': {
-      'set': '__WidthFilterSet', 
+      'set': '__WidthFilterSet',
       'clear': '__WidthFilterClear'
-    },   
+    },
 
     set : function(doPropagate) {
-      var val, target = _getTarget(this); 
+      var val, target = _getTarget(this);
       if (target) {
         val = this.getData();
         xtiger.cross.log('debug', "'width' filter val " + val);
@@ -50,7 +49,7 @@
       }
       this.__WidthFilterSet(doPropagate);
     },
-    
+
     clear : function (doPropagate) {
       xtiger.cross.log('debug', "'width' filter clear");
       var target = _getTarget(this);
@@ -69,15 +68,15 @@
 
  // Do not forget to register your filter on any compatible primitive editor plugin
  xtiger.editor.Plugin.prototype.pluginEditors['text'].registerFilter('width', _WidthFilter);
- 
+
  /**
    * Class _StyleFilter (mixin filter)
    *
    * Filter that works ONLY for an optional text editor (option="...") :
-   * adds the 'optclass_name' class name to the parent of the handle 
+   * adds the 'optclass_name' class name to the parent of the handle
    * when the handle is selected
    */
-  var _StyleFilter  = (function _StyleFilter () {    
+  var _StyleFilter  = (function _StyleFilter () {
 
     var _getTarget = function (me) {
       var rootcn = me.getParam('style_root_class');
@@ -90,7 +89,7 @@
       return res;
     }
 
-   return {  
+   return {
 
       ///////////////////////////////////////////////////
       /////     Instance Clear Mixin Part    ////////
@@ -99,22 +98,22 @@
      // Property remapping for chaining
      '->': {
        'init' : '__StyleSuperInit',
-       'set': '__StyleSuperSet', 
+       'set': '__StyleSuperSet',
        'unset': '__StyleSuperUnset'
-     },   
+     },
 
-     init : function (aDefaultData, aParams, aOption, aUniqueKey, aRepeater) { 
+     init : function (aDefaultData, aParams, aOption, aUniqueKey, aRepeater) {
        this.__StyleSuperInit(aDefaultData, aParams, aOption, aUniqueKey, aRepeater);
        this._CurStyleValue = aDefaultData; // works with 'select' iff aDefaultData is the target XML value (not the i18n one)
      },
-    
+
      set : function(doPropagate) {
        var value, prop, values, target;
        this.__StyleSuperSet(doPropagate);
        values = this.getParam('values');
        target = _getTarget(this);
        if (target) {
-         prop = this.getParam('style_property') || 'class';         
+         prop = this.getParam('style_property') || 'class';
          if (values) { // this is a 'select' plugin
           value = this.getData();
           if (this._CurStyleValue) {
@@ -134,9 +133,9 @@
        var value, prop, target;
        this.__StyleSuperUnset(doPropagate);
        prop = this.getParam('style_property') || 'class';
-       target = _getTarget(this); 
+       target = _getTarget(this);
        if (target) {
-         prop = this.getParam('style_property') || 'class';         
+         prop = this.getParam('style_property') || 'class';
          if (this.getParam('values')) { // this is a 'select' plugin
            value = this._CurStyleValue;
          } else {
@@ -160,9 +159,9 @@
   /**
     * Class _SMRefFilter (mixin filter)
     */
-   var _SMRefFilter  = (function _SMRefFilter () {    
+   var _SMRefFilter  = (function _SMRefFilter () {
 
-    return {  
+    return {
 
        ///////////////////////////////////////////////////
        /////     Instance Clear Mixin Part    ////////
@@ -170,14 +169,14 @@
 
       // Property remapping for chaining
       '->': {
-        'load': '__SMRefFilterSuperLoad', 
-      },   
+        'load': '__SMRefFilterSuperLoad',
+      },
 
       load : function (aPoint, aDataSrc) {
         this.__SMRefFilterSuperLoad(aPoint, aDataSrc);
         var val = this.getData();
         window.console.log('Checking REF ' + val);
-        if (val !== "-1") { 
+        if (val !== "-1") {
           $(this.getHandle(true)).after("<a target='_blank' href='preview?page=" + val + "'><img src='" + this.getParam('smreflink_icon') + "' alt='lien'/></a>");
         }
       },
