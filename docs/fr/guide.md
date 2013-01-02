@@ -481,22 +481,12 @@ De même chaque application peut ajouter ses propres messages ou redéfinir ceux
 Créations de page éditables avec AXEL
 --------------
 
-Oppidum intègre la librairie AXEL et un script `editor.js` pour simplifier l'intégration avec AXEL.
-
-S'appuie sur un microformat data-template, data-src, etc. 
+Oppidum intègre la librairie AXEL et ses extensions AXEL-FORMS pour créer des formulaires.
 
 Modules 
 -------
 
-###Téléchargement d'images###
-
-###Gestion de comptes utilisateurs###
-
-Optimisations
--------------
-
-Retourner des header HTTP pour gérer la mise en cache. Exemple du module image.
-
+Le préfixe `{module}:` dans les chemins spécifiés dans les mappings où _module_ est le nom d'un répertoire frère du répertoire `oppidum` a pour but de développer des modules partagés entre les applications basées sur Oppidum.
 
 Évolutions futures
 -------------
@@ -507,7 +497,7 @@ Possibilité d'appeler un pipeline XProc comme modèle, vue ou épilogue d'un pi
 
 ###Internationalisation et localisation###
 
-Ajout d'un traitement post-épilogue pour localiser le texte.
+Ajout d'un traitement post-epilogue pour localiser le texte.
 
 ###Epilogue en XSLT###
 
@@ -519,9 +509,11 @@ Extension du mapping pour pouvoir réutiliser et combiner facilement plusieurs m
 
 ###Mettre en cache les pages pour éviter de les générer à chaque requête###
 
+Le mapping peut conduire à créer et mettre à jour une collection `/db/caches` mirroir de l'architecture REST et contenant des caches pour chaque page. Prévoir dans ce cas une extension de l'API `oppidum:invalidate()` par exemple pour invalider la page courante, et une version plus élaborée pour invalider d'autres pages.
+
 ###Packaging XAR de la librairie et du code des applications###
 
-Possible à partir de eXist 1.5. Devrait encore simplifier le déploiement.
+Commencer à utiliser le packaging XAR à partir de eXist 2.0. Devrait encore simplifier le déploiement.
 
 ###Versions non liées à eXist###
 

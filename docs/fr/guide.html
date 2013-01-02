@@ -28,7 +28,7 @@
 <body>
   <h1 id="crer_des_sites_web_avec_oppidum">Créer des sites Web avec Oppidum</h1>
 
-  <p>Par Stéphane Sire (Oppidoc), <a href="&#109;&#x61;&#105;&#108;t&#x6F;:s.&#115;&#105;&#114;e&#64;&#x66;&#114;&#101;&#101;&#46;&#x66;r">s.&#115;&#105;&#114;e&#64;&#x66;&#114;&#101;&#101;&#46;&#x66;r</a>, Octobre 2011</p>
+  <p>Par Stéphane Sire (Oppidoc), <a href="&#x6D;&#x61;&#105;&#108;&#116;&#111;:&#x73;&#46;s&#x69;&#114;&#x65;&#64;&#x66;&#x72;&#x65;&#101;&#x2E;&#x66;r">&#x73;&#46;s&#x69;&#114;&#x65;&#64;&#x66;&#x72;&#x65;&#101;&#x2E;&#x66;r</a>, Octobre 2011</p>
 
   <p>Ce document présente le framework Oppidum pour le développeur de sites Web.</p>
 
@@ -514,19 +514,11 @@
 
   <h2 id="crations_de_page_ditables_avec_axel">Créations de page éditables avec AXEL</h2>
 
-  <p>Oppidum intègre la librairie AXEL et un script <code>editor.js</code> pour simplifier l&#8217;intégration avec AXEL.</p>
-
-  <p>S&#8217;appuie sur un microformat data-template, data-src, etc. </p>
+  <p>Oppidum intègre la librairie AXEL et ses extensions AXEL-FORMS pour créer des formulaires.</p>
 
   <h2 id="modules_">Modules </h2>
 
-  <h3 id="tlchargement_d8217images">Téléchargement d&#8217;images</h3>
-
-  <h3 id="gestion_de_comptes_utilisateurs">Gestion de comptes utilisateurs</h3>
-
-  <h2 id="optimisations">Optimisations</h2>
-
-  <p>Retourner des header HTTP pour gérer la mise en cache. Exemple du module image.</p>
+  <p>Le préfixe <code>{module}:</code> dans les chemins spécifiés dans les mappings où <em>module</em> est le nom d&#8217;un répertoire frère du répertoire <code>oppidum</code> a pour but de développer des modules partagés entre les applications basées sur Oppidum.</p>
 
   <h2 id="volutions_futures">Évolutions futures</h2>
 
@@ -536,7 +528,7 @@
 
   <h3 id="internationalisation_et_localisation">Internationalisation et localisation</h3>
 
-  <p>Ajout d&#8217;un traitement post-épilogue pour localiser le texte.</p>
+  <p>Ajout d&#8217;un traitement post-epilogue pour localiser le texte.</p>
 
   <h3 id="epilogue_en_xslt">Epilogue en XSLT</h3>
 
@@ -548,14 +540,15 @@
 
   <h3 id="mettre_en_cache_les_pages_pour_viter_de_les_gnrer_chaque_requte">Mettre en cache les pages pour éviter de les générer à chaque requête</h3>
 
+  <p>Le mapping peut conduire à créer et mettre à jour une collection <code>/db/caches</code> mirroir de l&#8217;architecture REST et contenant des caches pour chaque page. Prévoir dans ce cas une extension de l&#8217;API <code>oppidum:invalidate()</code> par exemple pour invalider la page courante, et une version plus élaborée pour invalider d&#8217;autres pages.</p>
+
   <h3 id="packaging_xar_de_la_librairie_et_du_code_des_applications">Packaging XAR de la librairie et du code des applications</h3>
 
-  <p>Possible à partir de eXist 1.5. Devrait encore simplifier le déploiement.</p>
+  <p>Commencer à utiliser le packaging XAR à partir de eXist 2.0. Devrait encore simplifier le déploiement.</p>
 
   <h3 id="versions_non_lies_exist">Versions non liées à eXist</h3>
 
   <p>La version actuelle d&#8217;Oppidum est fortement lièe à la base de donnée eXist-DB, mais son architecture a été conçue pour qu&#8217;il soit possible de le porter à l&#8217;avenir sur d&#8217;autres environnements (XProc, Sausalito, Mark Logic ?).</p>
-
 
 </body>
 </html>
