@@ -8,7 +8,9 @@ xquery version "1.0";
    
    !!! Due to an eXist bug, it is not possible yet to pass parameter trough request's parameters. 
    Request's attributes are used instead.
-              
+   
+   DEPRECATED: use Oppistore images module instead
+   
    March 2011
    -------------------------------------- :)
 

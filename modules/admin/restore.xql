@@ -182,7 +182,7 @@ return
     <data>
       { 
       if (not(file:is-directory($dir))) then attribute error { 'path-not-found' } else (),
-      file:directory-list($dir, '*.zip'), (: TODO: sort by modification date :)
+      file:directory-list($dir, '*.zip'), 
       local:collection-list()
       }
     </data>

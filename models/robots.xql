@@ -26,8 +26,10 @@ declare function local:gen-disallow() as xs:string {
 };
 
 let $res := concat('User-Agent: *', codepoints-to-string((13, 10)), local:gen-disallow())
+let $age := request:get-attribute('xquery.max-age')
+let $max-age := if ($age) then $age else '604800' (: 1 week :) 
 return (
   response:set-header('Pragma', 'x'),
-  response:set-header('Cache-Control', 'public, max-age=9000000'),
+  response:set-header('Cache-Control', concat('public, max-age=', $max-age)), 
   $res
 )

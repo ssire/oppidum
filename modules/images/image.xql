@@ -10,6 +10,8 @@ xquery version "1.0";
    - improve Cache-Control (HTTP 1.1) with Expires / Date (HTTP 1.0)
    - (no need for must-revalidate / Last-Modified since images never change)
    - return a standard "NOT-FOUND" image when image not found
+   
+   DEPRECATED: use Oppistore images module instead
 
    September 2011
    -------------------------------------- :)
