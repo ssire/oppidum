@@ -1,14 +1,9 @@
-Copyright (C) 2011, 2012  Oppidoc S.A.R.L
+Copyright (C) 2011, 2012, 2013  Oppidoc S.A.R.L
 
 Contact & Author:  
 
-Stéphane Sire (s.sire@free.fr)
-
-The Oppidum Framework uses the following software:
-
-- AXEL (Adaptable XML Editing Library), LGPL v2.1, (C) Stéphane Sire
-- jQuery (http://jquery.com/), MIT / GPL, (C) The jQuery Project
+Stéphane Sire (s.sire@oppidoc.fr)
 
 The current version runs with:
 
-- exist-db (http://exist.sourceforge.net/), GNU LGPL
+- eXist-db (http://exist.sourceforge.net/), GNU LGPL
