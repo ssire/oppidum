@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Packager et déployer une application avec Oppidum</title>
+    <style type="text/css">
+  body {
+    margin-top: 20px;
+    margin-left: 30px;
+    margin-right: 30px;
+  }
+  h1 {
+    text-align: center;
+  }
+  dt {
+    margin-top: 0.5em;
+    margin-bottom: 0.2em;
+  }
+  dd {
+    margin-bottom: 0.2em;
+  }
+  </style>	
+</head>
+
+<body>
+  <h1 id="packager_et_dployer_une_application_avec_oppidum">Packager et déployer une application avec Oppidum</h1>
+
+  <p>Par Stéphane Sire (Oppidoc), <a href="&#109;&#97;&#105;&#108;&#116;&#111;:&#x73;&#x2E;s&#x69;r&#x65;&#64;&#111;p&#112;&#105;&#x64;&#x6F;&#x63;&#x2E;&#x66;&#x72;">&#x73;&#x2E;s&#x69;r&#x65;&#64;&#111;p&#112;&#105;&#x64;&#x6F;&#x63;&#x2E;&#x66;&#x72;</a>, Janvier 2013</p>
+
+  <p>Le développement de l&#8217;application s&#8217;effectue directement avec la configuration par défaut d&#8217;eXist qui fonctionne avec le serveur d&#8217;application Jetty. Pour la mise en production vous pouvez au choix conserver celle-ci (cf. <a href="http://exist-open.markmail.org/thread/bwhv3c2rk7gpmfui">mail</a>) ou bien utiliser un autre serveur d&#8217;application tel que Tomcat. Dans ce dernier cas il faut générer un fichier WAR contenant eXist-DB et des archives ZIP contenant Oppidum, le code de votre application et les données de votre application.</p>
+
+  <p>Ce document est basé sur l&#8217;utilisation de eXist 1.4.x, il est en cours de mis à jour pour eXist-2.0.</p>
+
+  <p>À noter que concernant le choix eXist en mode standalone ou eXist dans Tomcat, voici ce que recommande Dannes Wessels, l&#8217;un des développeurs de eXist-DB (<a href="http://markmail.org/message/tm4saqgztsslaqkj">mail</a>) :</p>
+
+  <blockquote>
+    <p>For good reasons we do not recommend running exist-db for production in tomcat. The main risk is that you share memory with other applications, an out-of-memory exception can be fatal for eXist.
+  Besides, you miss all kind of nice tooling (e.g. recovery tooling) when running in Tomcat and alike.</p>
+  </blockquote>
+
+  <h2 id="configuration">Configuration</h2>
+
+  <p>Les fichiers suivants sont déterminants pour la configuration de eXist :</p>
+
+  <ul>
+  <li><code>web.xml</code> : choix des servlets, vous pouvez en désactiver un certain nombre en production (e.g. WebDAV)</li>
+  <li><code>controller-config.xml</code> : pointe vers le fichier <code>controller.xql</code> lui même point d&#8217;entrée pour traiter les requêtes de l&#8217;utilisateur et interpréter les URLs</li>
+  <li><code>conf.xml</code> : choix des modules XQuery activés, suivant les cas vérifiez bien que certains modules optionnels sont activés (e.g. images ou mail)</li>
+  <li><code>log4j.xml</code> : niveaux de log</li>
+  </ul>
+
+  <p>Attention ces fichiers sont situés à des emplacements différents suivant que l&#8217;on utilise eXist en standalone (configuration par défaut sous Jetty) ou que l&#8217;on fabrique un fichier WAR pour exécuter l&#8217;application sous tomcat.</p>
+
+  <p>Par ailleurs il peut être nécessaire de toucher aux paramètres suivants :</p>
+
+  <ol>
+  <li><p>sur le choix de la JVM noter cette remarque d&#8217;un développeur eXist : <em>&#8220;please do not use an openjdk6 for existdb&#8230;. Prefer to use a std oracle JVM instead&#8221;</em> (<a href="http://markmail.org/message/22jscrhj63mwevtw">mail</a>)</p></li>
+  <li><p>augmenter la mémoire allouée à la JVM (utiliser la variable d&#8217;environnement <code>JAVA_OPTIONS</code>, par défaut <code>JAVA_OPTIONS="-Xms128m -Xmx512m -Dfile.encoding=UTF-8"</code>)</p></li>
+  </ol>
+
+  <h3 id="configuration_en_dveloppement">Configuration en développement</h3>
+
+  <p>Elle ne nécessite pas de modification par rapport à la configuration par défaut de eXist, sauf si vous utilisez des modules optionnels non activés par défaut (cf. le fichier <code>conf.xml</code>).</p>
+
+  <p>Le script <code>scripts/start.sh</code> permet de démarrer eXist directement depuis le répertoire d&#8217;Oppidum. Le script <code>scripts/stop.sh</code> permet de l&#8217;arrêter (n&#8217;oubliez pas de mettre à jour le mot de passe <em>admin</em> de la BD dans le script).</p>
+
+  <h3 id="configuration_en_production">Configuration en production</h3>
+
+  <p>En production Oppidum et l&#8217;application sont placés dans la BD plutôt que dans le système de fichier. Il faut alors modifier le fichier <code>controller-config.xml</code> pour qu&#8217;il pointe vers le contrôleur situé dans <code>xmldb:exist:///db/www/root</code> (cf. ci-dessous <em>Génération du fichier WAR</em>) :</p>
+
+  <p>Nous conseillons vivement de désactiver les servlets inutiles (ex. WebDAV) dans le fichier <code>web.xml</code>. Nous conseillons vivement de mettre tous les niveaux de log sur &#8220;error&#8221; dans le fichier <code>log4j.xml</code>.</p>
+
+  <h2 id="gnration_du_fichier_war">Génération du fichier WAR</h2>
+
+  <p>Le répertoire <code>scripts</code> de Oppidum défini une cible <code>package</code> pour générer le fichier WAR avec ant. La commande suivante :</p>
+
+  <pre><code>cd scripts
+  ant package
+  </code></pre>
+
+  <p>génère un fichier <code>oppidum-uni-v{nb}.war</code> dans le répertoire <code>dist</code> de eXist. Éditez le fichier <code>scripts/ant.properties</code> si vous souhaitez modifier le nom du fichier généré et d&#8217;autres méta-données (product.author, product.name, product.version, pkg.war.name).</p>
+
+  <p>Le fichier WAR généré contient une distribution minimale de eXist avec un minimum de modules XQuery. Par défaut les modules XQuery <em>Mail</em> et <em>Images</em> sont inclus.</p>
+
+  <p>Le module <code>http://expath.org/ns/http-client</code> est désactivé car les fichiers jar correspondant ne sont pas inclus (<code>extensions/expath/lib</code>, <em>c&#8217;est peut-être un bug dans la distribution actuelle</em> signalé sur le forum).</p>
+
+  <p>Pour changer la distribution générée vous devez modifier les fichiers suivants fournis avec Oppidum:</p>
+
+  <ul>
+  <li><code>config/web.xml</code> : pour changer la liste des servlets lancés</li>
+  <li><code>config/prod/conf.xml</code> : pour changer les paramètres de eXist tels que les modules XQuery embarqués</li>
+  <li><code>config/prod/log4j.xml</code> : pour changer la génération des logs</li>
+  </ul>
+
+  <p>Les logs sont mis sur le niveau <code>error</code> en production, vous pouvez si vous le souhaitez les mettre sur le niveau <code>warn</code> plus verbeux.</p>
+
+  <p>Si vous modifiez les servlets dans <code>web.xml</code> ou les modules XQuery dans <code>conf.xml</code>, il se peut que vous deviez également modifier la liste des fichiers jar inclus dans le fichier WAR en éditant <code>scripts/build.xml</code>.</p>
+
+  <p>Le fichier <code>config/controller-config.xml</code> définissant le contrôleur de l&#8217;application contient la ligne suivante :</p>
+
+  <pre><code>&lt;root pattern=".*" path="xmldb:exist:///db/www/root"/&gt;
+  </code></pre>
+
+  <p>Notons que ce fichier WAR ne contient pas de BD initiale (le répertoire <code>WEB-INF/data</code> est vide), celle-ci sera créée lors du premier lancement de l&#8217;application sous Tomcat. Une fois le fichier WAR déployé il faut donc encore <strong>restorer</strong> le code source de <strong>la distribution Oppidum</strong> depuis une archive ZIP. La restoration s&#8217;effectue avec le client d&#8217;administation de eXist.</p>
+
+  <h2 id="gnration_des_fichiers_archives_zip">Génération des fichiers archives ZIP</h2>
+
+  <p>Pour packager l&#8217;application il convient d&#8217;installer le code source et les données initiales de l&#8217;application dans les collections suivantes :</p>
+
+  <ul>
+  <li><code>/db/www/oppidum</code> : code source de Oppidum</li>
+  <li><code>/db/www/{:application}</code> : code source de l&#8217;application</li>
+  <li><code>/db/sites/{:application}</code> : toutes les données initiales de l&#8217;application</li>
+  </ul>
+
+  <p>où <em>application</em> est le nom de l&#8217;application.</p>
+
+  <p>La distribution Oppidum contient un <strong>script d&#8217;installation</strong> pour simplifier l&#8217;installation de la distribution Oppidum et de l&#8217;application depuis le système de fichier vers la BD. Celui-ci devrait être disponible par défaut à l&#8217;URL <code>http://localhost:80/exist/projets/oppidum/install</code> en ce qui concerne Oppidum, et <code>http://localhost:80/exist/projets/{:application}/install</code> en ce qui concerne l&#8217;application. Ouvrez l&#8217;URL et suivez les instructions (il faut de connecter comme <em>admin</em> de la BD pour pouvoir exécuter ces scripts).</p>
+
+  <p>Au besoin consultez le <a href="guide.html">guide du développeur</a> pour apprendre comment créer le script d&#8217;installation <code>scripts/install.xql</code> pour votre application.</p>
+
+  <p>Une fois les collections créées dans la BD, vous devez : </p>
+
+  <ol>
+  <li>exporter l&#8217;archive <code>db-www-oppidum.zip</code> contenant le code source de Oppidum</li>
+  <li>exporter l&#8217;archive <code>db-www-{:application}.zip</code> contenant le code de l&#8217;application</li>
+  <li>exporter l&#8217;archive <code>db-sites-{:application}.zip</code> contenant les données de l&#8217;application</li>
+  </ol>
+
+  <p>Vous pouvez au choix utiliser le client d&#8217;administration de eXist ou bien le <strong><em>module d&#8217;administration Oppidum</em></strong>. Ce module est installé par défaut avec le framework Oppidum. Il est disponible à l&#8217;adresse <code>http://localhost:8080/exist/projets/oppidum/admin</code> (si vous avez installé Oppidum en suivant les conventions).</p>
+
+  <p>Vous aurez besoin de 3 archives si vous voulez découper finement l&#8217;application (Oppidum, le code de l&#8217;application, les données de l&#8217;application), qui se trouvent dans des collections mentionnées dans la première section.</p>
+
+  <p><strong>ATTENTION</strong> nous recommandons de fabriquer les archives ZIP et de les restorer sur une BD eXist pour laquelle le compte <em>admin</em> possède le même mot de passe. Au besoin changez le avant de procéder à la génération des ZIP pour qu&#8217;il corresponde à celui du serveur sur lequel vous allez le restorer.</p>
+
+  <p>Vous pouvez alternativement créer une seule archive de la collection <code>/db</code> qui contiendra alors l&#8217;ensemble de l&#8217;application. Attention cependant si vous procédez de la sorte depuis un environnement de développement, vous risquez d&#8217;embarquer toutes les applications fournies avec eXist ainsi que la documentation eXist, ce qu&#8217;il faut éviter sur un site en production. Il est alors préférable d&#8217;effectuer le packaging depuis un environnement eXist vierge.</p>
+
+  <h2 id="installation_de_l8217application_sur_le_serveur_de_production">Installation de l&#8217;application sur le serveur de production</h2>
+
+  <p>Une fois le fichier WAR déployé sur le serveur de production, l&#8217;application devrait retourner une erreur puisque la base de donnée est vide et le fichier contrôleur <code>/db/www/root/controller.xql</code> n&#8217;existe pas. Vous devez alors procéder en 2 temps pour le créer <strong>à l&#8217;aide du client d&#8217;administration eXist</strong> :</p>
+
+  <ol>
+  <li>restorer l&#8217;archive <code>db-www-oppidum.zip</code> sur la base de donnée</li>
+  <li>recopier le fichier <code>/db/www/oppidum/controller.xql</code> de oppidum à l&#8217;emplacement du contrôleur de l&#8217;application <code>/db/www/root/controller.xql</code></li>
+  </ol>
+
+  <p>Le <strong>module d&#8217;administration Oppidum</strong> contenu dans la distribution peut servir pour restorer les archives ZIP de l&#8217;application. Alternativement vous pouvez aussi utiliser le client d&#8217;administration de eXist. Le module d&#8217;administration Oppidum devrait être disponible à l&#8217;URL suivante : <code>http://{:serveur}/{:contexte}/admin</code>. Par exemple si l&#8217;application a été déployée dans le contexte ROOT :  <code>http://{:serveur}/admin</code>.</p>
+
+  <p>Vous pouvez alors transférer par FTP les archives <code>db-www-{:application}.zip</code> et <code>db-sites-{:application}.zip</code> à l&#8217;emplacement défini par le module d&#8217;administration Oppidum, et utiliser le module d&#8217;administration pour les restorer.</p>
+
+  <p><strong>ATTENTION</strong> si votre application nécessite des utilisateurs spécifiques et des groupes spécifiques (typiquement il devrait y a voir un utilisateur <em>siteadmin</em> ainsi que des groupes &#8216;site-admin&#8217; et &#8216;site-member, vous devez créez ces utilisateurs et ces groupes à l&#8217;aide du client d&#8217;administration eXist avant la restoration des archives ZIP ou vous risquez d&#8217;avoir des erreurs lors de la restoration si les propriétaires de fichiers n&#8217;existent pas dans la base. La raison est que (au moins pour eXist 1.4.x), les utilisateurs et les groupes sont définis dans la resource <code>/db/system/users.xml</code> qui ne fait pas partie des archives si vous suivez nos instructions.</p>
+
+  <p>Pour terminer l&#8217;installation vous devrez remplacer le fichier <code>/db/www/root/controller.xql</code> provenant de Oppidum, par le fichier <code>controller.xql</code> provenant de votre application. Vous pouvez le recopier à l&#8217;aide du client d&#8217;administration eXist depuis le fichier <code>/db/www/{:application}/controller.xql</code>. </p>
+
+  <p>Une fois le fichier <code>controller.xql</code> de votre application recopié, n&#8217;oubliez pas d&#8217;éditer le mapping (<code>/db/www/{:application}/mapping.xml</code>) pour <strong>mettre l&#8217;attribut <code>mode</code> à <code>prod</code></strong> (ou <code>test</code> suivant le type d&#8217;environnement d&#8217;exécution). Ceci affecte la manière dont Oppidum générera les URLs statiques, les conventions étants différentes pour une exécution hors tomcat (mode <code>dev</code>) et avec tomcat (mode <code>test</code> ou <code>dev</code>). Il est également recommandé de supprimer l&#8217;entrée <code>install</code> du mapping, puisque l&#8217;application en production ne nécessite pas d&#8217;installation depuis le système de fichier local.</p>
+
+  <h2 id="mises_jour_de_l8217application">Mises à jour de l&#8217;application</h2>
+
+  <p>Les mises à jour ultérieures s&#8217;effectuent toujours sur le cycle :</p>
+
+  <ul>
+  <li>génération d&#8217;une archive ZIP contenant le nouveau code depuis la version de développement ou de test de l&#8217;application (et/ou des nouvelles données)</li>
+  <li>restoration de l&#8217;archive ZIP du nouveau code sur la version en test ou en production de l&#8217;application</li>
+  </ul>
+
+  <p>Cette méthode de travail permet de ne pas modifier le fichier WAR déployé, et d&#8217;éviter les coûteuse opérations de redéploiement de l&#8217;application sous Tomcat qui entrainent parfois des fuites mémoire (PermGen Space).</p>
+
+  <p>Pour la seconde étape nous avons observé qu&#8217;il vaut mieux <strong>utiliser le même mot de passe admin pour créer l&#8217;archive ZIP que celui de la BD sur laquelle s&#8217;effectue la restoration</strong>.</p>
+
+  <h2 id="astuce_pour_le_test">Astuce pour le test</h2>
+
+  <p>Nous recommandons de réaliser et d&#8217;installer 2 distributions sous Tomcat :</p>
+
+  <ol>
+  <li>une distribution de test</li>
+  <li>une distribution de production</li>
+  </ol>
+
+  <p>La distribution de test sert à tester l&#8217;application complète sur une machine de test. La distribution de production est la version mise en ligne.</p>
+
+  <p>Dans la plupart des cas la seule différence entre ces 2 distributions étant le niveau de log défini dans le fichier <code>log4j.xml</code> (qui fait partie du WAR), si vous ne souhaitez pas packager 2 fois le fichier WAR, vous pouvez alors simplement déployer la version destinée à la production sur le serveur de test, l&#8217;arrêter, modifier à la main le fichier de configuration des logs et redémarrer l&#8217;application. Vous éviterez ainsi de devoir générer 2 fichiers WAR différents.</p>
+
+  <h2 id="procdure_dtaille_de_packaging_dploiement">Procédure détaillée de packaging / déploiement</h2>
+
+  <p>Pré-requis :</p>
+
+  <ul>
+  <li>ant</li>
+  <li>installer eXist en local (répertoire <code>{:home}/{:exist-home}</code>)</li>
+  <li>créer un répertoire <code>database</code> au même niveau que le précédent (répertoire <code>{:home}/database</code>)</li>
+  <li>récupérer les sources de Oppidum en local (répertoire <code>{:exist-home}/webapps/projets/oppidum</code>)</li>
+  <li>récupérer ou développer l&#8217;application en local (répertoire <code>{:exist-home}/webapps/projets/{:application}</code>)</li>
+  <li>le moment venu installez Oppidum et votre application dans la BD de développement (utilisez le module d&#8217;installation de Oppidum, éventuellement complétez à la main avec le client d&#8217;administration eXist ou l&#8217;éditeur Oxygen)</li>
+  <li>utilisez la console d&#8217;administration de Oppidum et celle de votre application pour créer les archives ZIP</li>
+  </ul>
+
+  <p>Résultats :</p>
+
+  <ul>
+  <li>fichier WAR contenant eXist dans <code>{:exist-home}</code>/dist</li>
+  <li>archives de Oppidum, de l&#8217;application et des données initiales de l&#8217;application à déployer dans <code>{:home}/database/*.zip</code></li>
+  </ul>
+
+  <h3 id="1_installation_d8217exist">1 : installation d&#8217;eXist</h3>
+
+  <p>Lors de l&#8217;installation d&#8217;eXist utilisez le mot de passe pour la BD que vous utiliserez en production.</p>
+
+  <p>Vous pouvez choisir de mettre la BD où vous voulez (question posée par le programme d&#8217;installation de eXist)</p>
+
+  <p>NOTE: si vous partez d&#8217;une installation de eXist existante, nous vous conseillons alors d&#8217;effacer le contenu du répertoire <code>data</code> (mais pas le répertoire lui-même) de façon à repartir d&#8217;une base de données vierge lors du premier lancement.</p>
+
+  <h3 id="2_rcupration_des_sources">2 : récupération des sources</h3>
+
+  <p>Pour Oppidum, avec un accès GitHub configuré :</p>
+
+  <pre><code>cd {:exist-home}/webapps
+  mkdir projets
+  cd projets
+  git clone git://github.com/ssire/oppidum.git
+  # git clone git@bitbucket.org:ssire/oppidum.git (variante bitbucket)
+  </code></pre>
+
+  <p>Une fois Oppidum copié, éditez la première ligne du fichier <code>scripts/stop.sh</code> pour y mettre le mot de passe utilisé par la BD.</p>
+
+  <p>Si les sources de l&#8217;application sont aussi sur GitHub :</p>
+
+  <pre><code>cd {:exist-home}/webapps/projets
+  git clone git://github.com/ssire/{:application}.git
+  # git clone git@bitbucket.org:ssire/{:application}.git (variante bitbucket)
+  </code></pre>
+
+  <h3 id="3_cration_du_fichier_war">3 : création du fichier WAR</h3>
+
+  <p>Pour créer le fichier oppidoc-{:version}.war dans le répertoire <code>{:exist-home}/dist</code> :</p>
+
+  <pre><code>cd {:exist-home}/webapps/projets/oppidum/scripts
+  ant package
+  </code></pre>
+
+  <h3 id="4_cration_de_l8217archive_zip_de_l8217application_avec_oppidum">4 : création de l&#8217;archive ZIP de l&#8217;application avec Oppidum</h3>
+
+  <p>Lancez eXist, vous pouvez utiliser le script de démarrage fourni avec Oppidum :</p>
+
+  <pre><code>cd {:exist-home}/webapps/projets/oppidum/scripts
+  ./start.sh
+  </code></pre>
+
+  <p>Notez que vous pouvez utiliser le script <code>stop.sh</code> pour arrêter eXist.</p>
+
+  <p>Ensuite installez Oppidum dans la BD, pour cela:</p>
+
+  <ul>
+  <li>accédez à l&#8217;URL <code>http://localhost:8080/exist/projets/oppidum/install</code></li>
+  <li>cochez toutes les cases (sauf les ressources si vous utilisez un proxy) si et appuyez sur le bouton <em>Install</em></li>
+  <li>accédez à l&#8217;URL <code>http://localhost:8080/exist/projets/{:application}/install</code></li>
+  <li>cochez toutes les cases (sauf les ressources si vous utilisez un proxy) et appuyez sur le bouton <em>Install</em></li>
+  </ul>
+
+  <p>Pour créer les archives ZIP avec le module d&#8217;administration de Oppidum :</p>
+
+  <ul>
+  <li>accédez à l&#8217;URL <code>http://localhost:8080/exist/projets/oppidum/admin</code></li>
+  <li>sélectionnez les collections à exporter</li>
+  <li>appuyez sur le bouton <code>Backup</code> et suivez les instructions</li>
+  </ul>
+
+  <p>Les archives <code>db-{:collection}-{:date}.zip</code> seront créées dans le répertoire {:home}/database par défaut.</p>
+
+  <h3 id="5_installation_d8217une_application_avec_oppidum_pour_tomcat">5 : Installation d&#8217;une application avec Oppidum pour Tomcat</h3>
+
+  <p>Démarrer Tomcat et déployer le fichier WAR.</p>
+
+  <ul>
+  <li><p>lancer le client d&#8217;administration de eXist</p>
+
+  <ul>
+  <li>restorer l&#8217;archive <code>db-www-oppidum.zip</code></li>
+  <li>recopier <code>/db/www/oppidum/controller.xql</code> dans <code>/db/www/root/controller.xql</code></li>
+  <li>mettre l&#8217;attribut <code>mode</code> à <code>prod</code> dans le mapping</li>
+  <li>créer les utilisateurs et les groupes requis par défaut pour l&#8217;application</li>
+  </ul></li>
+  <li><p>lancer un client FTP</p>
+
+  <ul>
+  <li>recopier <code>db-sites-{:application}.zip</code></li>
+  <li>recopier <code>db-www-{:application}.zip</code> </li>
+  <li>utiliser l&#8217;emplacement prévu par le module administration de Oppidum  (par défaut. un répertoire <code>database</code> à la racine)</li>
+  </ul></li>
+  <li><p>ouvrir <code>http://{:serveur}/{:context}/admin</code></p>
+
+  <ul>
+  <li>restorer les données <code>db-sites-{:application}.zip</code></li>
+  <li>restorer le code <code>db-www-{:application}.zip</code></li>
+  </ul></li>
+  <li><p>reprendre le client d&#8217;administration de eXist</p>
+
+  <ul>
+  <li>recopier <code>/db/www/{:application}/controller.xql</code> dans <code>/db/www/root/controller.xql</code></li>
+  <li>mettre l&#8217;attribut <code>mode</code> à <code>prod</code> dans le mapping</li>
+  </ul></li>
+  </ul>
+
+  <h3 id="6_mise_jour_d8217une_application_avec_oppidum_pour_tomcat">6 : Mise à jour d&#8217;une application avec Oppidum pour Tomcat</h3>
+
+  <p>La méthode de mise à jour ci-dessous n&#8217;est possible que si le mapping de l&#8217;application (<code>/db/www/{:application}/config/mapping.xml</code>) contient le module d&#8217;administration de Oppidum, c&#8217;est à dire que si le bloc de code suivant est dans le mapping du site :</p>
+
+  <pre><code>&lt;!-- Oppidum administration module (backup / restore) --&gt;
+  &lt;item name="admin" resource="none" method="POST"&gt;
+    &lt;access&gt;
+      &lt;rule action="GET POST" role="u:admin" message="admin"/&gt;
+    &lt;/access&gt;
+    &lt;model src="oppidum:modules/admin/restore.xql"/&gt;
+    &lt;view src="oppidum:modules/admin/restore.xsl"/&gt;
+    &lt;action name="POST"&gt;
+      &lt;model src="oppidum:modules/admin/restore.xql"/&gt;
+      &lt;view src="oppidum:modules/admin/restore.xsl"/&gt;
+    &lt;/action&gt;
+  &lt;/item&gt;
+  </code></pre>
+
+  <p>Au besoin vous pouvez l&#8217;ajouter avec le client d&#8217;amdministration eXist en éditant directement le mapping.</p>
+
+  <ul>
+  <li><p>ouvrez l&#8217;URL <code>http://{:app-url}/admin</code> du serveur de production</p>
+
+  <ul>
+  <li>effectuez une backup de la collection <code>/db</code> de manière å posséder une copie de sauvegarde de la BD</li>
+  <li>pour plus de sûreté vous pouvez également restorer en local cette copie sur une installation d&#8217;eXist vierge pour la tester</li>
+  </ul></li>
+  <li><p>ouvrez l&#8217;URL <code>http://localhost:8080/exist/oppidum/install</code> du serveur de développement</p>
+
+  <ul>
+  <li>installez la dernière version de Oppidum</li>
+  </ul></li>
+  <li><p>ouvrez l&#8217;URL <code>http://localhost:8080/exist/oppidum/admin</code> du serveur de développement</p>
+
+  <ul>
+  <li>générez l&#8217;archive <code>db-www-oppidum.zip</code> de la nouvelle version d&#8217;Oppidum que vous souhaitez utiliser</li>
+  </ul></li>
+  <li><p>lancez un client FTP vers le serveur</p>
+
+  <ul>
+  <li>recopiez <code>db-www-oppidum.zip</code> sur l&#8217;emplacement prévu par le module administration de Oppidum  (par défaut. un répertoire <code>database</code> à la racine)</li>
+  </ul></li>
+  <li><p>ouvrez l&#8217;URL <code>http://{:app-url}/admin</code> du serveur de production</p>
+
+  <ul>
+  <li>restorez <code>db-www-oppidum.zip</code></li>
+  </ul></li>
+  </ul>
+
+  <p>Pour mettre à jour l&#8217;application, procédez de même.</p>
+
+  <p>Notez que les restorations sont non-destructive, c&#8217;est-à-dire qu&#8217;elles ne font que modifier les fichiers existants ou ajouter de nouveaux fichiers, si vous souhaitez supprimmer des fichiers vous devez le faire manuellement avant la restoration.</p>
+
+  <h2 id="optimisations">Optimisations</h2>
+
+  <h3 id="utilisation_d8217un_proxy_pour_servir_les_ressources_statiques">Utilisation d&#8217;un proxy pour servir les ressources statiques</h3>
+
+  <p>En plus d&#8217;augmenter la sécurité de l&#8217;application, le proxy peut servir les ressources statiques. En production le framework Oppidum s&#8217;arrange en effet pour que toutes les URLs vers les ressources statiques (CSS, JS) soient de la forme:</p>
+
+  <pre><code>/static/{module}/reste-du-chemin-vers-ressources-statique
+  </code></pre>
+
+  <p>Avec {module} égal soit à &#8220;oppidum&#8221;, soit au nom de l&#8217;application</p>
+
+  <p>En développement les ressources statiques sont servies directement depuis le système de fichier. En test et en production elles sont servies par la BD. Pour cette raison elles doivent être recopiées dans les collections <code>/db/www/{modules}/resources/</code>). Cependant <strong>il est fortement recommandé de configurer un serveur Proxy</strong> (e.g. NGINX, ou Apache avec mod_jk) pour servir directement ces ressources depuis :</p>
+
+  <pre><code>/{static}/{module}/reste-du-chemin-vers-ressources-statique
+  </code></pre>
+
+  <p>où {static} est un répertoire en dehors de l&#8217;application, accessible par FTP, où copier les fichiers des ressource statiques</p>
+
+  <h3 id="backups">Backups</h3>
+
+  <p>Pour la sécurité il faut au minimum prévoir une backup périodique de tout le répertoire <code>WEBINF/data</code> qui contient la base de donnée eXist et ses journaux (l&#8217;emplacement de ce répertoire est fixé par le fichier <code>conf.xml</code> de eXist).</p>
+
+  <p>Nous recommandons de définir un répertoire <code>database</code> en dehors du répertoire tomcat, sur lequel l&#8217;application peut écrire et accessible par FTP. Le module d&#8217;administration de Oppidum permet de faire manuellement une backup sélective (et une restoration) de tout ou partie de la BD dans une archive .ZIP dans un répertoire externe. Nous utilisons cette procédure lors des mises à jour.</p>
+
+  <p>Il est aussi possible de configurer l&#8217;application (via le fichier <code>conf.xml</code>) pour effectuer périodiquement une backup dans une répertoire défini à l&#8217;avance. Voir la documentation de eXist-DB.</p>
+
+
+</body>
+</html>

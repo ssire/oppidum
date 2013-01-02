@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="author" content="Stéphane Sire" />
+  <meta name="description" content="Oppidum is a framework to develop custom content management solutions (CMS) involving lighweight XML authoring chains. It is written in XQuery / XSLT to run on the eXist-DB native XML database." />
+  <meta name="keywords" content="XML, authoring, editing, open source, Javascript, software, template, XTiger" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="robots" content="index,follow" />
+  <meta name="revisit-after" content="2 weeks" />
+
+  <title>Oppidum - Open source XML MVC framework for eXist-db</title>
+  <style type="text/css">
+body {
+  margin-top: 20px;
+  margin-left: 40px;
+  margin-right: 40px;
+}
+h1 {
+  text-align: center;
+  color: white;
+  background: #DAA520; /* #9A305E; */
+  padding: 5px;
+}
+#header{
+  margin: 30px 100px 30px 100px;
+  font-size: 125%;
+  line-height: 1.2;
+}
+#credits {
+  width: 400px;
+  float: right;
+  margin: 0 0 10px 40px;
+  border: solid 1px gray;
+  padding: 10px;
+  background: #EFEFEF;
+  font-size: 95%;
+}
+#layout {
+  margin: 20px 0;
+  padding: 0 15px;
+  border: solid 1px gray;
+}
+#article {
+  line-height: 1.2;
+}
+#timestamp {
+  text-align: right;
+  font-size: 80%;
+  margin-right: 1em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+}
+dd {
+  margin-bottom: 0.2em;
+}
+  </style>
+</head>
+<body>
+  <h1>Oppidum Version 1.0 beta</h1>
+
+  <p id="header">Oppidum is a framework to develop custom content management solutions (CMS) involving lighweight XML authoring chains. It is written in XQuery / XSLT to run on the <a href="http://exist-db.org/" target="_new">eXist-DB</a> native XML database.</p>
+
+  <div id="credits">
+    <p>Oppidum is developped by Stéphane Sire at <a href="http://www.oppidoc.fr" target="_blank">Oppidoc</a>.</p>
+
+    <p>Oppidum is released as free software, under the terms of the LGPL. You are welcome to join our efforts to improve the framework and the specification at any time and to become part of the contributors.</p>
+
+  <p style="text-align: right;margin-right: 40px">Contact: <a href="mailto:s.sire@oppidoc.fr?subject=AXEL-FORMS">Stéphane Sire</a></p>
+  </div>
+
+  <div id="article">
+
+  <h3>Oppidum for the impatient</h3>
+
+  <p style="font-size:110%">There is currently no online tutorial or demonstrator. This web site is a mirror to publish documentation. To get involved you need to clone the <a href="https://github.com/ssire/oppidum" target="_new">GitHub repository</a> and try it by yourself.</p>
+
+  <h3>Where to start ?</h3>
+
+  <p>The <a href="docs/toc.html">documentation</a> is in progress and not yet translated to english. Stay tuned.</p>
+
+  </div>
+
+  <h3>Related projects</h3>
+
+  <p>You can check the <a href="http://ssire.github.com/axel/" target="_new">AXEL</a> and <a href="http://ssire.github.com/axel-forms/" target="_new">AXEL-FORMS</a> projects which are used to embed structured document editors or forms editors into web pages.</p>
+
+  <div id="layout">
+    <h3>Project layout</h3>
+
+    <p>This web site is published from the <a href="https://github.com/ssire/oppidum" target="_new">GitHub repository</a> of the project. If you check out the repository you will get the following folders :</p>
+
+    <dl>
+
+      <dt>actions</dt>
+      <dd>XQuery models to perform standard actions on REST controllers. Some of them may be deprecated or moved outside of the framework in external modules.</dd>
+
+      <dt>config</dt>
+      <dd>Configuration files to be copied into the WAR when building it with the <code>ant package</code> target in <code>scripts</code> folder.</dd>
+
+      <dt><i>controller.xql</i></dt>
+      <dd>Oppidum application controller.</dd>
+
+      <dt>docs</dt>
+      <dd>Some <a href="docs/toc.html">documentation</a>. In progress.</dd>
+
+      <dt><i>epilogue.xql</i></dt>
+      <dd>Oppidum application epilogue.</dd>
+
+      <dt>init</dt>
+      <dd>Default configuration files for Oppidum  (mapping, error messages, skins)</dd>
+
+      <dt>lib</dt>
+      <dd>XQuery mnodules that constitute the <b>core library</b>.</dd>
+
+      <dt>mesh</dt>
+      <dd>Default mesh to render pages (currently not-found page).</dd>
+
+      <dt>models</dt>
+      <dd>XQuery models to generate REST resources common to applications or for debug purpose. Some of them may be deprecated or moved outside of the framework in external modules.</dd>
+
+      <dt>modules</dt>
+      <dd>Oppidum common modules. Contains the module for Oppidum administration (backup / restoration).</dd>
+
+      <dt>resources</dt>
+      <dd>Common Javascript frameworks used for application development with Oppidum.</dd>
+
+      <dt>scripts</dt>
+      <dd>Some build files and installation utilities.</dd>
+
+      <dt>test</dt>
+      <dd>Tools for debug and testing.</dd>
+
+      <dt>views</dt>
+      <dd>XSLT views to generate REST resources common to applications. See the <code>models</code> folder.</dd>
+
+      <dt>templates</dt>
+      <dd>Filtering service to rewrite and serve XTiger XML templates.</dd>
+    </dl>
+  </div>
+
+  <p id="timestamp">Last update: <span style="font-style: italic;">2013-01-02</span></p>
+</body>
+</html>
