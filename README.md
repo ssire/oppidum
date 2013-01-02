@@ -21,6 +21,13 @@ Besides the steps above, Oppidum provides support to skin applications (a skin i
 
 Oppidum is designed to support the creation of reusable modules that can be aggregated together through the mapping mechanism to create complete web applications. Each module is a set of conventions (usually associated with XML vocabularies) and XQuery, XSLT, JavaScript, CSS files.
 
+How to get documentation ?
+--------------------------
+
+The Oppidum documentation contained in the `docs` folder is also published on the [Oppidum site](http://ssire.github.com/oppidum/) thanks to the Git Hub project pages mechanism. This is still a work in progress.
+
+You can also visit the [Oppidum wiki](https://github.com/ssire/oppidum/wiki) to get more documentation and to learn about the roadmap.
+
 How to test it ?
 ----------------
 
