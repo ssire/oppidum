@@ -48,7 +48,7 @@ declare function oppidum:path-to-config ( $fn as xs:string? ) as xs:string
    axis because the command has no namespace !
    ======================================================================
 :)
-declare function oppidum:get-resource ( $cmd as element() ) as element()
+declare function oppidum:get-resource ( $cmd as element() ) as element()?
 {
   $cmd/resource
 };
