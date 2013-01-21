@@ -56,10 +56,3 @@ return
       transform:transform(doc($template-uri), concat('xmldb:exist://', $col-uri, '/filter.xsl'), $params)
   else
     doc($template-uri)
-    
-    
-    
-    
-
-
-  

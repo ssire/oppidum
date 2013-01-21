@@ -28,21 +28,23 @@ The Oppidum documentation contained in the `docs` folder is also published on th
 
 You can also visit the [Oppidum wiki](https://github.com/ssire/oppidum/wiki) to get more documentation and to learn about the roadmap.
 
+There is a [tutorial repository](https://github.com/ssire/tutorial) that contains a simple web application written with Oppidum to get started.
+
 How to test it ?
 ----------------
 
 You need to install [eXist-db](http://exist-db.org/exist/download.xml) on your system first. 
 
-Then clone Oppidum from this repository directly inside the `webapp` folder of your eXist installation. We strongly advise to create a `projects` folder inside the `webapp` folder and to checkout oppidum within that folder :
+Then clone Oppidum from this repository directly inside the `webapp` folder of your eXist installation. We strongly advise to create a `projets` folder inside the `webapp` folder and to checkout oppidum within that folder (actually you MUST name this folder `projets` in french for the automatic installation scripts to work - _this will be corrected_) :
 
     cd {eXist-Home}/webapp
-    mkdir projects
+    mkdir projets
     cd projects
     git clone git://github.com/ssire/oppidum.git
 
-For convenience Oppidum distribution contains a `script/start.sh` shell script that you can use to start eXist-db. Then you can point your browser to `http://localhost:8080/exist/projects/oppidum` to see a version screen. You can use the `script/stop.sh` to stop it (edit the file to set your database password within it). 
+For convenience Oppidum distribution contains a `script/start.sh` shell script that you can use to start eXist-db. Then you can point your browser to `http://localhost:8080/exist/projets/oppidum` to see a version screen. You can use the `script/stop.sh` to stop it (edit the file to set your database password within it). 
 
-You should then develop your application in a sibling folder of the `oppidum` folder inside the `projects` folder.
+You should then develop your application in a sibling folder of the `oppidum` folder inside the `projets` folder.
 
 Oppidum is compatible with exist 1.4.x versions out of the box. We are actually doing efforts to fully integrate it with the new eXist 2.0 release integrated development environment.
 

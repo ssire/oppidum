@@ -42,6 +42,15 @@ En production Oppidum et l'application sont placés dans la BD plutôt que dans 
 
 Nous conseillons vivement de désactiver les servlets inutiles (ex. WebDAV) dans le fichier `web.xml`. Nous conseillons vivement de mettre tous les niveaux de log sur "error" dans le fichier `log4j.xml`.
 
+A noter qu'en production il faut aussi couper l'accès à l'API REST de eXist qui est par ailleurs nécessaire pour exécuter l'application depuis la base de données. Pour cela il faut modifier le fichier `web.xml` et metttre le paramètre *hidden* à `true` du servlet EXistServlet :
+
+    <init-param>
+       <param-name>hidden</param-name>
+       <param-value>true</param-value>
+    </init-param>
+
+Nous conseillons de créer les fichiers de configuration correspondant aux différents environnement dans le répertoire *config* et à utiliser ces fichiers pour le packaging.
+
 Génération du fichier WAR
 ---
 

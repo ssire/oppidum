@@ -2,7 +2,7 @@
 <!-- Oppidum Framework
 
     Author: Stéphane Sire <s.sire@free.fr>
-    
+
     Returns a <site:view> for loading the AXEL editor.
     Template and Resource URI must be given with absolute path (no URL rewriting).
 
@@ -15,19 +15,24 @@
   xmlns="http://www.w3.org/1999/xhtml">
 
   <xsl:output method="xml" media-type="text/html" omit-xml-declaration="yes" indent="yes"/>
-                                    
+
+  <xsl:param name="xslt.skin"></xsl:param>
+
   <xsl:template match="/">
-    <site:view>       
+    <site:view>
+      <xsl:if test="$xslt.skin != ''">
+        <xsl:attribute name="skin"><xsl:value-of select="$xslt.skin"/></xsl:attribute>
+      </xsl:if>
       <site:menu>
         <button id="oppidum-save" data-role="save">Save</button>
         <button id="oppidum-preview" data-edit-label="Edit">Preview</button>
       </site:menu>
-      <site:content>   
+      <site:content>
           <xsl:apply-templates select="*"/>
       </site:content>
     </site:view>
-  </xsl:template>                        
-  
+  </xsl:template>
+
   <xsl:template match="Edit[not(error)]">
     <div id="template-container" data-template="{Template}">
       <xsl:if test="Resource">
@@ -42,5 +47,5 @@
       <p>Error while loading the editor, see the explanation above</p>
     </div>
   </xsl:template>
-  
+
 </xsl:stylesheet>

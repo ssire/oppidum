@@ -8,7 +8,7 @@ xquery version "1.0";
    database for pre-production and production. Some parts of this file
    inspired from eXist 1.4.1's admin/install.xqm module
 
-   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.  
+   February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
    ------------------------------------------------------------------ :)
 
 module namespace install = "http://oppidoc.com/oppidum/install";
@@ -19,33 +19,33 @@ declare namespace transform = "http://exist-db.org/xquery/transform";
 
 (: ======================================================================
    Resolves xsl:include statements in a source XSLT file stored in the database by inserting
-   all the xsl:template rules from the included fragment into the source file. The included 
-   fragment must also be in the database. 
-   
-   This is necessary because under Tomcat xsl:include in XSLT files does not seem to work. 
+   all the xsl:template rules from the included fragment into the source file. The included
+   fragment must also be in the database.
+
+   This is necessary because under Tomcat xsl:include in XSLT files does not seem to work.
    Previous versions of our fix only turned relative URLs in xsl:import statement into absolute URLs
-   starting with xmldb:exist because relative URLs' didn't seem to work (at least with eXist 1.4.1) 
+   starting with xmldb:exist because relative URLs' didn't seem to work (at least with eXist 1.4.1)
    when hosting the application in the database.
-   
+
    Param base-col-uri is the root of the collection from where the xs:include relative path starts
-   
-   Limitation: currently filter-transfo.xsl correctly expand only '../{folder}[{sub-folders}]/file.xsl' 
+
+   Limitation: currently filter-transfo.xsl correctly expand only '../{folder}[{sub-folders}]/file.xsl'
    types of xsl:include
-   
+
    Note: it MUST called after oppidum has been installed itself to /db/www/oppidum
   ======================================================================
-:)    
+:)
 declare function install:fix-xsl-import( $col-uri as xs:string, $name as xs:string, $base-col-uri as xs:string ) {
-  let 
+  let
     $data := fn:doc(concat($col-uri, '/', $name)),
     $params := <parameters>
                  <param name="oppidum.base" value="{$base-col-uri}{if (not(ends-with($base-col-uri, '/'))) then '/' else ''}"/>
                  <param name="script.base" value="{$col-uri}{if (not(ends-with($col-uri, '/'))) then '/' else ''}"/>
                  <param name="exist:stop-on-warn" value="yes"/>
-                 <param name="exist:stop-on-error" value="yes"/>                 
+                 <param name="exist:stop-on-error" value="yes"/>
                </parameters>
   return
-    if (doc-available('/db/www/oppidum/scripts/filter-transfo.xsl')) then 
+    if (doc-available('/db/www/oppidum/scripts/filter-transfo.xsl')) then
       let $filtered := transform:transform($data, 'xmldb:exist:///db/www/oppidum/scripts/filter-transfo.xsl', $params)
       let $res := xdb:store($col-uri, $name, $filtered)
       return
@@ -56,15 +56,15 @@ declare function install:fix-xsl-import( $col-uri as xs:string, $name as xs:stri
 
 (: UNPLUGGED BECAUSE DOES NOT WORK (very slow in some cases) - Rewrite it with a TypeSwitch expression ? :)
 declare function install:fix-template-import( $col-uri as xs:string, $name as xs:string, $base-col-uri as xs:string ) {
-  let 
+  let
     $data := fn:doc(concat($col-uri, '/', $name)),
     $params := <parameters>
                  <param name="script.base" value="{$col-uri}{if (not(ends-with($col-uri, '/'))) then '/' else ''}"/>
                  <param name="exist:stop-on-warn" value="yes"/>
-                 <param name="exist:stop-on-error" value="yes"/>                 
+                 <param name="exist:stop-on-error" value="yes"/>
                </parameters>
   return
-    if (doc-available('/db/www/oppidum/scripts/filter-template.xsl')) then 
+    if (doc-available('/db/www/oppidum/scripts/filter-template.xsl')) then
       let $filtered := transform:transform($data, 'xmldb:exist:///db/www/oppidum/scripts/filter-template.xsl', $params)
       let $res := xdb:store($col-uri, $name, $filtered)
       return
@@ -74,13 +74,13 @@ declare function install:fix-template-import( $col-uri as xs:string, $name as xs
 };
 
 (: ======================================================================
-   This function MUST return the absolute path to the main folder 
+   This function MUST return the absolute path to the main folder
    containing the library or application to install
    FIXME: simplifier, à priori pas de raison de l'exécuter depuis tomcat (WEBINF)
    ======================================================================
-:)    
+:)
 declare function install:webapp-home( $localPath as xs:string ) {
-    let 
+    let
       $home := system:get-exist-home(),
       $pathSep := util:system-property("file.separator"),
       $base := if (starts-with($localPath, '/')) then $localPath else concat('/', $localPath)
@@ -93,10 +93,10 @@ declare function install:webapp-home( $localPath as xs:string ) {
         concat($home, $pathSep, "webapp", $base)
 };
 
-declare function install:create-collection($parent as xs:string, $collection as xs:string) 
+declare function install:create-collection($parent as xs:string, $collection as xs:string)
 {
   if (xdb:collection-exists(concat($parent, '/', $collection))) then
-    <li>Collection {concat($parent, '/', $collection)} already exists, skip creation</li> 
+    <li>Collection {concat($parent, '/', $collection)} already exists, skip creation</li>
   else
     let $r := xdb:create-collection($parent, $collection)
     return
@@ -107,9 +107,9 @@ declare function install:create-collection($parent as xs:string, $collection as 
    Converts a permission string like "rwur--r--" into an integer compatible
    with set-collection-permissions and set-resource-permissions
    ======================================================================
-:)    
+:)
 declare function install:perms( $p as xs:string) as xs:integer
-{  
+{
   util:base-to-integer(
     sum(
     for $i at $j in (1, 4, 7)
@@ -124,10 +124,10 @@ declare function install:perms( $p as xs:string) as xs:integer
 };
 
 (: ======================================================================
-   Sets permission on the collection and all its descendants 
+   Sets permission on the collection and all its descendants
    ======================================================================
-:)    
-declare function install:apply-permissions-to($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer) 
+:)
+declare function install:apply-permissions-to($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer)
 {
   xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms),
   for $c in xdb:get-child-resources($col-uri)
@@ -140,8 +140,8 @@ declare function install:apply-permissions-to($col-uri as xs:string, $user-id as
 
 declare function install:store-files($collection as xs:string, $home as xs:string, $patterns as xs:string, $mimeType as xs:string?) as element()*
 {
-    let $stored := 
-      if ($mimeType) then 
+    let $stored :=
+      if ($mimeType) then
         xdb:store-files-from-pattern($collection, $home, $patterns, $mimeType)
       else
         xdb:store-files-from-pattern($collection, $home, $patterns)
@@ -151,7 +151,7 @@ declare function install:store-files($collection as xs:string, $home as xs:strin
             <li>Uploaded: <span class="success">{$doc}</span></li>
       else
         <li style="color: red">No file uploaded from {$home} into {$collection} with pattern {$patterns}, please check your settings</li>
-      
+
 };
 
 declare function install:store-files($collection as xs:string, $home as xs:string, $patterns as xs:string, $mimeType as xs:string, $preserve as xs:boolean) as element()*
@@ -172,11 +172,11 @@ declare function install:mime-for-suffix($suffix as xs:string) as xs:string
   else if ($suffix = "xsl") then "application/xslt+xml"
   else if ($suffix = ("xql", "xqm")) then "application/xquery"
   else if ($suffix = "css") then "text/css"
-  else if ($suffix = "js") then "application/x-javascript"  
+  else if ($suffix = "js") then "application/x-javascript"
   else if ($suffix = ("png", "gif", "jpeg")) then concat("image/", $suffix)
   else if ($suffix = "jpg") then "image/jpeg"
   else if ($suffix = ("otf", "ttf")) then "application/octet-stream"
-  else if ($suffix = "odf") then "application/pdf"  
+  else if ($suffix = "odf") then "application/pdf"
   else "application/octet-stream"
 };
 
@@ -193,10 +193,10 @@ declare function install:install-file($home as xs:string, $col as xs:string, $fi
   return (
     <li>Attempt to upload file(s) "{$pattern}" inside {$col} from {$srcdir} with type {$type} {if ($preserve) then ' (preserve)' else ()}</li>,
     if ($preserve) then
-      install:store-files($col, $srcdir, $pattern, $type, true())  
+      install:store-files($col, $srcdir, $pattern, $type, true())
     else
       install:store-files($col, $srcdir, $pattern, $type)
-    )      
+    )
 };
 
 declare function install:install-collection($home as xs:string, $col as element(), $module as xs:string?) as element()*
@@ -216,7 +216,7 @@ declare function install:install-collection($home as xs:string, $col as element(
 };
 
 declare function install:install-group(
-  $home as xs:string, 
+  $home as xs:string,
   $group as element(),
   $module as xs:string?) as element()*
 {
@@ -244,19 +244,19 @@ declare function install:install-group(
 };
 
 (: ======================================================================
-   When $module is defined it contains the path of the home database 
-   collection that contains the application and that will be rewritten 
-   to /db/www/root for a universal WAR compatible installation 
+   When $module is defined it contains the path of the home database
+   collection that contains the application and that will be rewritten
+   to /db/www/root for a universal WAR compatible installation
    ======================================================================
 :)
 declare function install:install-targets(
-  $dir as xs:string, 
-  $targets as xs:string*, 
+  $dir as xs:string,
+  $targets as xs:string*,
   $specs as element(),
   $module as xs:string?) as element()*
 {
-  let $default := if (('default' = $targets) and ($specs/install:collection)) then 
-                    <group name="default">{$specs/install:collection}</group> 
+  let $default := if (('default' = $targets) and ($specs/install:collection)) then
+                    <group name="default">{$specs/install:collection}</group>
                   else ()
   return
     for $g in ( $default, $specs/install:group[@name = $targets] )
@@ -278,7 +278,7 @@ declare function install:install-user($user as element())
         xdb:create-user($user/@name, $user/@password, $groups, $home),
         <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
       )
-};  
+};
 
 declare function install:install-users($policies as element()) as element()
 {
@@ -289,7 +289,7 @@ declare function install:install-users($policies as element()) as element()
       install:install-user($u)
     }
   </ul>
-};  
+};
 
 declare function install:install-policy($policy as element(), $collection as element(), $module as xs:string?)
 {
@@ -307,14 +307,14 @@ declare function install:install-policy($policy as element(), $collection as ele
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}” and its content</li>
         )
       else (
-        xdb:set-collection-permissions($col, $owner, $group, $p), 
+        xdb:set-collection-permissions($col, $owner, $group, $p),
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}”</li>
         )
-};  
+};
 
 declare function install:install-policies(
-  $targets as xs:string*, 
-  $policies as element(), 
+  $targets as xs:string*,
+  $policies as element(),
   $specs as element(),
   $module as xs:string?) as element()*
 {
@@ -323,7 +323,7 @@ declare function install:install-policies(
     {
     for $c in ($specs/(install:collection[@policy] | install:group[@name = $targets]/install:collection[@policy]))
     let $p := $policies/install:policy[@name = $c/@policy]
-    return 
+    return
       if ($p) then
         install:install-policy($p, $c, $module)
       else
@@ -335,7 +335,7 @@ declare function install:install-policies(
 declare function install:_login_form() as element()
 {
   <div style="width: 400px">
-    <p>You MUST login first as <b>admin</b> user using the application you plan to install :</p> 
+    <p>You MUST login first as <b>admin</b> user using the application you plan to install :</p>
     <form action="login?url=install" method="post" style="margin: 0 auto 0 2em; width: 20em;">
       <p style="text-align: right">
         <label for="login-user">User name</label>
@@ -344,12 +344,12 @@ declare function install:_login_form() as element()
       <p style="text-align: right">
         <label for="login-passwd">Password</label>
         <input id="login-passwd" type="password" name="password"/>
-      </p>                                   
+      </p>
       <p style="text-align: right; margin-right: 30px">
         <input type="submit"/>
       </p>
     </form>
-  </div>  
+  </div>
 };
 
 declare function install:gen-form-for-bundle( $bundle as element() ) as element()
@@ -376,7 +376,7 @@ declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl
   let $user :=  xdb:get-current-user()
   return
     <div>
-      <p>Select the files to copy to the database below; 
+      <p>Select the files to copy to the database below;
          <span style="color:green">green</span> ones are mandatory even when running the application from the file system (dev mode).
       </p>
       <form method="post" action="install">
@@ -390,7 +390,7 @@ declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl
               <input type="checkbox" value="true" name="root-controller"/>
               <label>controller</label>
               <br/><span style="font-size: smaller; font-style:italic">Check this flag if you want to set the <tt>controller.xql</tt> of this application as the main controller (i.e. copy it to the <tt>/db/www/root</tt> collection)</span>
-            </p>              
+            </p>
           else
             ()
         }
@@ -398,15 +398,15 @@ declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl
         {
         if ($user = 'admin') then (
           <p>Click on the install button to proceed</p>,
-          <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
+          <p style="margin-left: 10%"><input type="submit" value="Install"/></p>
           )
         else ()
-        }          
+        }
       </form>
       <hr/>
-      <p>NOTE : once you have installed the application to the database, if it declares the Oppidum <em>admin</em> module in its controller, 
-      you can use the admin panel to archive the application to one or more ZIP files which can be used to deploy or to upgrade it on other servers. 
-      Alternatively you can use the eXist administration client. To bootstrap an application from an empty universal Oppidum WAR file, 
+      <p>NOTE : once you have installed the application to the database, if it declares the Oppidum <em>admin</em> module in its controller,
+      you can use the admin panel to archive the application to one or more ZIP files which can be used to deploy or to upgrade it on other servers.
+      Alternatively you can use the eXist administration client. To bootstrap an application from an empty universal Oppidum WAR file,
       you only need to install first the Oppidum ZIP archive using the eXist administration client, then you can use the embedded <em>admin</em> module
       to update the database.</p>
       {
@@ -432,7 +432,7 @@ declare function install:do-install-bundle(
       install:install-targets($dir, $targets, $bundle, ()),
       install:install-policies($targets, $policies, $bundle, ())
       )
-    else 
+    else
       <ul>
         <li>Nothing to install because no targets were selected</li>
       </ul>
@@ -475,12 +475,12 @@ declare function install:install-bundle(
     </body>
   </html>
 };
-  
+
 (: ======================================================================
    Generates an HTML page to handle site installation to the database
    Proceed with installation in case of a submission
    ======================================================================
-:)    
+:)
 declare function install:install(
   $base as xs:string,
   $policies as element(),
@@ -493,7 +493,7 @@ declare function install:install(
   let $install := request:get-parameter("go", ())
   let $user :=  xdb:get-current-user()
   (:$login := xdb:login('/db', $login, $passwd):)
-  return 
+  return
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -528,31 +528,31 @@ declare function install:install(
                   <h2>Installation report for Code</h2>,
                   if (count($code-targets) > 0) then
                     let $m := if (request:get-parameter("code-location", "module") = "root") then $module else ()
-                    return 
+                    return
                       (
                       install:install-targets($dir, $code-targets, $code, $m),
                       install:install-policies($code-targets, $policies, $code, $m)
-                      ) 
+                      )
                   else (),
                   <h2>Installation report for Static resources</h2>,
-                  if (count($static-targets) > 0) then 
+                  if (count($static-targets) > 0) then
                     (
                     install:install-targets($dir, $static-targets, $static, ()),
                     install:install-policies($static-targets, $policies, $static, ())
                     )
                   else ()
                   )
-              } 
+              }
               <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
             </div>
           else (
             <p>Select the files to copy to the database below; <span
             style="color:green">green</span> ones are mandatory even when
-            running the application from the file system (dev mode). 
+            running the application from the file system (dev mode).
             By convention the <em>default</em> targets usually create required empty collections.</p>,
             <form method="post" action="install">
               <input type="hidden" name="go" value="yes"/>
-              <p><b>Data</b> : 
+              <p><b>Data</b> :
                 <input id="data-default" type="checkbox" value="default" name="data-target"/>
                 <label for="data-default">default</label>
                 {
@@ -568,7 +568,7 @@ declare function install:install(
                   </span>
                 }
               </p>
-              <p><b>Code</b> : 
+              <p><b>Code</b> :
                 <input id="code-default" type="checkbox" value="default" name="code-target"/>
                 <label for="code-default">default</label>
                 {
@@ -582,63 +582,66 @@ declare function install:install(
                     </input>
                     <label for="{$n}">{$n}</label>
                   </span>
-                }  
+                }
                 {
                   if ($module) then
                     <span>
-                      [<span style="color:blue">installation type</span> : 
+                      [<span style="color:blue">installation type</span> :
                       <input id="universal" type="radio" value="root" name="code-location" checked="true"/>
                       <label for="universal">root (universal)</label>
                       <input id="module" type="radio" value="module" name="code-location"/>
                       <label for="module">module</label>]
                     </span>
-                  else ()                    
+                  else ()
                 }
-              </p> 
-              <p><b>Static resources</b> : 
-                {
-                for $g in $static/install:group
-                let $n := string($g/@name)
-                return (
-                  <input id="{$n}" type="checkbox" value="{$n}" name="static-target"/>,
-                  <label for="{$n}">{$n}</label>
-                  )
-                }
-                <br/><span style="font-size: smaller; font-style:italic">In
-                test or production we strongly advise you to setup a proxy
-                (e.g. NGINX) to directly serve static resources so you do not
-                need to load them inside the database</span>
               </p>
-              <p><b>Root</b> :
-                <input type="checkbox" value="true" name="root-controller"/>
-                <label>controller</label>
-                <br/><span style="font-size: smaller; font-style:italic">Check this flag if you want to set the <tt>controller.xql</tt> of this application as the main controller (i.e. copy it to the <tt>/db/www/root</tt> collection)</span>
-              </p>              
+              <fieldset>
+                <legend>Unlikely / Deprecated</legend>
+                <p><b>Static resources</b> :
+                  {
+                  for $g in $static/install:group
+                  let $n := string($g/@name)
+                  return (
+                    <input id="{$n}" type="checkbox" value="{$n}" name="static-target"/>,
+                    <label for="{$n}">{$n}</label>
+                    )
+                  }
+                  <br/><span style="font-size: smaller; font-style:italic">In
+                  test or production we strongly advise you to setup a proxy
+                  (e.g. NGINX) to directly serve static resources so you do not
+                  need to load them inside the database</span>
+                </p>
+                <p><b>Root</b> :
+                  <input type="checkbox" value="true" name="root-controller"/>
+                  <label>controller</label>
+                  <br/><span style="font-size: smaller; font-style:italic">Check this flag if you want to set the <tt>controller.xql</tt> of this application as the main controller (i.e. copy it to the <tt>/db/www/root</tt> collection)</span>
+                </p>
+              </fieldset>
               <p>You are logged in as <b>{$user}</b></p>
               {
               if ($user = 'admin') then (
                 <p>Click on the install button to proceed</p>,
-                <p style="margin-left: 10%"><input type="submit" value="Install"/></p>          
+                <p style="margin-left: 10%"><input type="submit" value="Install"/></p>
                 )
               else ()
-              }          
+              }
             </form>,
             <hr/>,
             <p>NOTE : once you have installed the application to the database,
-            if it declares the Oppidum <em>admin</em> module in its controller, 
-            you can use the admin panel to archive the application to one or more 
-            ZIP files which can be used to deploy or to upgrade it on other servers. 
-            Alternatively you can use the eXist administration client.            
+            if it declares the Oppidum <em>admin</em> module in its controller,
+            you can use the admin panel to archive the application to one or more
+            ZIP files which can be used to deploy or to upgrade it on other servers.
+            Alternatively you can use the eXist administration client.
             To bootstrap an application from an empty
             universal Oppidum WAR file, you only need to install first the
-            Oppidum ZIP archive using the eXist administration client, then you 
+            Oppidum ZIP archive using the eXist administration client, then you
             can use the embedded <em>admin</em> module to update the databse.
             </p>
             ,
             if ($user != 'admin') then install:_login_form() else ()
             )
           }
-        </div>    
+        </div>
       </body>
     </html>
 };
