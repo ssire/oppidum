@@ -55,10 +55,17 @@ declare function oppidum:get-resource ( $cmd as element() ) as element()?
 
 declare function oppidum:get-epilogue ( $cmd as element() ) as xs:string?
 {
-  if ($cmd/resource/action) then
-    string($cmd/resource/action/@epilogue)
-  else
+  if ($cmd/resource/@epilogue) then
     string($cmd/resource/@epilogue)
+  else if ($cmd/resource/action) then
+    string($cmd/resource/action/@epilogue)
+  else (: FIXME: special case when pipeline is inherited from a default action :)
+    let $pipeline := request:get-attribute('oppidum.pipeline')
+    return 
+      if ($pipeline/epilogue) then 
+        string($pipeline/epilogue/@mesh)
+      else 
+        ()
 };
 
 (: ======================================================================
@@ -231,7 +238,10 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
 {
   let $pipeline := request:get-attribute('oppidum.pipeline')
   return
-    if ((string($cmd/@format) = 'xml') or not($pipeline/(view | epilogue))) then  1
+    if (string($pipeline/@redirect)) then 
+      (: special case with redirection :)
+      4
+    else if ((string($cmd/@format) = 'xml') or not($pipeline/(view | epilogue))) then  1
     else if ((string($cmd/@format) = 'raw') or not($pipeline/epilogue)) then  2
     else 3
 };
@@ -256,7 +266,7 @@ declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:st
       return oppidum:render-error($cmd/@confbase, $err-type, $err-clue, $cmd/@lang, $set-status)
     else
       (: stores error message for later rendering in the epilogue :)
-      oppidum:add-error($err-type, $err-clue, false())
+      oppidum:add-error($err-type, $err-clue, if (($level = 4) or (request:get-attribute('oppidum.redirect.to'))) then true() else false())
 };
 
 (: ======================================================================

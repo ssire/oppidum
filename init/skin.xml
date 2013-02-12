@@ -4,24 +4,52 @@
         <link href="css/flash.css"/>
         <script src="lib/flash.js"/>
     </profile>
+    <!-- THIRD PARTIES -->
+    <profile name="jquery" type="predef">
+        <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
+    </profile>
+    <profile name="analytics" type="predef">
+      <script meet="mode(prod)" resource="config/ga.xml"/>
+    </profile>
+    <profile name="modernizr" type="predef">
+        <script src="contribs/modernizr/modernizr.custom.12261.js"/>
+    </profile>
+    <!-- AXEL STUFF -->
+    <profile name="photo" type="predef">
+        <link href="lib/axel/bundles/photo/photo.css"/>
+        <script type="text/javascript">
+function finishTransmission(status, result) {{ 
+  // var pwin = window.parent; // iff template run from inside an iframe !
+  var manager = window.xtiger.factory('upload').getInstance(document);
+  if (manager) {{
+    manager.reportEoT(status, result);
+  }}
+}}
+        </script>
+    </profile>
+    <profile name="date" type="predef">
+        <link href="contribs/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css"/>
+        <script src="contribs/jquery/js/jquery-ui-1.8.18.custom.min.js"/>
+    </profile>
+    <profile name="axel-1.3" type="predef">
+        <link href="lib/axel-1.3/axel.css"/>
+        <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
+        <script src="lib/axel-1.3/axel.js"/>
+        <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
+    </profile>    
+    <profile name="axel-1.3-no-jquery" type="predef">
+        <link href="lib/axel-1.3/axel.css"/>
+        <script src="lib/axel-1.3/axel.js"/>
+        <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
+    </profile>    
+    <!-- DEPRECATED -->    
     <profile name="axel" type="predef">
         <link href="css/Preview.css"/>
         <link href="lib/axel/axel.css"/>
         <script src="lib/axel/axel.js"/>
         <script data-bundles-path="lib/axel/bundles" src="lib/editor.js"/>
     </profile>
-    <profile name="photo" type="predef">
-        <link href="lib/axel/bundles/photo/photo.css"/>
-        <script type="text/javascript">
-      function finishTransmission(status, result) {{ 
-        // var pwin = window.parent; // iff template run from inside an iframe !
-        var manager = window.xtiger.factory('upload').getInstance(document);
-        if (manager) {{
-          manager.reportEoT(status, result);
-        }}
-      }}
-        </script>
-    </profile>
+    <!-- DEPRECATED -->
     <profile name="axel+photo" type="predef">
         <link href="css/Preview.css"/>
         <link href="lib/axel/axel.css"/>
@@ -38,35 +66,19 @@
       }}
         </script>
     </profile>
+    <!-- DEPRECATED -->
     <profile name="axel-forms" type="predef">
         <link href="css/Preview.css"/>
         <link href="lib/axel/axel.css"/>
         <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
         <script src="lib/axel/axel.js"/>
         <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
-    </profile>
-    <profile name="axel-1.3" type="predef">
-        <link href="lib/axel-1.3/axel.css"/>
-        <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
-        <script src="lib/axel-1.3/axel.js"/>
-        <script data-bundles-path="lib/axel/bundles" src="lib/axel-forms.js"/>
     </profile>    
-    <profile name="jquery" type="predef">
-        <script src="contribs/jquery/js/jquery-1.7.1.min.js"/>
-    </profile>
-    <profile name="modernizr" type="predef">
-        <script src="contribs/modernizr/modernizr.custom.12261.js"/>
-    </profile>
-    <profile name="date" type="predef">
-        <link href="contribs/jquery/css/ui-lightness/jquery-ui-1.8.18.custom.css"/>
-        <script src="contribs/jquery/js/jquery-ui-1.8.18.custom.min.js"/>
-    </profile>
+    <!-- DEPRECATED -->
     <profile name="style" type="predef">
         <script src="lib/moreaxel/style.js"/>
     </profile>
-    <profile name="analytics" type="predef">
-      <script meet="mode(prod)" resource="config/ga.xml"/>
-    </profile>
+    <!-- DEPRECATED THIRD PARTIES -->
     <profile name="pro_dropdown_2" type="predef">
         <link href="contribs/pro_dropdown_2/pro_dropdown_2.css"/>
         <script src="contribs/pro_dropdown_2/stuHover.js"/>

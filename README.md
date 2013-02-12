@@ -30,6 +30,8 @@ You can also visit the [Oppidum wiki](https://github.com/ssire/oppidum/wiki) to 
 
 There is a [tutorial repository](https://github.com/ssire/tutorial) that contains a simple web application written with Oppidum to get started.
 
+We have also setup an [oppidum-dev](https://groups.google.com/forum/?fromgroups#!forum/oppidum-dev) Google group to share assistance and discuss new features.
+
 How to test it ?
 ----------------
 
