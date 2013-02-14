@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-    THIS FILE HAS BEEN EDITED TO MINIMIZE
-
+<?xml version="1.0" encoding="UTF-8"?><!--
     This is the central configuration file for the database. If the database
     is running in a servlet-context, the configuration file will be read from
     the WEB-INF directory of the web application. Otherwise, the configuration
@@ -36,13 +33,11 @@
         - http://exist-db.org/documentation.html
         - http://atomic.exist-db.org/
 
-    Version: 1.4.1rc-rev:15097-20110808
+    Version: 1.4.3-rev:17131-20120913
 
-    $Id: conf.xml.tmpl 15093 2011-08-07 17:37:44Z dizzzz $
+    $Id: conf.xml.tmpl 17116 2012-09-10 18:00:28Z wolfgang_m $
 
--->
-<exist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:noNamespaceSchemaLocation="schema/conf.xsd">
+--><exist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="schema/conf.xsd">
 
     <!--
         Configures the cluster configuration.
@@ -196,8 +191,7 @@
                     the time out is switched off, resulting cached queries to remain
                     in the cache forever.
             -->
-        <query-pool max-stack-size="5" size="128" timeout="120000"
-                    timeout-check-interval="30000"/>
+        <query-pool max-stack-size="5" size="128" timeout="120000" timeout-check-interval="30000"/>
 
         <!--
             Settings for the journaling and recovery of the database. With
@@ -378,18 +372,16 @@
         - track-term-freq:
             not documented.
     -->
-    <indexer caseSensitive="yes" index-depth="5" preserve-whitespace-mixed-content="no"
-        stemming="no" suppress-whitespace="none"
-        tokenizer="org.exist.storage.analysis.SimpleTokenizer" track-term-freq="yes">
+    <indexer caseSensitive="yes" index-depth="5" preserve-whitespace-mixed-content="no" stemming="no" suppress-whitespace="none" tokenizer="org.exist.storage.analysis.SimpleTokenizer" track-term-freq="yes">
 
         <modules>
-            <module id="ngram-index" file="ngram.dbx" n="3" class="org.exist.indexing.ngram.NGramIndex" />
+            <module id="ngram-index" file="ngram.dbx" n="3" class="org.exist.indexing.ngram.NGramIndex"/>
 
             <!--
             <module id="spatial-index" class="org.exist.indexing.spatial.GMLHSQLIndex"
             -->
 
-            <module id="lucene-index" buffer="32" class="org.exist.indexing.lucene.LuceneIndex" />
+            <module id="lucene-index" buffer="32" class="org.exist.indexing.lucene.LuceneIndex"/>
 
             <!--
                 The legacy full text index is fully disabled from version 1.4.1.
@@ -578,9 +570,7 @@
             Set the parameter to "yes" to enable this feature.
 
     -->
-    <serializer add-exist-id="none" compress-output="no" enable-xinclude="yes"
-                enable-xsl="no" indent="yes" match-tagging-attributes="no"
-                match-tagging-elements="no">
+    <serializer add-exist-id="none" compress-output="no" enable-xinclude="yes" enable-xsl="no" indent="yes" match-tagging-attributes="no" match-tagging-elements="no">
         <!--
         <custom-filter class="org.exist.versioning.VersioningFilter"/>
         -->
@@ -623,8 +613,7 @@
         and "string".  Anything else will be treated as type "string".
 
     -->
-    <transformer
-        class="org.apache.xalan.processor.TransformerFactoryImpl" caching="yes"/>
+    <transformer class="org.apache.xalan.processor.TransformerFactoryImpl" caching="yes"/>
 
     <!--
         Settings for XML validation
@@ -665,6 +654,13 @@
             -  backwardCompatible:
                 Set to "yes" to enable backward compatibility (untyped argument
                 checks for instance)
+            - enforce-index-use
+                When set to "strict", eXist will not use a range index unless all
+                collections in the context sequence define it. When set to
+                "always", the query engine will still use an index, even if only
+                one collection has it defined. It thus leaves it to the user to
+                properly define indexes and if you forget to specify an index on
+                a particular collection, it will be missing in the results.
             - raise-error-on-failed-retrieval
                 Set to "yes" if a call to doc(), xmldb:document(), collection() or
                 xmldb:xcollection() should raise an error (FODC0002) when an
@@ -673,13 +669,13 @@
                 xmldb:xcollection() should return an empty sequence when an
                 XML resource can not be retrieved.
     -->
-    <xquery enable-java-binding="no" disable-deprecated-functions="no" enable-query-rewriting="yes" backwardCompatible="no" raise-error-on-failed-retrieval="no">
+    <xquery enable-java-binding="no" disable-deprecated-functions="no" enable-query-rewriting="yes" backwardCompatible="no" enforce-index-use="always" raise-error-on-failed-retrieval="no">
         <builtin-modules>
             <!--
                 Modularized Indexes
             -->
-            <module uri="http://exist-db.org/xquery/lucene" class="org.exist.xquery.modules.lucene.LuceneModule" />
-            <module uri="http://exist-db.org/xquery/ngram"  class="org.exist.xquery.modules.ngram.NGramModule" />
+            <module uri="http://exist-db.org/xquery/lucene" class="org.exist.xquery.modules.lucene.LuceneModule"/>
+            <module uri="http://exist-db.org/xquery/ngram" class="org.exist.xquery.modules.ngram.NGramModule"/>
 
             <!--
             <module uri="http://exist-db.org/xquery/spatial" class="org.exist.xquery.modules.spatial.SpatialModule" />
@@ -688,26 +684,26 @@
             <!--
                 Default Modules
             -->
-            <module uri="http://exist-db.org/xquery/examples"   class="org.exist.xquery.modules.example.ExampleModule" />
-            <module uri="http://exist-db.org/xquery/request"    class="org.exist.xquery.functions.request.RequestModule" />
-            <module uri="http://exist-db.org/xquery/response"   class="org.exist.xquery.functions.response.ResponseModule" />
-            <module uri="http://exist-db.org/xquery/session"    class="org.exist.xquery.functions.session.SessionModule" />
-            <module uri="http://exist-db.org/xquery/system"     class="org.exist.xquery.functions.system.SystemModule" />
-            <module uri="http://exist-db.org/xquery/text"       class="org.exist.xquery.functions.text.TextModule"/>
-            <module uri="http://exist-db.org/xquery/transform"  class="org.exist.xquery.functions.transform.TransformModule" />
-            <module uri="http://exist-db.org/xquery/util"       class="org.exist.xquery.functions.util.UtilModule" />
+            <module uri="http://exist-db.org/xquery/examples" class="org.exist.xquery.modules.example.ExampleModule"/>
+            <module uri="http://exist-db.org/xquery/request" class="org.exist.xquery.functions.request.RequestModule"/>
+            <module uri="http://exist-db.org/xquery/response" class="org.exist.xquery.functions.response.ResponseModule"/>
+            <module uri="http://exist-db.org/xquery/session" class="org.exist.xquery.functions.session.SessionModule"/>
+            <module uri="http://exist-db.org/xquery/system" class="org.exist.xquery.functions.system.SystemModule"/>
+            <module uri="http://exist-db.org/xquery/text" class="org.exist.xquery.functions.text.TextModule"/>
+            <module uri="http://exist-db.org/xquery/transform" class="org.exist.xquery.functions.transform.TransformModule"/>
+            <module uri="http://exist-db.org/xquery/util" class="org.exist.xquery.functions.util.UtilModule"/>
             <module uri="http://exist-db.org/xquery/validation" class="org.exist.xquery.functions.validation.ValidationModule"/>
-            <module uri="http://exist-db.org/xquery/xmldb"      class="org.exist.xquery.functions.xmldb.XMLDBModule" />
+            <module uri="http://exist-db.org/xquery/xmldb" class="org.exist.xquery.functions.xmldb.XMLDBModule"/>
 
             <!--
                 EXPath Modules
             -->
-            <!--  Commented by S. Sire because extensions/expath/lib/*.jar are not packaged -->
-            <!-- <module uri="http://expath.org/ns/http-client" class="org.expath.exist.HttpClientModule" />         -->
-            <module uri="http://www.expath.org/mod/http-client" src="resource:org/expath/www/mod/http-client/http-client.xqm" />
+            <!-- Commented by S. Sire -->
+            <!-- <module uri="http://expath.org/ns/http-client" class="org.expath.exist.HttpClientModule"/>         -->
+            <module uri="http://www.expath.org/mod/http-client" src="resource:org/expath/www/mod/http-client/http-client.xqm"/>
 
             <!-- Native EXPath HTTPClient Module -->
-            <!-- <module uri="http://exist-db.org/xquery/httpclient" class="org.exist.xquery.modules.httpclient.HTTPClientModule" /> -->
+            <module uri="http://exist-db.org/xquery/httpclient" class="org.exist.xquery.modules.httpclient.HTTPClientModule"/>
 
             <!--
                 Modules written in XQuery
@@ -715,32 +711,35 @@
             -->
 
             <!-- KWIC module -->
-            <module uri="http://exist-db.org/xquery/kwic" src="resource:org/exist/xquery/lib/kwic.xql" />
+            <module uri="http://exist-db.org/xquery/kwic" src="resource:org/exist/xquery/lib/kwic.xql"/>
 
             <!-- JSON module -->
-            <module uri="http://www.json.org" src="resource:org/exist/xquery/lib/json.xq" />
+            <module uri="http://www.json.org" src="resource:org/exist/xquery/lib/json.xq"/>
 
 
             <!-- Sequences module -->
-            <module uri="http://exist-db.org/xquery/sequences" src="resource:org/exist/xquery/lib/sequences.xq" />
+            <module uri="http://exist-db.org/xquery/sequences" src="resource:org/exist/xquery/lib/sequences.xq"/>
 
             <!-- Versioning -->
-            <module uri="http://exist-db.org/versioning" src="resource:org/exist/versioning/xquery/versioning.xqm" />
+            <module uri="http://exist-db.org/versioning" src="resource:org/exist/versioning/xquery/versioning.xqm"/>
 
             <!-- Test module -->
-            <module uri="http://exist-db.org/xquery/testing" src="resource:org/exist/xquery/lib/test.xq" />
+            <module uri="http://exist-db.org/xquery/testing" src="resource:org/exist/xquery/lib/test.xq"/>
+
+
+
 
             <!--
                 XProcxq module imports
             -->
-            <module uri="http://xproc.net/xproc"           src="resource:net/xproc/xprocxq/src/xquery/xproc.xqm" />
-            <module uri="http://xproc.net/xproc/const"     src="resource:net/xproc/xprocxq/src/xquery/const.xqm" />
-            <module uri="http://xproc.net/xproc/ext"       src="resource:net/xproc/xprocxq/src/xquery/ext.xqm" />
-            <module uri="http://xproc.net/xproc/functions" src="resource:net/xproc/xprocxq/src/xquery/functions.xqm" />
-            <module uri="http://xproc.net/xproc/naming"    src="resource:net/xproc/xprocxq/src/xquery/naming.xqm" />
-            <module uri="http://xproc.net/xproc/opt"       src="resource:net/xproc/xprocxq/src/xquery/opt.xqm" />
-            <module uri="http://xproc.net/xproc/std"       src="resource:net/xproc/xprocxq/src/xquery/std.xqm" />
-            <module uri="http://xproc.net/xproc/util"      src="resource:net/xproc/xprocxq/src/xquery/util.xqm"  />
+            <module uri="http://xproc.net/xproc" src="resource:net/xproc/xprocxq/src/xquery/xproc.xqm"/>
+            <module uri="http://xproc.net/xproc/const" src="resource:net/xproc/xprocxq/src/xquery/const.xqm"/>
+            <module uri="http://xproc.net/xproc/ext" src="resource:net/xproc/xprocxq/src/xquery/ext.xqm"/>
+            <module uri="http://xproc.net/xproc/functions" src="resource:net/xproc/xprocxq/src/xquery/functions.xqm"/>
+            <module uri="http://xproc.net/xproc/naming" src="resource:net/xproc/xprocxq/src/xquery/naming.xqm"/>
+            <module uri="http://xproc.net/xproc/opt" src="resource:net/xproc/xprocxq/src/xquery/opt.xqm"/>
+            <module uri="http://xproc.net/xproc/std" src="resource:net/xproc/xprocxq/src/xquery/std.xqm"/>
+            <module uri="http://xproc.net/xproc/util" src="resource:net/xproc/xprocxq/src/xquery/util.xqm"/>
 
 
             <!--
@@ -753,10 +752,12 @@
             -->
 
             <!-- Safe to use, function to be used by DBA only  -->
-            <module uri="http://exist-db.org/xquery/file" class="org.exist.xquery.modules.file.FileModule" />
+            <module uri="http://exist-db.org/xquery/file" class="org.exist.xquery.modules.file.FileModule"/>
+
 
             <!-- XQDoc module: required for generating function documentation -->
-            <!-- <module uri="http://exist-db.org/xquery/xqdoc" class="org.exist.xqdoc.xquery.XQDocModule" /> -->
+            <!-- Commented by S. Sire -->
+            <!-- <module uri="http://exist-db.org/xquery/xqdoc" class="org.exist.xqdoc.xquery.XQDocModule"/> -->
 
             <!--
             <module uri="http://exist-db.org/xquery/backups"     class="org.exist.backup.xquery.BackupModule" />
@@ -765,12 +766,12 @@
             <module uri="http://exist-db.org/xquery/counter"     class="org.exist.xquery.modules.counter.CounterModule" />
             <module uri="http://exist-db.org/xquery/datetime"    class="org.exist.xquery.modules.datetime.DateTimeModule" />
             <module uri="http://exist-db.org/xquery/examples"    class="org.exist.xquery.modules.example.ExampleModule" />
-            <module uri="http://exist-db.org/xquery/httpclient"  class="org.exist.xquery.modules.httpclient.HTTPClientModule" />  -->
-            <module uri="http://exist-db.org/xquery/image"       class="org.exist.xquery.modules.image.ImageModule" />
-<!--        <module uri="http://exist-db.org/xquery/jfreechart"  class="org.exist.xquery.modules.jfreechart.JFreeChartModule" />
-            <module uri="http://exist-db.org/xquery/jndi"        class="org.exist.xquery.modules.jndi.JNDIModule" />
--->         <module uri="http://exist-db.org/xquery/mail"        class="org.exist.xquery.modules.mail.MailModule" />
-<!--        <module uri="http://exist-db.org/xquery/math"        class="org.exist.xquery.modules.math.MathModule" />
+            <module uri="http://exist-db.org/xquery/httpclient"  class="org.exist.xquery.modules.httpclient.HTTPClientModule" />            -->
+            <module uri="http://exist-db.org/xquery/image"       class="org.exist.xquery.modules.image.ImageModule" /> <!--
+            <module uri="http://exist-db.org/xquery/jfreechart"  class="org.exist.xquery.modules.jfreechart.JFreeChartModule" />
+            <module uri="http://exist-db.org/xquery/jndi"        class="org.exist.xquery.modules.jndi.JNDIModule" /> -->
+            <module uri="http://exist-db.org/xquery/mail"        class="org.exist.xquery.modules.mail.MailModule" /> <!--
+            <module uri="http://exist-db.org/xquery/math"        class="org.exist.xquery.modules.math.MathModule" />
             <module uri="http://exist-db.org/xquery/metadata"    class="org.exist.xquery.modules.metadata.MetadataModule" />
             <module uri="http://exist-db.org/xquery/scheduler"   class="org.exist.xquery.modules.scheduler.SchedulerModule" />
             <module uri="http://exist-db.org/xquery/simple-ql"   class="org.exist.xquery.modules.simpleql.SimpleQLModule" />

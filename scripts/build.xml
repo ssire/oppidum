@@ -94,8 +94,11 @@
               <!-- <include name="atom-services.xml"/> -->
           </webinf>
 
-          <webinf dir="../config/prod">
+          <webinf dir="${conf.xml.dir}">
             <include name="conf.xml"/>
+          </webinf>
+
+          <webinf dir="../config/prod">
             <include name="log4j.xml"/>
             <include name="controller-config.xml"/>
           </webinf>
@@ -104,7 +107,7 @@
           <zipfileset dir="${exist.dir}/webapp/WEB-INF/data" prefix="WEB-INF/data">
             <exclude name="*.lck"/>
             <exclude name="fs.journal/**"/>
-            <exclude name="*.log*"/>
+            <exclude name="**/.log*"/>
             <!-- remove everything to force eXist to construct empy DB on 1st startup -->
             <exclude name="counters"/>
             <exclude name="*.dbx"/>

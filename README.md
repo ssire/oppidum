@@ -14,7 +14,7 @@ Oppidum takes a declarative approach to web application development :
 2. each mapping entry define a rendering pipeline to render the page
 3. the first pipeline step generates a model with an XQuery script
 4. the second pipeline step generates a view with an XSLT transformation
-5. the last pipeleine step integrates the result of the previous step into a mesh
+5. the last pipeline step integrates the result of the previous step into a mesh
 6. all the steps above can be optional and the mesh can trigger further actions
 
 Besides the steps above, Oppidum provides support to skin applications (a skin is a set of CSS and JavaScript files), to implement access control rules with form-based identification and to manage a multi-phases development cycle (dev, test and prod).

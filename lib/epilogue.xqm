@@ -26,10 +26,10 @@ declare function epilogue:make-static-base-url-for( $package as xs:string ) as x
 {
   let $cmd := request:get-attribute('oppidum.command')
   return 
-    if (string($cmd/@mode) eq 'prod') then
-      concat('/static/', $package, '/') (: MUST be served by a proxy :)
-    else
+    if (string($cmd/@mode) = 'dev') then
       concat(string($cmd/@base-url), 'static/', $package, '/')
+    else (: 'prod' or 'test' :)
+      concat('/static/', $package, '/') (: MUST be served by a proxy :)
 };
 
 (: ======================================================================

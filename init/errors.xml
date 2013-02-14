@@ -67,5 +67,4 @@
   <error type="LOGIN-WRITE-FAILED" code="500">
     <message lang="fr">L'enregistrement de l'utilisateur dans la base de donnée a échoué</message>
   </error>
-  </error>
 </errors>
