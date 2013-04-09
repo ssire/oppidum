@@ -3,17 +3,26 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="description" content="Ce guide explique aux développeurs web comment créer des applications avec le framework open source Oppidum. Ce framework fonctionne avec la base de données native XML eXist-DB. Il permet de développer des applications avec les langages XQuery et XSLT côté serveur." />
+  <meta name="keywords" content="framework, XQuery, XSLT, XML, base de données, développement web, eXist-DB" />
+  <meta name="author" content="Stéphane Sire" />
 
-	<title>Créer des sites Web avec Oppidum</title>
+  <title>Créer des applications web avec Oppidum</title>
   <style type="text/css">
   body {
-    margin-top: 20px;
-    margin-left: 30px;
-    margin-right: 30px;
+    margin: 2em 2.5em;
+    font-family: Georgia, Arial, serif;
+    line-height: 1.3;
   }
   h1 {
-    text-align: center;
+    margin: 1em auto;
+  }
+  h1, h2, h3, h4 {
+    font-family: Trebuchet, Helvetica, sans-serif;
+  }
+  h2, h3, h4 {
+    margin: 1em 0 0.25em 0;
   }
   dt {
     margin-top: 0.5em;
@@ -22,31 +31,78 @@
   dd {
     margin-bottom: 0.2em;
   }
+  p {
+    margin: 0.75em 0 0.25em 0;
+  }
+  h2 + p, h3 + p, h4 + p {
+    margin-top: 0.5em;
+  }
+  p.img {
+    margin: 1.5em 0;
+    text-align: center;
+  }
+  pre {
+    margin: 1em 0;
+    border: solid 1px gray;
+    padding: 5px 10px;
+  }
+  @media print {
+    body, h1 {
+      margin-top: 0;
+    }
+    body {
+      font-size: 10pt;
+    }
+    h1, h2, h3, h4 {
+      page-break-after: avoid;
+    }
+    p {
+      text-align: justify;
+    }
+    pre {
+      font-size: 8pt;
+      page-break-inside: avoid;
+    }
+  }
   </style>
+  <!--
+  Pour TextMate
+  s/</pre></code>/</pre></code>/
+  s/<pre><code>    (.*)/<pre><code>  $1/
+   -->
 </head>
 
 <body>
-  <h1 id="crer_des_sites_web_avec_oppidum">Créer des sites Web avec Oppidum</h1>
+  <h1 id="crer_des_applications_web_avec_oppidum">Créer des applications web avec Oppidum</h1>
 
-  <p>Par Stéphane Sire (Oppidoc), <a href="&#x6D;&#x61;&#x69;&#108;&#x74;o:&#x73;&#46;&#x73;&#x69;r&#x65;&#64;&#102;&#x72;&#x65;&#101;&#46;f&#x72;">&#x73;&#46;&#x73;&#x69;r&#x65;&#64;&#102;&#x72;&#x65;&#101;&#46;f&#x72;</a>, 21-01-2001</p>
+  <p>Par Stéphane Sire (Oppidoc), <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6F;:&#x73;.&#x73;&#105;&#114;&#101;&#64;&#111;p&#x70;&#105;&#x64;&#x6F;&#99;&#x2E;&#102;&#x72;">&#x73;.&#x73;&#105;&#114;&#101;&#64;&#111;p&#x70;&#105;&#x64;&#x6F;&#99;&#x2E;&#102;&#x72;</a>, version du 09-04-2013</p>
 
-  <p>Ce document présente le framework Oppidum pour le développeur de sites Web.</p>
+  <p>Ce document présente le framework open source Oppidum pour le développement d&#8217;applications web ou pour l&#8217;enseignement des technologies XML (XQuery, XSLT, BD XML natives).</p>
+
+  <p>Vous pouvez consulter les projets suivants pour accompagner ce document :</p>
+
+  <ul>
+  <li>le framework Oppidum contient sa propre application (<a href="https://github.com/ssire/oppidum">lien</a> github)</li>
+  <li>le tutorial est une application très simple d&#8217;édition de pages (<a href="https://github.com/ssire/tutorial">lien</a> github)</li>
+  </ul>
+
+  <p><strong>Avertissement</strong> l&#8217;environnement d&#8217;exécution de Oppidum (côté serveur) est la base de donnée eXist-DB qui fonctionne sur de multiples systèmes d&#8217;exploitation (Linux, OS X, Windows), nous avons des retours d&#8217;utilisation de Oppidum sous OS X et sous plusieurs variantes de Linux, il semble que Oppidum ne fonctionne pas sous Windows pour des raisons liées à la génération des chemins de fichiers (le séparateur de chemin n&#8217;est pas le même sous Windows), c&#8217;est une “<a href="https://github.com/ssire/oppidum/issues/10">issue</a>” enregistrée. Il n&#8217;y a pas de limitations connues côté clients (navigateur web).</p>
 
   <h2 id="1_introduction">1. Introduction</h2>
 
-  <p>Oppidum est un framework léger conçu pour faciliter le développement de sites Web ou d&#8217;applications Web d&#8217;édition et de publication de documents. Oppidum repose sur 3 piliers: un moteur d&#8217;éxécution en 2 temps, une architecture 2/3 et des conventions.</p>
+  <p>Oppidum est un framework léger conçu pour faciliter le développement d&#8217;applications web d&#8217;édition et de publication de documents. Oppidum repose sur 3 piliers: un moteur d&#8217;éxécution en 2 temps, une architecture 2/3 et des conventions.</p>
 
   <h3 id="11_moteur_d8217excution_en_2_temps">1.1 Moteur d&#8217;exécution en 2 temps</h3>
 
   <p>Le schéma suivant représente une vue synoptique du fonctionnement d&#8217;Oppidum : dans un premier temps la requête de l&#8217;utilisateur sert à générer un <em>pipeline</em>; dans un deuxième temps l&#8217;environnement hôte exécute le pipeline dont la sortie forme la réponse HTTP.</p>
 
-  <p><img src="../images/synoptique.png" style="max-width: 16cm" alt="Vue synoptique"/></p>
+  <p class="img"><img src="../images/synoptique.png" style="max-width: 16cm" alt="Vue synoptique"/></p>
 
-  <p>Oppidum doit donc s&#8217;exécuter dans un environnement hôte possédant un moteur d&#8217;éxécution de pipeline. Actuellement la librairie de base Oppidum est écrite en XQuery et nécessite également une base de donnée XML munie d&#8217;un interpéteur XQuery. Nous utilisons la base de données <a href="http://exist-db.org/">eXist-db</a> qui possède aussi un moteur d&#8217;exécution de pipeline basé sur un mini-language de pipeline.</p>
+  <p>Oppidum doit donc s&#8217;exécuter dans un environnement hôte possédant un moteur d&#8217;éxécution de pipeline. Actuellement la librairie de base Oppidum est écrite en XQuery et nécessite une base de donnée XML munie d&#8217;un interpéteur XQuery. Nous utilisons la base de données <a href="http://exist-db.org/">eXist-db</a> qui possède un moteur d&#8217;exécution de pipeline basé sur un mini-langage de pipeline.</p>
 
   <h3 id="12_architecture_2_3">1.2 Architecture 2/3</h3>
 
-  <p>À la différence des applications 3-tiers classiques où l&#8217;application s&#8217;exécute dans son propre environnement (Perl, PHP, Ruby, Java, etc.) séparé de la base de données qui sert au stockage des données, les applications écrites avec Oppidum et la base de données eXist s&#8217;exécutent dans le même environnement.</p>
+  <p>À la différence des applications 3-tiers classiques où l&#8217;application s&#8217;exécute dans son propre environnement (Perl, PHP, Ruby, Java, etc.) séparé de la base de données qui sert au stockage des données, les applications écrites avec Oppidum et la base de données eXist-DB s&#8217;exécutent dans le même environnement.</p>
 
   <p>Cette architecture parfois qualifée de 2/3 ne sépare donc pas la récupération des données et les traitements / génération des vues. Le code d&#8217;extraction des données dans la BD et le code de l&#8217;application s&#8217;exécutent dans le même programme. Cette architecture offre des avantages en terme de vitesse d&#8217;accès aux données puisqu&#8217;il n&#8217;y a pas de transfert entre un second et un troisième tiers pour lire les données (<a href="http://xquerywebappdev.wordpress.com/2011/11/18/node-js-is-good-for-solving-problems-i-dont-have/#comment-26056">lien</a>).</p>
 
@@ -58,124 +114,125 @@
 
   <p>Le point d&#8217;entrée d&#8217;une application est le fichier <code>controller.xql</code> qui se trouve à la racine de l&#8217;application et qui appelle Oppidum en lui transmettant la requête HTTP à décoder. Le fichier <code>epiloque.xql</code> qui se trouve aussi à la racine de l&#8217;application termine le traitement de toutes les requêtes et effectue les opérations répétitives telles que l&#8217;insertion d&#8217;un en-tête ou d&#8217;un menu de navigation sur les pages de l&#8217;application.</p>
 
-  <p>Par ailleurs Oppidum permet d&#8217;associer à chaque URL une <em>une collection de référence</em> ainsi qu&#8217;une <em>ressource de référence</em> dans la base de données XML. Lorsque l&#8217;URL représente une resource conservée dans la base de données, la collection et la ressource de référence qui servent de pointeur vers la base de données offrent un moyen de découpler le mapping REST de l&#8217;application de son implémentation dans la BD.</p>
+  <p>En production les données et le code de l&#8217;application <em>app</em> sont placées dans la BD, dans une collection <code>/db/sites/</code><em>app</em> pour les données et dans une collection <code>/db/www/</code><em>app</em> pour le code. En particuliers la collection <code>/db/www/</code><em>app</em><code>/config</code> contient les ressources XML avec la configuration de l&#8217;application.</p>
 
-  <p>En production les données et le code de l&#8217;application sont en général placés dans la base de données, dans une collection <code>/db/sites/{app}</code> pour les données et dans une collection <code>/db/www/{app}</code> pour le code. En particuliers la collection <code>/db/www/{app}/config</code> contient les ressources XML avec les paramètres d&#8217;exécution de l&#8217;application.</p>
+  <h3 id="14_sources_d8217inspiration">1.4 Sources d&#8217;inspiration</h3>
 
-  <h3 id="14_comparaison_avec_d8217autres_frameworks">1.4 Comparaison avec d&#8217;autres frameworks</h3>
-
-  <p>Oppidum s&#8217;inspire des frameworks Orbeon et Ruby on Rails. Comme avec Orbeon le rendu des pages s&#8217;effectue par la transformation de données en une représentation à l&#8217;aide d&#8217;un pipeline (approche MVC). Le pipeline de rendu obéit toujours au même schéma à trois étages : le modèle est un script XQuery qui extrait des données; la vue est un script XSLT qui les transforme; le résultat peut-être inséré à la demande dans un <em>gabarit de site</em> (ou <em>mesh</em>) écrit avec un langage spécifique. Cette dernière opération est réalisée par un script appelé <em>epilogue</em>.</p>
+  <p>Oppidum s&#8217;inspire des frameworks <em>Orbeon</em> et <em>Ruby on Rails</em>. Comme avec Orbeon le rendu des pages s&#8217;effectue par la transformation de données en une représentation à l&#8217;aide d&#8217;un pipeline (approche MVC). Le pipeline de rendu obéit toujours au même schéma à trois étages : le modèle est un script XQuery qui extrait des données; la vue est un script XSLT qui les transforme; le résultat peut-être inséré à la demande dans un <em>gabarit de site</em> (ou <em>mesh</em>) écrit avec un langage spécifique. Cette dernière opération est réalisée par un script appelé <em>epilogue</em>.</p>
 
   <p>Comme avec RoR, l&#8217;architecture REST du site est explicite et la correspondance entre les URLs des ressources qui forment le site et leur implémentation, sous forme de pipeline, est décrite dans un langage spécifique : le <em>mapping</em> du site (plus ou moins équivalent aux routes de RoR). De manière plus annedoctique Oppidum fournit également une <em>flash</em> pour afficher des messages d&#8217;erreur ou d&#8217;information à l&#8217;utilisateur même après une redirection de page.</p>
 
-  <p>Oppidum contient également des modèles et vues de base pour réaliser des fonctionnalités comme un login et du contrôle d&#8217;accès, ou bien l&#8217;édition et la publication de pages avec les librairies Javascript <a href="http://ssire.github.com/axel/">AXEL</a> et <a href="http://ssire.github.com/axel-forms/">AXEL-FORMS</a> fournies avec. Ces librairies offrent un niveau de fonctionnalités similaires à XForms pour la plupart des projets avec une complexité bien moindre. Elles sont par ailleurs développées dans des projets séparés sur GitHub.</p>
+  <p>Oppidum contient également des modèles et vues de base pour réaliser des fonctionnalités comme un login et du contrôle d&#8217;accès, ou bien l&#8217;édition et la publication de pages avec les librairies Javascript <a href="http://ssire.github.com/axel/">AXEL</a> et <a href="http://ssire.github.com/axel-forms/">AXEL-FORMS</a> fournies avec. Ces librairies offrent un niveau de fonctionnalités similaires à XForms pour la plupart des projets avec une moindre complexité. Elles sont maintenues dans des projets séparés sur GitHub.</p>
 
-  <p>Enfin il est facile d&#8217;isoler des fonctionnalités dans des modules pouvant être recopiés d&#8217;application à application avec peu d&#8217;adaptations. Il existe par exemple un module de téléchargement d&#8217;images (lié avec la librairie AXEL) et
-  un module de gestion de comptes utilisateurs.</p>
+  <p>Enfin il est facile d&#8217;isoler des fonctionnalités dans des unités de code (XQuery/XSLT/Javascript) pouvant être recopiés d&#8217;application à application avec peu d&#8217;adaptations. Il existe par exemple un module de téléchargement d&#8217;images (lié avec la librairie AXEL).</p>
 
   <p>Oppidum et ses modules sont définis dans le namespace <code>"http://oppidoc.com/oppidum/"</code> et ses dérivés.</p>
 
-  <h2 id="2_installation">2. Installation</h2>
+  <h2 id="2_mise_en_oeuvre">2. Mise en oeuvre</h2>
 
-  <p>Commencez par installer eXist-db (<a href="http://exist-db.org/exist/download.xml">téléchargement</a>). Installez pour le moment une version 1.4.3, la version 2.0 de eXist nécessite quelques petites modifications dans la façon de structurer les applications pour en tirer meilleur parti.</p>
+  <h3 id="21_installation">2.1 Installation</h3>
 
-  <p>Lorsque eXist est installé, placez-vous dans le répertoire <code>{exist-home}/webapp</code>, créez un répertoire <code>projets</code> (pour le moment ce nom est fixé par convention) puis clonez le dépôt Github de Oppidum. Oppidum fournit une commande <code>scripts/start.sh</code> pour démarrer eXist, exécutez-la (ou bien démarrez eXist avec la procédure standard), soit :</p>
+  <p>Commencez par installer eXist-db (<a href="http://exist-db.org/exist/download.xml">téléchargement</a>). Installez pour le moment une version 1.4.3, la version 2.0 de eXist nécessite quelques modifications dans la façon de structurer les applications pour en tirer meilleur parti.</p>
 
-  <pre><code>
-  cd {exist-home}/webapp
+  <p>Lorsque eXist est installé, placez-vous, à l&#8217;aide du terminal, dans le répertoire <code>{exist-home}/webapp</code>, créez un répertoire (par exemple <code>projets</code>) puis clonez le dépôt Github de Oppidum à l&#8217;intérieur. Oppidum fournit une commande <code>scripts/start.sh</code> pour démarrer eXist, exécutez-la (ou bien démarrez eXist avec la procédure standard), soit :</p>
+
+  <pre><code>cd {exist-home}/webapp
   mkdir projets
   git clone https://github.com/ssire/oppidum.git
   cd oppidum/scripts
   ./start.sh
   </code></pre>
 
-  <p>Vous devriez alors pouvoir pointer votre navigateur sur l&#8217;URL <code>localhost:8080/exist/projets/oppidum</code> et voir le message suivant :</p>
+  <p>Vous devriez alors pouvoir pointer votre navigateur sur l&#8217;URL <a href="http:/localhost:8080/exist/projets/oppidum" target="_blank">localhost:8080/exist/projets/oppidum</a> et voir le message suivant signifiant que Oppidum a été bien installé :</p>
 
-  <pre><code>
-   Oppidum
-   Version Beta
-   © 2011-2012 Oppidoc S.A.R.L
+  <p class="img"><img src="../images/splash.png" style="max-width: 16cm" alt="Oppidum library splash screen"/></p>
+
+  <p>Une fois cette vérification faite, pointez votre navigateur sur <a target="_blank" href="http://localhost:8080/exist/projets/oppidum/install">localhost:8080/exist/projets/oppidum/install</a> et cochez au moins le groupe config de la ligne &#8220;Code :&#8221; pour installer les fichiers de configuration de Oppidum, puis cliquez sur le bouton de soumission (non visible sur la copie écran ci-dessous). Vous devrez vous identifier comme l&#8217;utilisateur <em>admin</em> de la BD défini lors de l&#8217;installation d&#8217;eXist. </p>
+
+  <p class="img"><img src="../images/installation.png" style="max-width: 16cm" alt="Script post-installation"/></p>
+
+  <p><strong>Attention</strong> dans la version actuelle d&#8217;Oppidum le script d&#8217;installation ne s&#8217;exécutera correctement que si le répertoire contenant Oppidum s&#8217;appelle <code>projets</code>. Si vous utilisez un autre nom vous devrez éditer la ligne suivante du script <code>scripts/install.xql</code> :</p>
+
+  <pre><code>declare variable $local:base := "/projets/oppidum";
   </code></pre>
 
-  <p>signifiant que Oppidum a été bien installé. Une fois cette vérification faite, pointez votre navigateur sur <code>localhost:8080/exist/projets/oppidum/install</code> et cochez au moins le groupe config du panneau Code pour installer les fichiers de configuration de Oppidum.</p>
+  <p>Vous pouvez utiliser le script <code>scripts/stop.sh</code> dans le terminal pour arrêter eXist, à condition de l&#8217;éditer et de mettre le bon mot de passe administrateur de la BD dedans (par défaut mis à <em>test</em>).</p>
 
-  <p>Vous pouvez utiliser le script <code>scripts/stop.sh</code> pour arrêter eXist, à condition de l&#8217;éditer et de mettre le bon mot de passe administrateur de la BD dedans (par défaut mis à <em>test</em>).</p>
+  <h3 id="installation_du_tutorial">Installation du tutorial</h3>
 
-  <h2 id="3_architecture">3. Architecture</h2>
+  <p>Placez vous dans votre répertoire <code>projets</code> créé à l&#8217;étape précédente : </p>
 
-  <p>Le cycle de base d&#8217;Oppidum, détaillé sur le diagramme ci-dessous, est le suivant:</p>
+  <pre><code>git clone https://github.com/ssire/tutorial.git
+  </code></pre>
+
+  <p>Vous pouvez alors ouvrir le tutorial en pointant votre navigateur sur <a target="_blank" href="http://localhost:8080/exist/projets/tutorial">localhost:8080/exist/projets/tutorial</a>. Notez que vous devriez obtenir un écran d&#8217;erreur la première fois, comme ci-dessous :</p>
+
+  <p class="img"><img src="../images/tutorial-noinstall.png" style="max-width: 16cm" alt="Gabarit manquant pour lancer le tutorial"/></p>
+
+  <p>Cette erreur provient du fait que le tutorial, tout comme les applications écrites avec Oppidum, nécessite la création et la recopie de plusieurs ressources dans la BD. Installez ces ressources avec l&#8217;installeur compris dans le tutorial en pointant votre navigateur sur <a target="_blank" href="http://localhost:8080/exist/projets/tutorial/install">localhost:8080/exist/projets/tutorial/install</a> (voir la remarque ci-dessus “<em>Attention</em>”). Dans le cas du tutorial il convient de tout cocher :</p>
+
+  <p class="img"><img src="../images/tutorial-install.png" style="max-width: 16cm" alt="Installation du tutorial"/></p>
+
+  <p>Voilà, vous pouvez utiliser le tutorial. Le tutorial est une application très simple qui possède une page d&#8217;accueil, des chapitres et un bouton pour s&#8217;identifier. Si vous ête identifié comme utilisateur <em>admin</em> de la BD, vous pouvez modifier la page d&#8217;accueil et ajouter des chapitres, comme sur la copie écran ci-dessous :</p>
+
+  <p class="img"><img src<img src="../images/tutorial-modifier.png" style="max-width: 16cm" alt="Modification de la page d'accueil du tutorial"/></p>
+
+  <p>Ce document explique tous les concepts mis en oeuvre pour créer le tutorial et d&#8217;autres applications.</p>
+
+  <h3 id="22_cration_d8217un_nouveau_projet">2.2 Création d&#8217;un nouveau projet</h3>
+
+  <p>Placez vos projets dans des répertoires {<em>app</em>} dans des répertoires frères du répertoire <code>oppidum</code>, vous devriez obtenir la structure suivante:</p>
+
+  <pre><code>{exist-home}/webapps/projets/oppidum
+  {exist-home}/webapps/projets/{app}
+  </code></pre>
+
+  <p>Vous pourrez ainsi accéder sur le même serveur à l&#8217;environnement de développement eXist (aide en ligne, sandbox, etc. via <a target="_blank" href="http://localhost:8080/exist">localhost:8080/exist</a>) ainsi qu&#8217;à vos applications en cours de développement (via <code>http://localhost:8080/exist/projet/{app}</code>).</p>
+
+  <p>L&#8217;intérêt est aussi de maintenir le répertoire <code>/projet/{app}</code> sous contrôle du code source avec un système comme SVN ou GitHub.</p>
+
+  <p>Le fichier <code>controller.xql</code> contient des définitions de variables comme le mapping, qui seront transmise à la méthode <code>gen:process</code> de Oppidum pour traiter la requête entrante. Vous pouvez copier ce fichier à la racine de l&#8217;application depuis celui fourni avec Oppidum ou tout autre projet réalisé avec Oppidum, en adaptant les déclarations de variables.</p>
+
+  <p>Dans la plupart des projets, le fichier <code>epilogue.xql</code> à la racine de l&#8217;application met en oeuvre un mécanisme de génération de page à partir d&#8217;un modèle de page expliqué dans la section “Gabarits de pages (ou mesh)”. Il s&#8217;articule autour d&#8217;une <em>transformation typeswitch</em>  (<a href="http://en.wikibooks.org/wiki/XQuery/Typeswitch_Transformations">lien</a> wikibooks) réalisée par une paire de méthodes <code>local:render</code> et <code>local:branch</code> que vous pouvez copier d&#8217;un projet à un autre.</p>
+
+  <h3 id="23_debug">2.3 Debug</h3>
+
+  <p>Ajoutez <code>.debug</code> ou <code>?debug=true</code> à une URL pour voir tous les attributs ajoutés par Oppidum à la requête et qui sont accessibles avec <code>request:get-attribute</code> dans les modèles XQuery. L&#8217;affichage en mode debug montre également la commande ainsi que les pipelines générés en interne (voir la section “Architecture d’Oppidum”), c&#8217;est un bon moyen pour comprendre le fonctionnement d&#8217;Oppidum.</p>
+
+  <p>Ajoutez <code>.raw</code> à une requête pour voir la sortie de l&#8217;étape 2 du pipeline (transformation XSLT).</p>
+
+  <p>Ajoutez <code>.xml</code> à une requête pour voir la sortie de l&#8217;étape 1 du pipeline (modèle XQuery), c&#8217;est aussi le moyen le plus simple pour exporter le source XML d&#8217;une ressource, par exemple pour l&#8217;éditer avec un template XTiger XML (voir la section “Créations de page éditables avec AXEL”).</p>
+
+  <p>Utilisez les méthodes <code>oppidum:log</code> et <code>oppidum:log-parameters</code> du module <code>util.xqm</code> pour créer des traces d&#8217;exécution dans un fichier <code>site.log</code> conservé avec les autres fichiers de log (<code>exist.log</code> et <code>url-rewrite.log</code>).</p>
+
+  <h2 id="3_modle_d8217une_application_oppidum">3. Modèle d&#8217;une application Oppidum</h2>
+
+  <p>Le développement d&#8217;une application obéit aux principes suivants : </p>
 
   <ul>
-  <li>convertir la requête HTTP en une commande</li>
-  <li>valider la commande</li>
-  <li>générer un pipeline (d&#8217;erreur ou d&#8217;exécution) pour représenter la ressource et/ou le résultat de l&#8217;action concernée</li>
-  <li>exécuter le pipeline</li>
-  </ul>
-
-  <p>La commande et le pipeline sont des documents XML manipulés en interne par le framework.</p>
-
-  <p><img src="../images/architecture.png" style="max-width: 18cm" alt="Architecture"/></p>
-
-  <p>Le script <code>controller.xql</code> doit se trouver à la racine de l&#8217;application et appeler les bonnes méthodes de <code>command.xqm</code> et de <code>pipeline.xqm</code>. Ce script contient actuellement le mapping déclaré en ligne dans une variable.</p>
-
-  <p>La meilleure manière d&#8217;écrire le contrôleur est de le recopier depuis une application existante et de l&#8217;adapter pour une nouvelle application. À terme le mapping sera sorti du script et placé dans la BD.</p>
-
-  <h3 id="31_modules">3.1 Modules</h3>
-
-  <p>Le noyau de la librairie est formé de 5 modules XQuery situés dans le répertoire <code>lib</code> de la distribution :</p>
-
+  <li>l&#8217;application doit être entièrement définie en terme d&#8217;actions sur des ressources</li>
+  <li>chaque action est définie déclarativement dans un fichier de mapping comme un pipeline composé de 3 étapes 
   <ul>
-  <li><p>Le module <code>command.xqm</code> prend en entrée une requête HTTP, le fichier de mapping de l&#8217;application et génère un document XML représentant la commande de l&#8217;utilisateur (méthode <code>oppidum:parse-url</code>).</p>
-
-  <p>Ce module est utilisé par le module suivant (<code>pipeline.xqm</code>), à priori vous n&#8217;avez pas besoin de l&#8217;utiliser directement.</p></li>
-  <li><p>Le module <code>pipeline.xqm</code> prend en entrée une commande et génère une implémentation de pipeline pour le filtre de servlet XQueryURLRewrite d&#8217;eXist (méthode <code>oppidum:pipeline</code>). </p>
-
-  <p>Ce module doit être importé par votre script <code>controller.xql</code> pour invoquer le point d&#8217;entrée d&#8217;Oppidum <code>gen:process</code>.</p></li>
-  <li><p>Le module <code>epilogue.xqm</code> contient des fonctions utilitaires pour simplifier la création de l&#8217;épilogue du site (cf. ci-dessous).</p>
-
-  <p>Ce module est à importer dans votre script <code>epilogue.xql</code>.</p></li>
-  <li><p>Le module <code>util.xqm</code> contient des fonctions de support pour gérer les message d&#8217;information ou d&#8217;erreur à l&#8217;utilisateur, des fonctions pour implémenter un pseudo-langage de gestion des droits d&#8217;accès, et divers autres utilitaires. </p>
-
-  <p>Ce module est à importer dans tout script XQuery qui souhaite utiliser les fonctions de support d&#8217;Oppidum.</p></li>
-  <li><p>Le module <code>install.xqm</code> contient des fonctions pour packager les données du site mais aussi le code du site dans la base de données.</p>
-
-  <p>Ce module est à importer dans votre script d&#8217;installation <code>script/install.xql</code>.</p></li>
+  <li>la première étape, le <strong>modèle</strong>, est toujours un script XQuery;</li>
+  <li>la seconde édtape, la <strong>vue</strong>, est toujours une transformation XSLT;</li>
+  <li>la troisième étape, l&#8217;<strong>épilogue</strong>, est toujours un script XQuery qui s&#8217;appelle <code>epilogue.xql</code></li>
+  </ul></li>
+  <li>un pipeline se compose soit de la première étape uniquement, la première et la seconde, la première et la troisième, ou bien les trois.</li>
   </ul>
 
-  <h3 id="32_excution">3.2 Exécution</h3>
+  <p>Il est toujours possible d&#8217;étendre un pipeline en appelant une ou plusieurs transformations XSLT depuis la première ou la troisième étape.</p>
 
-  <p>Le pipeline généré est exécuté par le <a href="http://www.exist-db.org/exist/urlrewrite.xml">filtre URLRewriter</a> d&#8217;eXist en faisant appel aux servlets XQuery et XSLT. Le diagramme ci-dessous montre différents modèles d&#8217;exécution du pipeline à trois étage pour obtenir  différents types de sorties :</p>
+  <p>Toute ressource est associée implicitement avec une action de lecture (GET) qui retourne une représentation de la ressource. Nous verrons par la suite qu&#8217;il est possible de spécifier des actions à l&#8217;aide des verbes HTTP (GET, PUT, POST, DELETE, etc.) mais aussi de créer des actions personnalisées. Dans ce cas le verbe est ajouté comme dernier segment de l&#8217;URL qui désigne la ressource cible (e.g. <code>/articles/1/</code><em>publier</em>).</p>
 
-  <p><img src="../images/pipeline.png" style="max-width: 14cm" alt="Architecture"/></p>
+  <h3 id="31_dfinition_des_ressources">3.1 Définition des ressources</h3>
 
-  <p>Le modèle d&#8217;exécution le plus courant utilise les 3 étages du pipeline pour générer une page HTML en sortie : le script XQuery génère des données XML dans un format quelconque, par contre le script XSLT doit générer une vue à l&#8217;intérieur d&#8217;un document <code>&lt;site:view&gt;</code> spécifique. La vue est un modèle simple et modulaire conçu pour être ensuite inséré dans un gabarit de page par l&#8217;épilogue.</p>
+  <p>Le mapping décrit l&#8217;<em>architecture REST</em> du site, c&#8217;est-à-dire qu&#8217;il définit l&#8217;ensemble des ressources et des actions qui seront reconnues par l&#8217;application sous forme d&#8217;URLs et de verbes HTTP. Il définit également le pipeline associé avec chacune de ces cibles. </p>
 
-  <p>L&#8217;épilogue est un script <code>epilogue.xql</code> qui doit toujours s&#8217;appeler ainsi et être placé à la racine de l&#8217;application, au même niveau que le script  <code>controller.xql</code>. La meilleure manière d&#8217;écrire ce script est de le recopier depuis une application existante et de l&#8217;adapter pour une nouvelle application.</p>
+  <p class="img"><img src="../images/mapping.png" style="max-width: 16cm" alt="Principe du mapping"/></p>
 
-  <p>Il est possible de court-circuiter le modèle d&#8217;exécution à 3 étages de plusieurs manières.</p>
+  <p>Le mapping décrit l&#8217;arborescence du site par un arbre XML composé de deux types d&#8217;éléments: <em>item</em> et <em>collection</em>. Il se déclare sous l&#8217;élément racine <em>site</em>. Prenons l&#8217;exemple fictif suivant :</p>
 
-  <p>En premier lieu, il est possible de spécifier une extension (.raw ou .xml) dans l&#8217;URL qui court-circuite le pipeline. L&#8217;extension .xml renvoie directement le résultat du premier étage tandis que l&#8217;extension .raw renvoie la sortie de la transformation XSLT. Cette 2e possibilité est surtout utilisée pour debugger l&#8217;application et devrait être désactivée en production.</p>
-
-  <p>En second lieu, le mapping peut également spécifier des pipelines incomplets, de manière à générer des représentations dans d&#8217;autres formats. Par exemple le passage par l&#8217;épilogue n&#8217;est pas nécessaire pour générer du JSON à partir du modèle ou de la vue, de même pour générer une réponse XML à une requête Ajax.</p>
-
-  <p>Finalement, il est également possible de spécifier dynamiquement à l&#8217;intérieur d&#8217;un modèle XQuery qu&#8217;un pipeline doit se terminer par une redirection (avec la méthode <code>oppidum:redirect</code>), dans ce cas l&#8217;exécution de l&#8217;épilogue se limite à appeler <code>response:redirect-to</code> sur la réponse.</p>
-
-  <h2 id="4_les_langages_spcifiques">4. Les langages spécifiques</h2>
-
-  <p>Oppidum introduit plusieurs languages XML pour décrire et découpler les différentes facettes d&#8217;une application web de manière déclarative. Le <em>mapping</em> est le plus important du point de vue du développeur de site. Il représente l&#8217;espace d&#8217;entrée de l&#8217;utilisateur (les URLs) et son association avec les pipelines servant à générer les représentations des ressources associées. La <em>commande</em> et le <em>pipeline</em> sont utilisés en interne pour exécuter les requêtes. La connaissance du langage décrivant la commande est utile pour les développeurs des modèles XQuery car la commande est disponible aux scripts sous forme d&#8217;un attribut de la requête. Le pipeline est le moins important des trois, il peut être utile néanmoins de le connaître pour debugger. </p>
-
-  <p>Les autres languages spécifiques servent à écrire des gabarits de pages (ou mesh) qui factorisent les blocs courants d&#8217;une application (en-tête, menu de navigation, etc.), à associer un ensemble de fichiers CSS et Javascripts baptisés <em>skin</em> avec une URL, à lister les resources à installer dans la BD pour utiliser l&#8217;application, et à définir un mécanisme de contrôle d&#8217;accès.</p>
-
-  <h3 id="41_le_mapping">4.1 Le mapping</h3>
-
-  <p>Le mapping décrit l&#8217;architecture REST du site, c&#8217;est-à-dire qu&#8217;il définit l&#8217;ensemble des ressources, des contrôleurs et des actions qu&#8217;il est possible d&#8217;exprimer sous forme d&#8217;URLs et de méthodes HTTP. Il définit également les pipelines à mettre en oeuvre pour générer les représentation de ces resources ou effectuer les actions des contrôleurs.</p>
-
-  <p>Le mapping décrit l&#8217;arborescence du site par un arbre XML composé de deux types d&#8217;éléments: <em>item</em> et <em>collection</em>. Ces deux éléments portent un attribut <em>@name</em> qui correspond à un segment de l&#8217;URL identifiant une ressource.</p>
-
-  <p>Prenons l&#8217;exemple fictif suivant :</p>
-
-  <pre><code>
-  &lt;site&gt;
+  <pre><code>&lt;site&gt;
     &lt;item name="home"/&gt;
     &lt;item name="projets"&gt;
       &lt;item name="axel"/&gt;
@@ -184,69 +241,408 @@
   &lt;/site&gt;
   </code></pre>
 
-  <p>Il décrirait un site composé des ressources suivantes: <code>/home</code>, <code>/projets</code>, <code>/projets/axel</code>, <code>/projets/oppidum</code>.</p>
+  <p>Il décrit un site composé des ressources <code>/home</code>, <code>/projets</code>, <code>/projets/axel</code>, <code>/projets/oppidum</code>. </p>
 
-  <p>L&#8217;élément collection définit des ressources contenant un nombre indéfini de ressources dont les noms sont également indéfinis. Un élément item anonyme (sans attribut name) représente les ressources contenues dans la collection.</p>
+  <p>L&#8217;attribute <strong>name</strong> indique un segment d&#8217;URL qui mène à la ressource concernée.</p>
 
-  <p>Prenons l&#8217;exemple d&#8217;un annuaire de sociétés suivant :</p>
+  <p>Par convention les ressources identifiées par l&#8217;élément <strong>item</strong> représentent des ressources simples ne contenant aucune autre ressource ou bien un nombre connu d&#8217;avance de ressources nommées ou d&#8217;actions. Nous appellerons ces ressources des items pour les distinguer.</p>
 
-  <pre><code>
-  &lt;site&gt;
-    &lt;collection name="societes"&gt;
+  <p>Par convention les ressources identifiées par l&#8217;élément <strong>collection</strong> représentent des ressources contenant un nombre indéfini de ressources non nommées à l&#8217;avance. Nous appellerons ces ressources des collections pour les distinguer. Dans ce cas l&#8217;ensemble des ressources contenues dans une collection est représenté par un élément <strong>item</strong> anonyme, c&#8217;est à dire sans attribute <em>_name</em>. </p>
+
+  <p>Prenons l&#8217;exemple d&#8217;une application pour écrire et publier des articles :</p>
+
+  <pre><code>&lt;site&gt;
+    &lt;collection name="articles"&gt;
       &lt;item/&gt;
     &lt;/collection&gt;
   &lt;/site&gt;
   </code></pre>
 
-  <p>Il pourrait contenir les ressources suivantes : <code>/societes/</code>, <code>/societes/1</code>, <code>/societes/2</code>.</p>
+  <p>Elle pourrait contenir les ressources suivantes : <code>/articles/</code>, <code>/articles/1</code>, <code>/articles/2</code>. De même elle pourrait contenir les ressources suivantes : <code>/articles/foo</code>, <code>/articles/bar</code>, puisqu&#8217;aucune contrainte ne pèse sur le nom de l&#8217;item anonyme.</p>
 
-  <p>Il pourrait tout aussi bien contenir les ressources suivantes, puisqu&#8217;aucune contrainte ne pèse sur le nom de l&#8217;item anonyme : <code>/societes/</code>, <code>/societes/edsi-tech</code>, <code>/societes/docetis</code>, <code>/societes/oppidoc</code>.</p>
+  <p>Il est également possible d&#8217;inclure des items nommés ou bien des sous-collections au sein d&#8217;une collection. Dans ce cas leurs noms sont réservés et ne sont plus disponibles pour l&#8217;item anonyme.</p>
 
-  <p>Il est également possible d&#8217;inclure des éléments item non anonymes au sein d&#8217;une collection. Dans ce cas ils décrivent la ressource de la collection de même nom qui n&#8217;est alors plus représentée par l&#8217;élément item anonyme.</p>
+  <p>Par exemple la collection <em>articles</em> de l&#8217;application pourrait contenir une collection <em>auteurs</em> qui donnerait accès aux fiches descriptives des auteurs. Dans ce cas elle serait déclarée ainsi :</p>
 
-  <p>Par exemple si l&#8217;annuaire concerne des sociétés installées en France ou en Suisse, il est possible de créer deux ressources pour représenter la liste des sociétés implantées respectivement dans chaque pays:</p>
-
-  <pre><code>
-  &lt;site&gt;
-    &lt;collection name="societes"&gt;
+  <pre><code>&lt;site&gt;
+    &lt;collection name="articles"&gt;
       &lt;item/&gt;
-      &lt;item name="France"/&gt;
-      &lt;item name="Suisse"/&gt;
-    &lt;/collection&gt;
-  &lt;/site&gt;
-  </code></pre>
-
-  <p>La définition ci-dessus ajouterait les ressources <code>/societes/France</code> et <code>/societes/Suisse</code> au site.</p>
-
-  <p>Si le nombre de  pays couverts par l&#8217;annuaire n&#8217;est pas connu d&#8217;avance, il est  préférable de créer une nouvelle collection de pays au sein de la collection sociétés : la ressource associée à chaque pays représentera le catalogue des sociétés de ce pays. Dans ce cas il suffit d&#8217;ajouter une collection pays dans la collection sociétés contenant un item anonyme pour représenter le pays :</p>
-
-  <pre><code>
-  &lt;site&gt;
-    &lt;collection name="societes"&gt;
-      &lt;item/&gt;
-      &lt;collection name="pays"&gt;
+      &lt;collection name="auteurs"&gt;
         &lt;item/&gt;
       &lt;/collection&gt;
     &lt;/collection&gt;
   &lt;/site&gt;
   </code></pre>
 
-  <p>Avec la définition ci-dessus il devient possible, en plus des URLs déjà indiquées, d&#8217;utiliser des URLs de la forme : <code>/societes/pays/USA</code> ou bien <code>/societes/pays/Mexique</code></p>
+  <p>La définition ci-dessus autorise l&#8217;existence de ressources telles que <code>/articles/auteurs/foo</code> ou <code>/articles/auteurs/bar</code>.</p>
 
   <p>Ces exemples montrent la souplesse de l&#8217;imbrication de seulement deux types d&#8217;éléments collection et item (anonyme ou non) pour modéliser une hiérarchie des ressources. <strong>Tous les sites réalisés avec Oppidum doivent au préalable être modélisés suivant cette hiérarchie</strong>.</p>
 
-  <h4 id="collection_et_ressource_de_rfrence">Collection et ressource de référence</h4>
+  <h3 id="32_dfinition_des_actions_de_lecture_get_dans_le_mapping">3.2 Définition des actions de lecture (GET) dans le mapping</h3>
 
-  <p>Chaque élément collection ou item du mapping peut définir explicitement une collection et une resource <em>de référence</em> dans la BD. La collection est identifiée avec l&#8217;attribut <em>@db</em> de la racine du mapping, obligatoire, et avec la valeur de l&#8217;attribut <em>@collection</em> de l&#8217;élément ou de son ancêtre le plus proche qui en possède un (héritage). De même la resource de référence au sein de la collection de référence est identifiée avec la valeur de l&#8217;attribut <em>@resource</em> de l&#8217;élément ou de son ancêtre le plus proche.</p>
+  <p>La structuration du mapping donne les moyens de spécifier toutes les URLs valides pour une application. Le mapping est ensuite complété avec des éléments <strong>model</strong>, <strong>view</strong> sous chaque item ou collection, et l&#8217;attribut <strong>epilogue</strong>, pour définir le pipeline de l&#8217;action de lecture (GET) de chaque ressource cible.</p>
 
-  <p>La collection et la ressource de référence sont un moyen simple pour communiquer au modèle la resource à extraire de la BD dans le cas d&#8217;un isomorphisme total ou partiel entre ressources du site (au sens REST) et ressources de la base de données (au sens stockage).</p>
+  <p>Prenons l&#8217;extrait de mapping suivant issu du tutorial :</p>
 
-  <p>De plus, les attributs <em>collection</em> et <em>resource</em> peuvent contenir des variables <code>$NB</code> pour extraires les segments de rang <em>NB</em> de l&#8217;URL.</p>
+  <pre><code>&lt;collection name="chapitres" ... &gt;
+    &lt;item epilogue="standard" ... &gt;
+      &lt;model src="oppidum:actions/read.xql"/&gt;
+      &lt;view src="views/page.xsl"/&gt;
+      ...
+    &lt;/item&gt;
+    ...
+  &lt;/collection&gt;
+  </code></pre>
+
+  <p>Cet extrait déclare que pour une requête GET sur une ressource de la forme <code>/chapitres/{nom}</code> (ciblée par l&#8217;item anonyme), la représentation retournée est générée par l&#8217;exécution du script XQuery <code>actions/read.xql</code> de la librairie Oppidum (préfixe <code>oppidum:</code>), puis transformation du résultat par la feuille XSLT <code>views/page.xsl</code> de l&#8217;application, et enfin par insertion dans le gabarit de page <code>standard.html</code> par l&#8217;épilogue du site.</p>
+
+  <p class="img"><img src="../images/chapitre.png" style="max-width: 5cm" alt="Pipeline pour générer un chapitre"/></p>
+
+  <p>Notons que l&#8217;extrait de mapping précédent ne définit par d&#8217;action pour lire la collection <code>/chapitres/</code>. Par conséquent l&#8217;ouverture de cette URL déclencherait une erreur “pipeline non défini”. </p>
+
+  <p>Les chemins d&#8217;accès aux scripts XQuery ou XSLT sont exprimés relativement au fichier <code>controller.xql</code> à la racine de l&#8217;application. Il est toutefois possible d&#8217;utiliser le préfixe <code>oppidum:</code> devant le chemin pour désigner un script fourni en standard avec Oppidum. Par exemple le chemin <code>oppidum:models/lore-ipsum.xql</code> désigne le générateur de contenu <em>lore ipsum</em> fourni avec Oppidum.</p>
+
+  <h3 id="33_dfinition_de_toutes_les_actions_sur_les_ressources_et_paramtrage_des_modles_et_des_vues">3.3 Définition de toutes les actions sur les ressources et paramétrage des modèles et des vues</h3>
+
+  <p>Les autres actions sur les items ou les collections se déclarent explicitement à l&#8217;aide de l&#8217;attribut <strong>method</strong> pour les verbes HTTP et de l&#8217;attribut <strong>supported</strong> pour les actions personnalisées. Dans les deux cas le pipeline associé avec l&#8217;action doit être défini par un élément fils <strong>action</strong> contenant les éléments <em>model</em>, <em>view</em> et l&#8217;attribut <em>epilogue</em> tout comme pour la déclaration de l&#8217;action de lecture.</p>
+
+  <p>Par exemple l&#8217;extrait de mapping suivant issu du tutorial ajoute les actions <em>ajouter</em> et <em>POST</em> à la collection <em>chapitres</em> pour respectivement créer un nouveau chapitre et l&#8217;enregistrer :</p>
+
+  <pre><code>&lt;collection name="chapitres" collection="chapters" supported="ajouter" method="POST" template="templates/page"&gt;
+    &lt;item epilogue="standard" ... &gt;
+      &lt;model src="oppidum:actions/read.xql"/&gt;
+      &lt;view src="views/page.xsl"/&gt;
+      ...
+    &lt;/item&gt;
+    &lt;action name="ajouter" epilogue="standard"&gt;
+      &lt;model src="oppidum:actions/bootstrap.xql"/&gt;
+      &lt;view src="views/edit.xsl"&gt;
+        &lt;param name="skin" value="editor"/&gt;
+      &lt;/view&gt;
+    &lt;/action&gt;
+    &lt;action name="POST"&gt;
+      &lt;model src="modules/chapters/post.xql"/&gt;
+    &lt;/action&gt;
+  &lt;/collection&gt;
+  </code></pre>
+
+  <p>Cet extrait de mapping donne existence aux URLs suivantes :</p>
+
+  <ul>
+  <li><code>GET /chapitres/{nom}</code> retourne une version HTML d&#8217;un chapitre (déjà évoqué au 3.2)</li>
+  <li><code>GET /chapitres/ajouter</code> retourne une page HTML intégrant un éditeur réalisé avec AXEL pour créer un chapitre, ce qui nécessite la définition d&#8217;une resources supplémentaire  :
+  <ul>
+  <li><code>GET /templates/page</code> retourne le template XTiger XML servant à générer l&#8217;éditeur de chapitre</li>
+  </ul></li>
+  <li><code>POST /articles/</code> sauvegarde le nouvel article dans la BD</li>
+  </ul>
+
+  <p>Cet extrait montre comment utiliser plusieurs types d&#8217;actions pour réaliser une application d&#8217;édition et de publication : l&#8217;action <code>ajouter</code> (cf. la section “Créations de page éditables avec AXEL” ci-dessous) génère l&#8217;éditeur, l&#8217;action <code>POST</code> assurent la sauvegarde des données.</p>
+
+  <p>Les attributs <em>collection</em> et <em>resource</em> figurant dans l&#8217;extrait ci-dessus sont expliqués dans la section “Découplage du schéma physique de stockage des données”.</p>
+
+  <h4 id="paramtrage">Paramétrage</h4>
+
+  <p>L&#8217;extrait montre également comment transmettre des paramètres à la vue d&#8217;un pipeline à l&#8217;aide d&#8217;un élément <strong>param</strong> définit à l&#8217;intérieur d&#8217;un élément <em>view</em>. L&#8217;attribut <strong>name</strong> définit le nom du paramètre et l&#8217;attribute <strong>value</strong> sa valeur. Par exemple le paramètre <em>skin</em> de l&#8217;action <em>ajouter</em> contient la chaine <code>"editor"</code>.</p>
+
+  <p>Les paramètres sont transmis aux vues XSLT comme paramètres de l&#8217;environnement dont les noms sont préfixés par la chaine <code>"xslt."</code>. La ligne suivante, à placer au début de la transformation XSLT, récupère la valeur du paramètre <em>skin</em> définie dans le mapping dans le paramètre <em>xst.skin</em> de la transformation XSLT :</p>
+
+  <pre><code>&lt;xsl:param name="xslt.skin"&gt;&lt;/xsl:param&gt;
+  </code></pre>
+
+  <p>L&#8217;élément <em>param</em> peut aussi se placer dans un élément <em>model</em>, dans ce cas il sera récupéré dans le script XQuery sous la forme d&#8217;un attribut de la requête préfixé par la chaine <code>"xquery."</code>, par exemple  si le paramètre <em>skin</em> avait été déclaré dans l&#8217;élément <em>model</em>, la ligne suivante le récupérerait dans la variable <code>$skin</code> :</p>
+
+  <pre><code>let $skin := request:get-attribute('xquery.skin')
+  </code></pre>
+
+  <p>Le paramétrage des modèles et des vues au niveau du mapping est un moyen pratique pour écrire des scripts XQuery et les transformations XSLT réutilisables dans différents contextes.</p>
+
+  <h3 id="variables_positionnelles">Variables positionnelles</h3>
+
+  <p>Les valeurs des paramètres peuvent aussi réintégrer des segments de l&#8217;URL à l&#8217;aide de variables positionnelles de la forme <code>$k</code>. La variable sera substituée par le <em>k</em>-ième segment de l&#8217;URL lors de l&#8217;invocation du modèle ou de la vue. </p>
+
+  <p>Par exemple le paramètre suivant :</p>
+
+  <pre><code>&lt;param name="resource" value="$2"/&gt;
+  </code></pre>
+
+  <p>serait substitué par le 2e segment de l&#8217;URL.</p>
+
+  <h4 id="34_dclaration_du_mapping">3.4 Déclaration du mapping</h4>
+
+  <p>Le mapping doit être passé comme dernier paramètre de la méthode <code>gen:process</code> qui traite la requête HTTP entrante dans le contrôleur de l&#8217;application (voir le fichier <a href="https://github.com/ssire/oppidum/blob/master/controller.xql">controller.xql</a> de Oppidum).</p>
+
+  <p>Vous pouvez déclarer le mapping directement dans une variable du fichier <code>controller.xql</code> : </p>
+
+  <pre><code>declare variable $mapping := &lt;site&gt;...&lt;/site&gt;
+  </code></pre>
+
+  <p>Alternativement, et c&#8217;est ce que nous recommandons en production, vous pouvez stocker le mapping dans la ressource <code>/db/www/{app}/config/mapping.xml</code> de la BD et le charger dans une variable passée à la méthode <code>gen:process</code> :</p>
+
+  <pre><code>declare variable $mapping := fn:doc(`/db/www/{app}/config/mapping.xml`)
+  </code></pre>
+
+  <p>Notez que le mapping est déclaré sous une racine <strong>site</strong> qui représente la racine du site (la ressource REST <code>/</code>). Celui-ci doit définir les attributs suivants :</p>
+
+  <ul>
+  <li><strong>db</strong> : chemin de la collection racine pour toutes les données de l&#8217;application (par convention <code>db/sites/{app}</code>)</li>
+  <li><strong>confbase</strong> : chemin de la collection racine pour le code source de l&#8217;application (par convention <code>db/www/{app}</code>)</li>
+  <li><strong>startref</strong> : URL vers où rediriger les requêtes sur la racine <code>/</code>, c&#8217;est-à-dire le point d&#8217;entrée de l&#8217;application</li>
+  <li><strong>key</strong> : nom du répertoire sur disque et des collections racines dans la BD du projet (le répertoire {<em>app</em>})</li>
+  <li><strong>mode</strong> : mode d&#8217;exécution (<code>dev</code> pour développement, <code>test</code> pour test et <code>prod</code> pour production), celui-ci sera recopié dans la commande en interne et peut influencer certaines méthodes de l&#8217;API d&#8217;Oppidum (par ex. la génération des URLs statiques si vous utilisez les skins)</li>
+  </ul>
+
+  <p>En option il est possible d&#8217;associer des actions avec la racine du site à l&#8217;aide des attributs <strong>supported</strong> et <strong>method</strong> comme expliqué ci-desssus, puisque la racine est une ressource cible.</p>
+
+  <h4 id="35_attributs_hrits_dans_le_mapping">3.5 Attributs hérités dans le mapping</h4>
+
+  <p>Les attributs suivants sont hérités dans le mapping, c&#8217;est-à dire que lorsqu&#8217;ils sont déclarés sur un élement <code>site</code> (la racine), <code>collection</code> ou <code>item</code> ils sont copiés sur son élément fils, sauf si le fils redéfinit l&#8217;attribut correspondant :</p>
+
+  <ul>
+  <li><em>db</em> (point de départ des collections de référence)</li>
+  <li><em>collection</em> (collection de référence)</li>
+  <li><em>resource</em> (ressource de référence)</li>
+  <li><em>access</em> (droits d&#8217;accès en lecture, c-a-d pour l&#8217;action implicite de lecture GET, cf la section “Contrôle d&#8217;accès par formulaire”)</li>
+  </ul>
+
+  <h3 id="36_dclarations_d8217actions_en_dehors_du_mapping">3.6 Déclarations d&#8217;actions en dehors du mapping</h3>
+
+  <p>Pour simplifier le partage des définitions d&#8217;actions entre applications il est possible de définir les actions à 2 autres endroits :</p>
+
+  <ul>
+  <li>dans une variable <code>$actions</code> du contrôleur <code>controller.xql</code> à passer comme paramètre à la fonction <code>gen:process</code></li>
+  <li>dans une resource <code>/db/www/{app}/config/modules.xml</code></li>
+  </ul>
+
+  <p>La première méthode est utilisée dans le fichier <a href="https://github.com/ssire/oppidum/blob/master/controller.xql">controller.xql</a> de Oppidum pour définir les 3 actions par défaut <em>login</em>, <em>logout</em> et <em>install</em>. Les actions déclarées dans la variable <code>$actions</code> sont des actions par défaut dont les définitions sont héritées par toutes les cibles du mapping, à condition qu&#8217;elles les listent dans leur attribut <em>supported</em> ou <em>method</em>.</p>
+
+  <p>La déclaration des actions par défaut s&#8217;effectue comme la déclaration des actions au fil du mapping. La seule différence est la présence d&#8217;un attribut <strong>depth</strong> sur l&#8217;élément <em>action</em>. Cet attribut indique le rang dans les segments de l&#8217;URL auxquels l&#8217;action peut s&#8217;appliquer. Cette information est nécessaire pour faire fonctionner l&#8217;algorithme <em>d&#8217;héritage</em>.</p>
+
+  <p>Ainsi :</p>
+
+  <ul>
+  <li>les actions de rang 0 peuvent se trouver uniquement à la racine du site, comme <code>/login</code> ou <code>/logout</code>.</li>
+  <li>les actions de rang 1 peuvent se trouver uniquement comme action d&#8217;une resource située directement sous la racine du site comme <code>/home/editer</code> ou <code>POST /home</code>.</li>
+  <li>etc.</li>
+  </ul>
+
+  <p>La seconde méthode repose sur un élément <strong>import</strong> à placer comme fils d&#8217;une déclaration d&#8217;item ou de collection dans le mapping. Cet élément importe la définition d&#8217;un ensemble d&#8217;actions depuis la ressource <code>/db/www/{app}/config/modules.xml</code> de l&#8217;application.</p>
+
+  <p>Cette méthode encore en cours de développement et de test sera expliqué prochainement.</p>
+
+  <h3 id="37_organisation_du_code">3.7 Organisation du code</h3>
+
+  <p>Cette section n&#8217;est pas normative, vous pouvez organiser le code comme vous le voulez (sauf pour les fichiers <code>controller.xql</code> et <code>epilogue.xql</code> à la racine). Cependant nous avons trouvé pratique de structurer les fichiers des applications de la manière suivante :</p>
+
+  <pre><code>actions/
+  controller.xql
+  epilogue.xql
+  init/
+  mesh/
+  models/
+  modules/
+  ressources/
+  scripts/
+  templates/
+  views/
+  </code></pre>
+
+  <p>Le fichier <em>controller.xql</em> est imposé par eXist. C&#8217;est le point d&#8217;entrée qui recevra les requêtes HTTP et appelera la fonction <code>gen:process</code> pour générer le pipeline à exécuter.</p>
+
+  <p>Le fichier <em>epilogue.xql</em> est exécuté par le pipeline si et seulement si la cible du mapping possède un attribut <em>epilogue</em>, il peut servir par exemple à générer la page à partir d&#8217;un gabarit comme expliqué dans la section “Gabarits de pages (ou mesh)”.</p>
+
+  <p>Les répertoires <em>models</em> et  <em>actions</em> contiennent les scripts XQuery qui implémentent respectivement les modèles pour la lecture des ressources et les actions sur les ressources.</p>
+
+  <p>Le répertoirs <em>views</em> contient les scripts XSLT qui implémentent les vues.</p>
+
+  <p>Le répertoire <em>modules</em> contient également des scripts de vues et de modèles, mais en les regroupant par modules fonctionnels de manière à simplifier le partage entre applications (pour le moment par recopie du répertoire contenant le module intéressant).</p>
+
+  <p>Le répertoire <em>init</em> contient les fichiers de configuration de l&#8217;application qui seront copiés dans la collection <code>/db/www/{app}/config</code> de l&#8217;application ainsi que les éventuels fichiers utilisés pour générer les données initiales dans <code>/db/sites/{app}/</code> ou pour tester l&#8217;application. Le contenu de ce répertoire peut être en partie généré avec le script d&#8217;installation comme expliqué dans la section “Installation et déploiement”.</p>
+
+  <p>Le répertoire <em>scripts</em> contient le script d&#8217;installation <code>install.xql</code> pour installer l&#8217;applications dans la BD et créer un jeu d&#8217;utilisateurs minimal. Il peut éventuellement contenir d&#8217;autres scripts utilisés pendant le développement (par exemple des scripts ant pour le test, le packaging ou le déploiement).</p>
+
+  <p>Le répertoire <em>resources</em> contient toutes les ressources statiques du site regroupées en sous-répertoires (e.g. CSS, Javascript, images). Oppidum fournit quelques méthodes pour générer des URLs pointant vers ces ressources dont le chemin commence par <code>/static/{app}</code> (ou <code>/static/oppidum</code> pour les ressources statiques partagées par Oppidum telles que la librairie AXEL). En production ces URLs devraient être servies directement par le proxy web sans passer par la BD pour bénéficier d&#8217;une politique de cache efficace.</p>
+
+  <p>Le répertoire <em>mesh</em> contient le ou les gabarits utilisés dans l&#8217;application. Chaque gabarit est un fichier XHTML. En se débrouillant bien chaque fichier gabarit devrait pouvoir s&#8217;afficher directement dans le navigateur web pour tester les fichiers CSS correspondants sans démarrer le serveur.</p>
+
+  <p>Enfin le répertoire <em>templates</em> regroupe les templates XTiger XML utilisés par le site pour rendre les pages éditables.</p>
+
+  <p>Notez que la librairie Oppidum elle-même contient un répertoire <em>config</em> . Celui-ci regroupe des fichiers de configuration spécifiques à eXist-DB et à l&#8217;environnement servlet (<code>conf.xml</code>, <code>controller-config</code>, <code>log4j.xml</code> et <code>web.xml</code>) qui sont utilisés pour générer les fichiers WAR lors du packaging à destination de différents environnements d&#8217;exécution (e.g. Tomcat) pour le passage en production.</p>
+
+  <h2 id="4_patrons_de_conception">4. Patrons de conception</h2>
+
+  <p>L&#8217;utilisation de patrons de conception définis dans cette section simplifie développement d&#8217;applications web avec Oppidum. Certains partons sont supportés directement au niveau de l&#8217;API d&#8217;Oppidum et des conventions mise en oeuvre.</p>
+
+  <h3 id="41_gabarits_de_pages_ou_mesh">4.1 Gabarits de pages (ou mesh)</h3>
+
+  <p>Le générateur de pipeline n&#8217;inclue l&#8217;appel à l&#8217;épilogue que si la cible du mapping possède un attribute <em>epilogue</em>. Nous recommandons d&#8217;interpréter la valeur de cet attribut comme le nom d&#8217;un gabarit de page à recopier pour générer la réponse à la requête HTTP. Ce mécanisme est très pratique pour factoriser dans le gabarit les éléments communs des pages tels que les en-têtes, les pieds de page, un bouton “login” ou bien le menu de navigation. Il est résumé sur la figure ci-dessous.</p>
+
+  <p class="img"><img src="../images/gabarits.png" style="max-width: 16cm" alt="Pipeline conventionnel pour utiliser des gabarits de pages"/></p>
+
+  <p>Le mécanisme recommandé repose sur une convention sur le format de sortie de la vue : celle-ci doit produire un document XML dont la racine est un élément <strong>site:view</strong> ne contenant que des fils dans l&#8217;espace de nom <strong>site:</strong>. Grâce à cette convention, le script <code>epilogue.xql</code> génère la réponse à la requête HTTP en recopiant un fichier XHTML correspondant au gabarit (voir le gabarit  <a href="https://github.com/ssire/tutorial/blob/master/mesh/standard.html">standard.html</a> du tutorial); à chaque fois qu&#8217;il rencontre un élément dans l&#8217;espace de nom <em>site:</em> dans le gabarit, il le remplace :</p>
+
+  <ol>
+  <li>par le résultat de l&#8217;appel à une méthode XQuery de même nom si elle est définie dans le script <code>epilogue.xql</code> et si l&#8217;élément du gabarit possède un attribute <code>force="true"</code> ou bien si le flux d&#8217;entrée de l&#8217;épilogue possède un élément de même nom;</li>
+  <li>sinon par l&#8217;élément de même nom dans le flux d&#8217;entrée de l&#8217;épilogue s&#8217;il existe;</li>
+  <li>sinon par la sequence vide.</li>
+  </ol>
+
+  <p>Par exemple si le gabarit contient un élément <code>&lt;site:menu force="true"&gt;</code> l&#8217;épilogue devrait appeler la méthode <code>site:menu</code> quel que soit le flux d&#8217;entrée et le remplacer par son résultat. Si le gabarit contient un élément <code>&lt;site:menu&gt;</code> alors si le flux d&#8217;entrée contient un élément <code>&lt;site:menu&gt;</code> l&#8217;épilogue devrait remplacer l&#8217;élément <code>&lt;site:menu&gt;</code> du gabarit par le résultat de l&#8217;appel à la méthode <code>site:menu</code> <em>de l&#8217;épilogue</em> si elle existe, ou sinon par l&#8217;élément <code>&lt;site:menu&gt;</code> <em>du flux d&#8217;entrée</em>, ou par la sequence vide sinon.</p>
+
+  <p>Cette logique est implémentée à l&#8217;aide d&#8217;une <em>transformation typeswitch</em> reposant sur l&#8217;appel entrelacé aux méthodes <code>local:render</code> et <code>local:branch</code> de l&#8217;épilogue. Cette logique est très facile à adapter lorsque vous créez le fichier <code>epilogue.xql</code> de votre application en recopiant celui d&#8217;une application existante (voir le fichier <a href="https://github.com/ssire/oppidum/blob/master/epilogue.xql">epilogue.xql</a> de Oppidum).</p>
+
+  <p>Par convention le nom du fichier gabarit à employer est le nom du gabarit lui-même (la valeur de l&#8217;attribut <em>epilogue</em> de la cible du mapping) terminée par le suffixe “.html”. Les gabarits sont stockés dans la collection <code>/db/www/{app}/mesh</code> de la BD, et se trouvent dans le répertoire <code>mesh</code> dans l&#8217;arborescence de fichiers du projet.</p>
+
+  <h3 id="42_skins">4.2 “Skins”</h3>
+
+  <p>Le mécanisme des gabarits peut servir à découpler l&#8217;inclusion des fichiers CSS et Javascript de la génération du contenu de la page. Pour cela il suffit que l&#8217;épilogue définisse une fonction <code>site:skin</code> à appeler pour remplacer l&#8217;élément <code>&lt;site:skin&gt;</code> placé dans l&#8217;élément <code>&lt;head&gt;</code> du gabarit. Cette fonction doit retourner les balises HTML des fichiers CSS et Javascript souhaités. Voici un exemple de fonction correspondante : </p>
+
+  <pre><code>declare function site:skin( $cmd as element(), $view as element() ) as node()*
+  {
+    (
+    skin:gen-skin('app', oppidum:get-epilogue($cmd), $view/@skin)
+    )
+  };
+  </code></pre>
+
+  <p>La fonction ci-dessus utilise la fonction <code>skin:gen-skin</code> du <em>module skin</em> de Oppidum pour gérer l&#8217;association entre des chaines de caractères (ou token) et des ensembles de fichiers CSS et Javascript baptisés <strong>profils</strong>. Les associations sont déclarées dans une ressource <code>/db/www/{app}/config/skin.xml</code> dans la base de données. La fonction <code>skin:gen-skin</code> retourne le code HTML d&#8217;inclusion des fichiers CSS et Javascript en fonction du nom de l&#8217;application, du nom du gabarit (la valeur de l&#8217;attribut <em>epilogue</em> retournée par <code>oppidum:get-epilogue($cmd)</code>) et de la chaine passée dans l&#8217;attribut <em>skin</em> de l&#8217;élément <code>&lt;site:view&gt;</code> du flux d&#8217;entrée de l&#8217;épilogue (<code>$view/@skin</code>). Bien sûr vous pouvez utiliser tout autre méthode.</p>
+
+  <p>Il est possible de déclarer plusieurs profils :</p>
+
+  <ul>
+  <li>un profil universel <code>*</code> s&#8217;appliquant à toutes les pages </li>
+  <li>un profil associé avec le nom du gabarit de la page</li>
+  <li>un ou des profils associés avec des mots clefs contenus dans l&#8217;attribut <em>skin</em> de l&#8217;élément <code>&lt;site:view&gt;</code> du flux d&#8217;entrée</li>
+  </ul>
+
+  <p>Par ailleurs il est possible d&#8217;associer des profils appelés <em>handlers</em> avec différents événements surgissant pendant le traitement du pipeline. Pour le moment seul l&#8217;événement <strong>msg-or-error</strong> est défini pour une page donnée si une erreur ou un message ont été “signalés” en utilisant l&#8217;API d&#8217;Oppidum.</p>
+
+  <p>Voici un exemple de ressource <code>skin.xml</code> :</p>
+
+  <pre><code>&lt;skin xmlns="http://oppidoc.com/oppidum/skin"&gt;
+    &lt;handler name="msg-or-err"&gt;
+      &lt;predef module="oppidum"&gt;flash&lt;/predef&gt;
+    &lt;/handler&gt;
+    &lt;profile name="*"&gt;
+      &lt;link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico"/&gt;
+      &lt;link href="css/960.css"/&gt;
+    &lt;/profile&gt;
+    &lt;profile name="standard" type="mesh"&gt;
+      &lt;link href="css/site.css"/&gt;
+      &lt;script src="lib/site.js"/&gt;
+    &lt;/profile&gt;
+    &lt;profile name="editor"&gt;
+      &lt;link href="css/page.css"/&gt;
+      &lt;predef module="oppidum" avoid="error()"&gt;axel-1.3&lt;/predef&gt;
+      &lt;predef module="oppidum" avoid="error()"&gt;photo&lt;/predef&gt;
+    &lt;/profile&gt;
+  &lt;/skin&gt;
+  </code></pre>
+
+  <p>L&#8217;élément <strong>handler</strong> déclare un profil correspondant à un événement.</p>
+
+  <p>L&#8217;élément <strong>profile</strong> déclare un profil. L&#8217;attribut <strong>name</strong> vaut <code>*</code> pour le profil universel; il contient le nom du gabarit associé si l&#8217;attribute <code>type="mesh"</code> est défini; sinon il contient un token à associer avec la liste de mot-clefs séparés par un espace de l&#8217;attribut <em>skin</em> du flux d&#8217;entrée.</p>
+
+  <p>Les éléments <strong>link</strong> et <strong>script</strong> déclarent les ficheirs CSS et Javascript du profil. Leurs attributs <strong>href</strong>, <strong>src</strong>, <strong>rel</strong> et <strong>type</strong> seront recopiés sur une balise HTML <em>link</em> ou <em>script</em> qui sera générée. Les chemins des attributs <em>href</em> et <em>src</em> sont relatifs au répertoire <code>resources</code> du répertoire contenant l&#8217;application.</p>
+
+  <p>L&#8217;élément <strong>predef</strong> importe un profil prédéfini venant d&#8217;une autre application désignée par la valeur de l&#8217;attribut <strong>module</strong>. Ces profils prédéfinis sont eux-mêmes déclarés avec un attribute <code>type="predef"</code> comme vous pouvez le voir dans le fichier <a href="https://github.com/ssire/oppidum/blob/master/init/skin.xml">skin.xml</a> fourni avec Oppidum et qui contient un certain nombre de profils prédéfinis. Pour que l&#8217;importation fonctionne il faut bien sûr que la skin correspondante au module soit présente dans la BD à l&#8217;emplacement <code>/db/www/{module}/config/skin.xml</code> (où <em>module</em> vaut <code>oppidum</code> pour importer les profils fournis avec Oppidum).</p>
+
+  <p>Les attributs optionnels <strong>avoid</strong> ou <strong>meet</strong> définis sur certains éléments <em>link</em>, <em>script</em> ou <em>predef</em> rendent ces éléments conditionnels. Leur valeur est une liste de prédicats séparés par des espaces :</p>
+
+  <ul>
+  <li>le prédicat <strong>error()</strong> est vrai si une erreur est survenue dans le pipeline</li>
+  <li>le prédicat <strong>mode(<em>name</em>)</strong> est vrai si le mode vaut <em>name</em> (c&#8217;est-à-dire <em>dev</em>, <em>test</em> ou <em>prod</em>)</li>
+  <li>le predicat <strong>action(<em>name</em>)</strong> est vrai si la requête traite d&#8217;une action <em>name</em> sur la ressource cible</li>
+  <li>le prédicat <strong>trail(<em>expression</em>)</strong> est vrai si le chemin de l&#8217;URL précédant l&#8217;action correspond à l&#8217;epxression, où l&#8217;expression est une chaine de caractère de type expression régulière</li>
+  </ul>
+
+  <h3 id="43_gestion_des_erreurs">4.3 Gestion des erreurs</h3>
+
+  <p>Le besoin de signaler les erreurs survenant pendant le traitement d&#8217;une requête est récurrent. Les erreurs qui empêchent la génération du pipeline sont émises directement par Oppidum, ce sont les erreurs pré-traitement. Les erreurs à l&#8217;exécution sont les erreurs émises explicitement par les scripts XQuery en utilisant la fonction <code>oppidum:throw-error</code> de l&#8217;API Oppidum. Enfin certaines erreurs ne sont pas capturées du tout par Oppidum, c&#8217;est le cas par exemple lorsque la transformation XSLT d&#8217;une vue est incorrecte, ou si l&#8217;étape de génération du modèle ne génère pas de document, dans ce cas c&#8217;est une page d&#8217;erreur générée par eXist qui est retournée.</p>
+
+  <p>Les erreurs pré-traitement ou les erreurs à l&#8217;exécution sont conservées dans une variable de la session appelée <em>flash</em>. Il est ainsi possible de signaler plusieurs erreurs simultanément et de les faire survivre à une ou plusieurs redirections pour les générer dans la page finale. Ces erreurs sont associées avec un <strong>identifiant d&#8217;erreur</strong> unique qui sert de clef pour la génération du message.</p>
+
+  <p>Les messages d&#8217;erreurs sont conservés dans la collection de configuration de l&#8217;application dans la BD, ceci pour simplifier la gestion multilingues et partager certains messages. Un certain nombre de messages d&#8217;erreur sont définis en standard dans la configuration d&#8217;Oppidum (voir le fichier <a target="_blank" href="https://github.com/ssire/oppidum/blob/master/init/errors.xml">errors.xml</a> de Oppidum).</p>
+
+  <h4 id="erreurs_pr_traitement">Erreurs pré-traitement</h4>
+
+  <p>Lorsqu&#8217;une erreur pré-traitement survient, Oppidum génère un pipeline particuliers en lieu et place du pipeline qui aurait dû être généré. Ce pipeline convertit le code de l&#8217;erreur en un message d&#8217;erreur et le retourne dans la réponse HTTP. Suivant le type d&#8217;erreur il peut aussi modifier le statut HTTP.</p>
+
+  <p>Les erreurs pré-traitement sont les suivantes : </p>
+
+  <ol>
+  <li>page inconnue si la requête porte sur une URL qui n&#8217;a pas de cible dans le mapping</li>
+  <li>erreur de pipeline si le mapping définit un pipeline incorrect</li>
+  <li>resource inconnue dans la base de donnée si la cible du mapping porte un attribut <code>@check="true"</code> Oppidum contrôle l&#8217;existence de la ressource de référence et lève cette erreur si elle n&#8217;existe pas</li>
+  <li>erreur d&#8217;identification si l&#8217;action n&#8217;est pas autorisée par le contrôle d&#8217;accès</li>
+  </ol>
+
+  <p>Il est possible d&#8217;associer un gabarit spécifique avec les 2 premiers types d&#8217;erreur&#8230;<em>À développer</em>&#8230;</p>
+
+  <p><em>À développer</em> le pipeline généré avec le 3e type d&#8217;erreur&#8230;</p>
+
+  <p>Notons que le dernier cas engendre une redirection vers la page <code>/login</code> de l&#8217;application en conservant dans la flash le message d&#8217;erreur à afficher.</p>
+
+  <h4 id="erreurs_l8217excution">Erreurs à l&#8217;exécution</h4>
+
+  <p>La méthode <code>oppidum:throw-error</code> permet au script XQuery servant de modèle de lever une erreur à partir de son identifiant.</p>
+
+  <p>Cette méthode retourne un élément <strong>error</strong> dont le contenu est l&#8217;identifiant d&#8217;erreur. Celui-ci est donc transmis à la vue XSLT qui suit le modèle qui a émis l&#8217;erreur au cas où elle voudrait en tenir compte. Par ailleurs l&#8217;identifiant de l&#8217;erreur est mis en attente dans la flash pour la résolution du message à afficher dans l&#8217;épilogue.</p>
+
+  <p>Notez que si la méthode <code>oppidum:throw-error</code> est appelée dans un pipeline n&#8217;incluant d&#8217;épilogue, alors l&#8217;élément <strong>error</strong> contient directement le texte du message d&#8217;erreur à la place de l&#8217;identifiant d&#8217;erreur (c&#8217;est-à-dire que le message d&#8217;erreur est immédiatement résolu). L&#8217;identifiant de l&#8217;erreur est alors mis en attente dans la flash si et seulement si le pipeline se termine par une redirection vers une autre page.</p>
+
+  <h3 id="affichage_d8217un_message_d8217erreur">Affichage d&#8217;un message d&#8217;erreur</h3>
+
+  <p>La méthode <code>oppidum:render-error</code> génère une liste de messages d&#8217;erreur pour chaque erreur dans la flash et la vide. Ces messages doivent être définis dans la ressource <code>/db/www/oppidum/config/errors.xml</code> pour les messages standards fournis par Oppidum. Chaque application peut aussi ajouter ses propres messages ou redéfinir ceux d&#8217;Oppidum en déclarant une resource<code>/db/www/{app}/config/errors.xml</code>. </p>
+
+  <p>La fonction <code>oppidum:render-error</code> s&#8217;utilise typiquement pour écrire une fonction <code>site:error</code> dans l&#8217;épilogue à appeler sur un élément <code>&lt;site:error condition="has-error"&gt;</code> du gabarit, dont voici un exemple :</p>
+
+  <pre><code>declare function site:error( $cmd as element(), $view as element() ) as node()*
+  {    
+    let $resolved := oppidum:render-errors($cmd/@db, $cmd/@lang)
+    return (
+      for $m in $resolved/*[1] (: * to be robust to epilogue default namespace typically set to XHTML :)
+      return &lt;p&gt;{$m/text()}&lt;/p&gt;
+      )    
+  };
+  </code></pre>
+
+  <p>La ressource qui définit les messages des erreurs peut également définir un code de statut HTTP à retourner. Celui-ci sera affecté à la réponse par la fonction <code>oppidum:render-errors</code> (c&#8217;est donc le statut correspondant à la dernière erreur qui sera retournée en pratique).</p>
+
+  <p>Notez également que lorsqu&#8217;une erreur est signalée, le mécanisme de skin génère un événement <code>msg-or-error</code> qui permet de lui associer un profil particuliers en le déclarant avec l&#8217;élément <em>handler</em> (voir la section “Skins”). Dans l&#8217;extrait suivant de la ressource <code>skin.xml</code> du tutorial ce profil charge le script prédéfini <code>flash.js</code> fourni avec Oppidum : </p>
+
+  <pre><code>&lt;handler name="msg-or-err"&gt;
+    &lt;predef module="oppidum"&gt;flash&lt;/predef&gt;
+  &lt;/handler&gt;
+  </code></pre>
+
+  <p>celui-ci repère les erreurs affichées dans la page HTML grâce à des conventions d&#8217;écriture et il gère une case de fermeture pour permettre à l&#8217;utilisateur d&#8217;effacer l&#8217;erreur une fois qu&#8217;il en a pris connaissance. Vous êtes bien sûr libres d&#8217;inventer d&#8217;autres mécanismes de notification des erreurs, le script <code>flash.js</code> n&#8217;est qu&#8217;une façon de faire.</p>
+
+  <h3 id="43_gestion_des_messages_d8217information">4.3 Gestion des messages d&#8217;information</h3>
+
+  <p>Sur le même mode que la gestion des erreurs Oppidum fournit deux méthodes <code>oppidum:throw-message</code> et <code>oppidum:render-message</code> pour signaler des messages d&#8217;information à l&#8217;utilisateur. </p>
+
+  <p>Note: <em>en cours de développement</em></p>
+
+  <h3 id="45_dcouplage_du_schma_physique_de_stockage_des_donnes">4.5 Découplage du schéma physique de stockage des données</h3>
+
+  <p>Les bases de données XML conservent des documents. Le stockage des données ne fait pas appel aux concepts de table, de rangée ou de colonne comme dans les bases de données relationnelles. À la place les données sont organisées en <strong>collections</strong> contenant d&#8217;autres <strong>collections</strong> ou des <strong>ressources</strong>, à l&#8217;image de l&#8217;organisation des fichiers sur un disque dur. Cette organisation offre un moyen d&#8217;accès rapide en désignant un document par le chemin de sa collection et le nom de sa ressource associée. </p>
+
+  <p>Oppidum permet d&#8217;associer <strong>une collection de référence</strong> ainsi qu&#8217;une <strong>ressource de référence</strong> à chaque cible du mapping. Le chemin de la collection de référence est la concaténation de la valeur de l&#8217;attribut <strong>db</strong> de la racine du mapping, obligatoire, et de la valeur de l&#8217;attribut <strong>collection</strong> de la cible ou de son ancêtre le plus proche qui en possède un (héritage). De même la resource de référence au sein de la collection de référence est identifiée avec la valeur de l&#8217;attribut <strong>resource</strong> de la cible ou de son ancêtre le plus proche.</p>
+
+  <p>La collection et la ressource de référence sont un moyen simple pour communiquer au modèle la resource à extraire de la BD dans le cas d&#8217;un isomorphisme total ou partiel entre ressources du site (au sens REST) et ressources de la base de données (au sens stockage). C&#8217;est un moyen de découpler le mapping REST du schéma physique de stockage des données. Il permet d&#8217;écrire des scripts XQuery plus génériques car ne dépendant pas d&#8217;un emplacement dans la BD. Plusieurs méthodes de l&#8217;API d&#8217;Oppidum servent à récupérer la collection et ressource de référence sous plusieurs formes : </p>
+
+  <ul>
+  <li><code>oppidum:path-to-ref()</code> retourne le chemin vers la ressource de référence</li>
+  <li><code>oppidum:path-to-ref-col()</code> retourne le chemin vers la collection de référence</li>
+  <li>le nom de la ressource de référence est disponible dans l&#8217;attribut <code>resource</code> de l&#8217;élément fils <code>resource</code> de la commande (cf. infra)</li>
+  </ul>
+
+  <p>Les attributs <em>collection</em> et <em>resource</em> du mapping peuvent contenir des variables positionnelles pour augmenter la réutilisabilité des scripts XQuery. Ces variables sont de la forme <code>$k</code>. Lors de la génération du pipeline, elles sont remplacées par le <em>k</em>-ième segment de l&#8217;URL.</p>
 
   <p>Ainsi avec l&#8217;exemple suivant (incomplet pour simplifier) :</p>
 
-  <pre><code>
-  &lt;site db="/db/sites/app"&gt;
+  <pre><code>&lt;site db="/db/sites/app"&gt;
      &lt;collection name="blog" collection="blog"&gt;
         &lt;item collection="blog/$2" resource="entry.xml"&gt;
           &lt;collection name="images" collection="blog/$2/images" resource="$4"&gt;
@@ -261,39 +657,202 @@
 
   <p>L&#8217;URL <code>/blog/10-mai-2011/images/3.jpeg</code> est associée avec la resource <code>3.jpeg</code> dans la collection <code>/db/sites/app/blog/10-mai-2011/images</code>.</p>
 
-  <h4 id="dclaration_du_mapping">Déclaration du mapping</h4>
+  <p>L&#8217;organisation hiérarchique en collections et ressources de BD XML permet d&#8217;indexer structurellement les données, avec de très bonnes performances. Il n&#8217;est toutefois pas obligatoire de l&#8217;utiliser, une applications pouvant stocker toutes les données dans très peu, voire une seule, ressource. De toutes façons les expressions XPath utilisées dans le langage XQuery sont évaluées par rapport à l&#8217;ensemble de la BD, c&#8217;est-à-dire qu&#8217;elles traversent l&#8217;intégrité de la base de données à partir de leur contexte initial, indépendamment de la structuration en collections et en ressources. </p>
 
-  <p>Le mapping est déclaré directement comme une variable dans le fichier <code>controller.xql</code> du site :</p>
+  <p>NB : si l&#8217;on cherche absolument à faire une analogie avec les bases de données relationnelles, l&#8217;on peut considérer dans une certaine mesure la collection comme l&#8217;équivalent de la table, la ressource comme l&#8217;équivalent de la rangée, et les éléments XML contenus dans la ressource comme l&#8217;équivalent des colonnes. </p>
 
-  <pre><code>
-  declare variable $mapping := &lt;site&gt;...&lt;/site&gt;
+  <h3 id="46_contrle_d8217accs_par_formulaire">4.6 Contrôle d&#8217;accès par formulaire</h3>
+
+  <p>L&#8217;accès aux ressources et aux actions peut-être limité à certains utilisateurs ou groupes d&#8217;utilisateurs. La forme classique du contrôle d&#8217;accès consiste à valider les droits associés avec l&#8217;utilisateur avant chaque action et à lui demander de s&#8217;identifier ou de changer d&#8217;identification si l&#8217;action n&#8217;est pas autorisée.</p>
+
+  <p>Pour éviter de toujours appeler le même code de validation dans chaque modèle de chaque pipeline généré avec Oppidum, la librairie propose un mécanisme de contrôle d&#8217;accès qui s&#8217;applique avant la génération du pipeline. En cas de refus de l&#8217;accès celui-ci génère un pipeline alternatif qui redirige le requête sur l&#8217;action <code>/login</code> de l&#8217;application. Par ailleurs Oppidum défini un <a href="https://github.com/ssire/oppidum/blob/master/actions/login.xql">modèle de login</a> et une <a href="https://github.com/ssire/oppidum/blob/master/views/login.xsl">vue de login</a> que vous pouvez utiliser tels quels ou adapter pour définir l&#8217;action <code>/login</code> de votre application à partir d&#8217;un formulaire HTML identique à celui ci-dessous. </p>
+
+  <p class="img"><img src="../images/authentification.png" style="" alt="Formulaire d'identification"/></p>
+
+  <p>La définition des règles repose sur l&#8217;ajout d&#8217;éléments <strong>access</strong> dans le mapping dont voici un exemple : </p>
+
+  <pre><code>&lt;access&gt;
+    &lt;rule action="GET" role="u:gestion g:site-member" message="rédacteur"/&gt;
+    &lt;rule action="POST ajouter" role="u:gestion" message="administrateur du site"/&gt;
+  &lt;/access&gt;
   </code></pre>
 
-  <p>À l&#8217;avenir nous encourageons la déclaration du mapping dans un fichier <code>mapping.xml</code> à copier à l&#8217;emplacement <code>/db/www/{app}/config/mapping.xml</code> dans la BD. Il est alors possible de le déclarer avec:</p>
+  <p>L&#8217;élément <strong>access</strong> inséré dans le mapping sert à définir les règles de contrôle d&#8217;accès qui s&#8217;appliquent soit à l&#8217;item parent, soit à la collection parente.</p>
 
-  <pre><code>
-  declare variable $mapping := fn:doc(`/db/www/{app}/config/mapping.xml`)
-  </code></pre>
+  <p>L&#8217;élément <em>access</em> définit une ou plusieurs règles déclarées par un élément <strong>rule</strong>. L&#8217;attribut <strong>role</strong> définit les utilisateurs autorisés (séparés par des espaces) à effectuer les actions spécifiées dans l&#8217;attribut <strong>action</strong> par une liste de verbes HTTP et d&#8217;actions personnalisées séparées par des espaces (ce sont les même actions qui doivent être déclarées dans les attributs <em>method</em> et <em>supported</em> de la cible). L&#8217;attribut <strong>message</strong> est une chaine de caractère qui sera affichée en cas de refus de l&#8217;accès après le message d&#8217;erreur (<code>ACTION-LOGIN-FAILED</code>) pour spécifier la catégorie d&#8217;utilisateur autorisé.</p>
 
-  <h4 id="attributs_hrits_dans_le_mapping">Attributs hérités dans le mapping</h4>
-
-  <p>Les attributs suivants sont <em>hérités</em> dans le mapping, c&#8217;est-à dire que lorsqu&#8217;ils sont déclarés sur un élement <code>site</code> (la racine), <code>collection</code> ou <code>item</code> ils sont copiés sur son élément fils, sauf si le fils redéfini l&#8217;attribut correspondant :</p>
+  <p>Les utilisateurs sont définis par 4 prédicats :</p>
 
   <ul>
-  <li>attribut <code>db</code></li>
-  <li>attribut <code>collection</code> (la collection de référence)</li>
-  <li>attribut <code>resource</code> (la ressource de référence)</li>
-  <li>attribut <code>access</code> (les droits d&#8217;accès en lecture, c-a-d pour le GET)</li>
+  <li><code>u:name</code> désigne l&#8217;utilisateur <em>name</em></li>
+  <li><code>g:name</code> désigne un membre du groupe <em>name</em></li>
+  <li><code>all</code> désigne n&#8217;importe qui</li>
+  <li><code>owner</code> désigne le propriétaire de la ressource / collection de référence (qui doit donc être bien définie)</li>
   </ul>
 
-  <h3 id="42_la_commande_interne">4.2 La commande (<em>interne</em>)</h3>
+  <p>Les concepts d&#8217;utilisateur et de groupe coincident avec ceux définis au niveau de la BD eXist. Le prédicat <em>owner</em> est à utiliser en association avec la méthode <code>xdb:set-resource-permissions</code> de eXist pour définir un utilisateur et un groupe propriétaire d&#8217;une resource. </p>
 
-  <p>La commande contient toutes les informations extraites par Oppidum de la requête HTTP et du mapping. Elle sert à générer le pipeline. Vous pouvez voir la commande en utilisant l&#8217;argument <code>?debug=true</code> dans n&#8217;importe quelle URL (voire la section <em>debugger</em>).</p>
+  <p>Par exemple si des actions sont limitées aux rôles <code>"u:secretaire owner"</code>, seul l&#8217;utilisateur <em>secretaire</em> ou le propriétaire de la resource de référence est autorisé à effectuer l&#8217;action. Ceci, en parallèle avec l&#8217;appel à <code>xdb:set-resource-permissions</code> pour fixer le propriétaire lors de la création de la resource de référence, est pratique pour définir des applications avec des pages maintenues par des utilisateurs distincts et un secrétaire. Notez que s&#8217;il existe plusieurs secrétaire il est possible de remplacer le prédicat <code>u:secretaire</code> par le prédicat <code>g:secretaire</code> et de définir le groupe <em>secretaire</em> au niveau de la BD eXist.</p>
 
-  <p>Exemple de commande:</p>
+  <p>Il est également possible de définir un bloc <code>access</code> par défaut à l&#8217;aide d&#8217;une variable dans le fichier <code>controller.xql</code> :</p>
 
-  <pre><code>
-  &lt;command base-url="/exist/projets/platinn/" app-root="/projets/platinn/"
+  <pre><code>declare variable $access := &lt;access&gt;...&lt;/access&gt;
+  </code></pre>
+
+  <p>Cette variable fait partie des paramètres à passer à la méthode <code>gen:process</code> qui traite la requête. Ses règles d&#8217;accès s&#8217;appliqueront par défaut dans le cas où la cible ne définit pas son propre élément <em>access</em>.</p>
+
+  <p>Le mécanisme de contrôle d&#8217;accès par l&#8217;élément <em>access</em> se traduit également par la définition d&#8217;un attribut de la requête <code>"oppidum.rights"</code> accessible avec <code>request:get-attribute("oppidum.rights")</code> dans les scripts XQuery. Il contient dans un chaine de caractères séparés par des espaces la liste des actions autorisées sur la cible. Cet attribut est également disponible comme paramètre <code>"xslt.rights"</code> dans les vues XSLT. Il peut être utilisé par exemple pour générer des commandes (boutons ou liens hypertextes) dans la page.</p>
+
+  <p>Un sucre syntaxique permet de déclarer une règle d&#8217;accès avec l&#8217;action GET implicite de l&#8217;item ou de la collection cible. Dans ce cas il faut déclarer directement les rôles autorisés dans un attribute <strong>access</strong> de la cible du mapping. Il est aussi possible de déclarer l&#8217;attribut <strong>message</strong> sur la cible. L&#8217;exemple suivant restreint l&#8217;accès à une page aux utilisateurs membres du groupe <code>site-member</code> :</p>
+
+  <pre><code>&lt;item name="reglement" epilogue="standard" access="g:site-member" message="membre du site"&gt;
+    ...
+  &lt;/item&gt;
+  </code></pre>
+
+  <p>Qui est équivalent à :</p>
+
+  <pre><code>&lt;item name="reglement" epilogue="standard"&gt;
+    &lt;access&gt;
+      &lt;rule action="GET" role="g:site-member" message="membre du site"/&gt;
+    &lt;/role&gt;
+    ...
+  &lt;/item&gt;
+  </code></pre>
+
+  <p>Comme on le voit la granularité du mécanisme de contrôle d&#8217;accès est donc celle des actions sur les ressources REST. Si cette granularité est trop grossière pour votre application alors vous devrez définir vos propres politiques d&#8217;accès directement au niveau du modèle XQuery de vos pipelines.</p>
+
+  <p>NB: le système de contrôle d&#8217;accès actuel est limité (e.g messages non internationalisés); il sera amené à évoluer dans les futures version d&#8217;Oppidum, en particuliers nous envisageons d&#8217;introduire une deuxième syntaxe qui permettrait de découpler la définition des règles d&#8217;accès du mapping et d&#8217;utiliser des règles s&#8217;appliquant à des sous-ensemble complets de l&#8217;espace d&#8217;entrée des URLs sans devoir répliquer les défintions.</p>
+
+  <h3 id="47_installation_et_dploiement">4.7 Installation et déploiement</h3>
+
+  <p>Oppidum fournit un module pour créer des scripts d&#8217;installation de l&#8217;application dans la BD. Celui-ci s&#8217;appuie sur un langage XML décrivant les utilisateurs, les collections et les ressources à créer.</p>
+
+  <p>Par convention le script d&#8217;installation est associé à la ressource <code>/install</code> de la racine de votre application et il appelle le modèle <code>scripts/install.xql</code> de votre application. Il dépend aussi d&#8217;une une action <code>/login</code> puisque l&#8217;installation nécessite d&#8217;être identifié en tant qu&#8217;utilisateur <code>admin</code> de la BD.</p>
+
+  <p>Si vous recopiez le contrôleur de la librairie Oppidum pour créer votre contrôleur, vous pouvez recopier l&#8217;ensemble des actions par défaut fournies avez en mettant à jour l&#8217;action <em>install</em> pour qu&#8217;elle pointe vers votre script <code>scripts/install.xql</code> et non pas celui d&#8217;Oppidum (pour cela enlevez le préfixe <code>oppidum:</code> dans le chemin du modèle de la cible <em>install</em>):</p>
+
+  <pre><code>declare variable $actions := &lt;actions error="models/error.xql"&gt;
+    &lt;action name="login" depth="0"&gt;
+      &lt;model src="oppidum:actions/login.xql"/&gt;
+      &lt;view src="oppidum:views/login.xsl"/&gt;
+    &lt;/action&gt;
+    &lt;action name="logout" depth="0"&gt;
+      &lt;model src="oppidum:actions/logout.xql"/&gt;
+    &lt;/action&gt;
+    &lt;!-- NOTE: unplug this action from @supported on mapping's root node in production --&gt;
+    &lt;action name="install" depth="0"&gt;
+      &lt;model src="scripts/install.xql"/&gt;
+    &lt;/action&gt;
+  &lt;/actions&gt;;
+  </code></pre>
+
+  <p>n&#8217;oubliez pas de déclarer les actions <em>install</em>, <em>login</em> et <em>logout</em> dans la liste des actions supportées par la racine du site :</p>
+
+  <pre><code>    declare variable $mapping := &lt;site supported="install login logout" ...&gt;...&lt;/site&gt;
+  </code></pre>
+
+  <p>Notez qu&#8217;en production il faut penser à désactiver l&#8217;action <em>install</em> en la supprimant des valeurs de l&#8217;attribut <em>supported</em>.</p>
+
+  <p>Pour rédiger votre script d&#8217;installation vous pouvez recopier et adapter le script d&#8217;installation <a href="https://github.com/ssire/oppidum/blob/master/scripts/install.xql">install.xql</a> de la distribution Oppidum. Les langages XML servant à définir les variable <code>$policies</code>, <code>$site</code>, <code>$code</code> et <code>$static</code> seront expliqués prochainement.</p>
+
+  <p>Le script d&#8217;installation est pratique pour créer et initialiser la configuration de votre application <code>/db/www/{app}/config</code> mais aussi pour recopier et initialiser des jeux de données dans la collection <code>/db/sites/{app}</code>. Vous pouvez aussi l&#8217;utiliser pour recopier tout le code de l&#8217;application dans la BD avant d&#8217;exporter le fichier <code>ZIP</code> qui vous permettra de la déployer en production sur un serveur Tomcat par exemple comme expliqué dans le guide <a href="packaging.html">Packager et déployer une application avec Oppidum</a>.</p>
+
+  <p>Notez qu&#8217;avec eXist-2.0 nous allons revoir la procédure de packaging et d&#8217;installation de manière à utiliser le format d&#8217;archive XAR, cette section sera donc sujette à des changements importants.</p>
+
+  <h2 id="5_l8217api_d8217oppidum">5. L&#8217;API d&#8217;Oppidum</h2>
+
+  <p><em>Cette section est à complétér&#8230;</em></p>
+
+  <h3 id="51_fonctions_utilitaires">5.1 Fonctions utilitaires</h3>
+
+  <pre><code>import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "{...}/oppidum/lib/util.xqm";
+  </code></pre>
+
+  <h4 id="accs_la_commande">Accès à la commande</h4>
+
+  <h4 id="erreurs_messages">Erreurs / Messages</h4>
+
+  <h4 id="redirection_de_pages">Redirection de pages</h4>
+
+  <p>5.2 Skins</p>
+
+  <pre><code>import module namespace skin = "http://oppidoc.com/oppidum/skin" at "{...}/oppidum/lib/skin.xqm";
+  </code></pre>
+
+  <p>5.3 Epilogue</p>
+
+  <pre><code>import module namespace epilogue = "http://oppidoc.com/oppidum/epilogue" at "{...}/oppidum/lib/epilogue.xqm";
+  </code></pre>
+
+  <h2 id="6_architecture_d8217oppidum">6. Architecture d&#8217;Oppidum</h2>
+
+  <p>La connaissance de cette section n&#8217;est pas nécessaire pour réaliser des applications avec Oppidum. Elle est utile si vous souhaitez mieux comprendre le fonctionnement d&#8217;Oppidum pour debugger les applications.</p>
+
+  <h3 id="61_cycle_de_base">6.1 Cycle de base</h3>
+
+  <p>Le cycle de base d&#8217;Oppidum, détaillé sur le diagramme ci-dessous, est le suivant:</p>
+
+  <ul>
+  <li>convertir la requête HTTP en une commande</li>
+  <li>valider la commande</li>
+  <li>générer un pipeline (d&#8217;erreur ou d&#8217;exécution) pour représenter la ressource et/ou le résultat de l&#8217;action concernée</li>
+  <li>exécuter le pipeline</li>
+  </ul>
+
+  <p>La commande et le pipeline sont des documents XML manipulés en interne par le framework.</p>
+
+  <p class="img"><img src="../images/architecture.png" style="max-width: 18cm" alt="Architecture"/></p>
+
+  <p>Le script <code>controller.xql</code> qui se trouve à la racine de l&#8217;application appelle la méthode <code>gen:process</code> du module <code>pipeline.xqm</code> qui elle-même appelle des méthodes du module <code>command.xqm</code> pour analyser la requête, générer la commande, puis générer le pipeline. La meilleure manière d&#8217;écrire le contrôleur est de le recopier depuis une application existante et de l&#8217;adapter pour une nouvelle application.</p>
+
+  <h3 id="62_modules">6.2 Modules</h3>
+
+  <p>Le noyau de la librairie est formé de plusieurs modules XQuery situés dans le répertoire <code>lib</code> de la distribution :</p>
+
+  <ul>
+  <li><p><strong>command.xqm</strong> prend en entrée une requête HTTP, le fichier de mapping de l&#8217;application et génère un document XML représentant la commande de l&#8217;utilisateur (méthode <code>oppidum:parse-url</code>).</p>
+
+  <p>Ce module est utilisé directement par le module <code>pipeline.xqm</code>, vous n&#8217;avez pas besoin de l&#8217;utiliser directement.</p></li>
+  <li><p><strong>pipeline.xqm</strong> prend en entrée une commande et génère une implémentation de pipeline pour le filtre de servlet XQueryURLRewrite d&#8217;eXist (méthode <code>oppidum:pipeline</code>). </p>
+
+  <p>Ce module doit être importé par votre script <code>controller.xql</code> pour invoquer le point d&#8217;entrée d&#8217;Oppidum <code>gen:process</code>.</p></li>
+  <li><p><strong>install.xqm</strong> contient des fonctions pour packager les données du site mais aussi le code du site dans la base de données.</p>
+
+  <p>Ce module est à importer dans votre script d&#8217;installation <code>scripts/install.xql</code>.</p></li>
+  <li><p><strong>util.xqm</strong> contient l&#8217;API d&#8217;Oppidum à importer dans tout script XQuery servant de modèle ou dans l&#8217;épilogue.</p></li>
+  <li><p><strong>epilogue.xqm</strong> et <strong>skin.xqm</strong> contiennent des fonctions à utiliser pour créer l&#8217;épilogue et le patron “skin”</p></li>
+  </ul>
+
+  <h3 id="63_excution_du_pipeline">6.3 Exécution du pipeline</h3>
+
+  <p>Le pipeline généré est exécuté par le <a href="http://exist-db.org/exist/apps/doc/urlrewrite.xml">filtre URLRewriter</a> d&#8217;eXist en faisant appel aux servlets XQuery et XSLT. Le diagramme ci-dessous montre différents modèles d&#8217;exécution du pipeline à trois étage pour obtenir  différents types de sorties :</p>
+
+  <p class="img"><img src="../images/pipeline.png" style="max-width: 14cm" alt="Architecture"/></p>
+
+  <p>Le modèle d&#8217;exécution le plus courant utilise les 3 étages du pipeline pour générer une page HTML en sortie : le script XQuery génère des données XML dans un format quelconque, par contre le script XSLT doit générer une vue à l&#8217;intérieur d&#8217;un document <code>&lt;site:view&gt;</code> spécifique. La vue est un modèle simple et modulaire conçu pour être ensuite inséré dans un gabarit de page par l&#8217;épilogue.</p>
+
+  <p>L&#8217;épilogue est un script <code>epilogue.xql</code> qui doit toujours s&#8217;appeler ainsi et être placé à la racine de l&#8217;application, au même niveau que le script  <code>controller.xql</code>. La meilleure manière d&#8217;écrire ce script est de le recopier depuis une application existante et de l&#8217;adapter pour une nouvelle application.</p>
+
+  <p>Il est possible de court-circuiter le modèle d&#8217;exécution à 3 étages de plusieurs manières.</p>
+
+  <p>En premier lieu, il est possible de spécifier une extension (.raw ou .xml) dans l&#8217;URL qui court-circuite le pipeline. L&#8217;extension .xml renvoie directement le résultat du premier étage tandis que l&#8217;extension .raw renvoie la sortie de la transformation XSLT. Cette 2e possibilité est surtout utilisée pour debugger l&#8217;application et devrait être désactivée en production.</p>
+
+  <p>En second lieu, le mapping peut également spécifier des pipelines incomplets, de manière à générer des représentations dans d&#8217;autres formats. Par exemple le passage par l&#8217;épilogue n&#8217;est pas nécessaire pour générer du JSON à partir du modèle ou de la vue, de même pour générer une réponse XML à une requête Ajax.</p>
+
+  <p>Finalement, il est également possible de spécifier dynamiquement à l&#8217;intérieur d&#8217;un modèle XQuery qu&#8217;un pipeline doit se terminer par une redirection (avec la méthode <code>oppidum:redirect</code>), dans ce cas l&#8217;exécution de l&#8217;épilogue se limite à appeler <code>response:redirect-to</code> sur la réponse.</p>
+
+  <h3 id="64_reprsentation_internes_oppidum">6.4 Représentation internes à Oppidum</h3>
+
+  <p>Oppidum génère et manipule deux structures de données XML en interne: la commande, qui est une représentation de la cible courant tirée du mapping, et le pipeline abstrait, qui sert à générer le pipeline final au format du filtre URLRewrite d&#8217;eXist.</p>
+
+  <h4 id="commande">Commande</h4>
+
+  <p>La commande contient des informations extraites de la requête HTTP et de la cible du mapping. Pour afficher la commande associée à la requête courant, vous pouvez ajouter l&#8217;argument <code>?debug=true</code> à l&#8217;URL (ou le suffixe <code>.debug</code>).</p>
+
+  <p>Voici un exemple de commande : </p>
+
+  <pre><code>&lt;command base-url="/exist/projets/platinn/" app-root="/projets/platinn/"
            exist-path="/revues/" lang="fr" db="/db/sites/platinn" error-mesh="standard" 
            trail="revues" action="GET" type="collection"&gt;
       &lt;resource name="revues" db="/db/sites/platinn" collection="focus"
@@ -304,298 +863,62 @@
   &lt;/command&gt;
   </code></pre>
 
-  <p>La commande est un élément <em>command</em> avec les attributs suivants :</p>
+  <p>La commande est un élément <strong>command</strong> avec les attributs suivants :</p>
 
   <ul>
-  <li><p><em>base-url</em> contient la partie de l&#8217;URL menant à l&#8217;application, pour un site qui s&#8217;exécute directement sur la racine du site, elle vaut &#8220;/&#8221;, cet attribut peut servir à générer des URLs absolues, entre autre dans l&#8217;épilogue</p></li>
-  <li><p><em>app-root</em> contient le chemin menant au fichier <code>controller.xql</code> de l&#8217;application, il est utilisé en interne par Oppidum pour indiquer le chemin des scripts à exécuter dans le pipeline</p></li>
-  <li><p><em>exist-path</em> est le contenu de la variable <code>$exist:path</code> transmise par eXist au contrôleur (cf. documentation eXist)</p></li>
-  <li><p><em>trail</em> indique la cible de la requête, c&#8217;est la partie de l&#8217;URL située après la base menant à l&#8217;application, cet attibut peut servir à générer des URLs, entre autre dans l&#8217;épilogue</p></li>
-  <li><p><em>type</em> est le type d&#8217;élément ciblé dans le mapping (collection ou item)</p></li>
-  <li><p><em>action</em> est l&#8217;action ciblée</p></li>
-  <li><p><em>lang</em> est la langue courante</p></li>
-  <li><p><em>error-mesh</em> est le nom du gabarit à utiliser pour restituer les erreurs de validation survenant en amont de la génération du pipeline, il est recopié de la racine du mapping</p></li>
-  <li><p><em>db</em> est la base de données utilisée par la site, il est recopié de la racine du mapping</p></li>
+  <li><p><strong>base-url</strong> est la partie de l&#8217;URL menant à l&#8217;application, pour un site qui s&#8217;exécute directement sur la racine du site, elle vaut <code>/</code>; cet attribut peut servir à générer des URLs absolues, entre autre dans l&#8217;épilogue</p></li>
+  <li><p><strong>app-root</strong> est le chemin menant au fichier <code>controller.xql</code> de l&#8217;application, il est utilisé en interne par Oppidum pour générer le chemin des scripts à exécuter dans le pipeline</p></li>
+  <li><p><strong>exist-path</strong> est le contenu de la variable <code>$exist:path</code> transmise par eXist au contrôleur (cf. documentation eXist)</p></li>
+  <li><p><strong>trail</strong> est le chemin menant depuis la racine de l&#8217;application à la ressource cible, en excluant le nom de l&#8217;action s&#8217;il s&#8217;agit d&#8217;une action personnalisée; cet attibut peut servir à générer des URLs, entre autre dans l&#8217;épilogue</p></li>
+  <li><p><strong>type</strong> est le type d&#8217;élément cible (<em>collection</em> ou <em>item</em>)</p></li>
+  <li><p><strong>action</strong> est l&#8217;action cible</p></li>
+  <li><p><strong>lang</strong> est utilisé pour mémoriser la langue courante éventuelle</p></li>
+  <li><p><strong>error-mesh</strong> est le nom du gabarit à utiliser pour afficher les erreurs survenant en amont de la génération du pipeline, il est recopié de la racine du mapping</p></li>
+  <li><p><strong>db</strong> est le chemin vers la racine des données du site dans la BD (par convention <code>/db/sites/{app}</code>), il est recopié de la racine du mapping</p></li>
   </ul>
 
-  <p>La commande contient toujours un élément fils <em>resource</em> qui correspond à l&#8217;élément item ou collection ciblé par la requête de l&#8217;utilisateur. Celui-ci reprend les attributs portés par cet élément dans le mapping.</p>
+  <p>La commande contient toujours un fils <em>resource</em> qui correspond à l&#8217;item ou à la collection ciblé par la requête. Celui-ci porte les attributs portés par cet élément dans le mapping. L&#8217;attribut <em>type</em> a été introduit pour distinguer l&#8217;origine (item ou collection) de cet élément.</p>
 
   <p>La commande est mise à disposition des scripts XQuery dans un paramètre <code>oppidum.command</code> de la requête accessible avec l&#8217;instruction suivante :</p>
 
-  <pre><code>
-  let $ref := request:get-attribute('oppidum.command')
+  <pre><code>let $ref := request:get-attribute('oppidum.command')
   </code></pre>
 
-  <p>Le fait d&#8217;avoir renommée <em>collection</em> ou <em>item</em> en <em>resource</em> dans la commande permet de simplifier les expressions XPath utilisant la commande. Il est ainsi possible d&#8217;écrire <code>$ref/resource/@collection</code> au lieu de <code>$ref/(item|collection)/@collection</code> si le script attend l&#8217;un ou l&#8217;autre type de cible. L&#8217;API Oppidum en cours de finalisation offre des accesseurs pour accéder aux différentes parties de la commande, le but étant de rompre la dépendance entre une application et la structure de la commande. </p>
+  <p>L&#8217;introduction d&#8217;un élément <em>resource</em> en lieu et place d&#8217;un <em>item</em> ou d&#8217;une <em>collection</em> vise à simplifier les expressions XPath utilisant la commande. Il est ainsi possible d&#8217;écrire <code>$ref/resource</code> au lieu de <code>$ref/(item|collection)</code> si le script attend l&#8217;un ou l&#8217;autre type de cible. L&#8217;API Oppidum en cours de finalisation offre des accesseurs pour accéder aux différentes parties de la commande, le but à terme est de rompre la dépendance entre une application et la structure de la commande.</p>
 
-  <h3 id="43_les_pipelines_internes">4.3 Les pipelines (<em>internes</em>)</h3>
+  <h4 id="pipeline_abstrait">Pipeline abstrait</h4>
 
-  <p>L&#8217;arbre du site constitué des éléments collection et item sert aussi à déclarer les pipelines associés à chaque ressource. L&#8217;arbre est augmenté à cette fin avec de nouveaux éléments et attributs : les éléments fils <em>model</em> et <em>view</em>, ainsi que l&#8217;attribut <em>@epilogue</em>.</p>
+  <p>Le <strong>pipeline abstrait</strong> n&#8217;est pas dépendant d&#8217;une implémentation. Il sert à générer le pipeline exécutable par l&#8217;environnement hôte.</p>
 
-  <p>Prenons l&#8217;exemple suivant :</p>
-
-  <pre><code>
-  &lt;collection name="societes" epilogue="standard"/&gt;
-    &lt;model src="models/societes.xql"/&gt;
-    &lt;view src="views/societes.xsl"/&gt;
-  &lt;/collection&gt;
-  </code></pre>
-
-  <p>Il déclare que pour une requête GET sur la ressource <code>/societes</code>, la représentation retournée est générée par l&#8217;exécution du script XQuery <code>models/societes.xql</code>, puis transformation du résultat par la feuille de style <code>views/societes.xsl</code>, et enfin par insertion dans le gabarit de page <code>standard.xhtml</code> par l&#8217;épilogue du site.</p>
-
-  <p>Les chemins d&#8217;accès aux scripts XQuery ou XSLT sont exprimés relativement au fichier <code>controller.xql</code> à la racine de l&#8217;application. Il est toutefois possible d&#8217;utiliser le préfixe <code>oppidum:</code> devant le chemin pour désigner un  scripts fourni en standard avec Oppidum. Par exemple le chemin <code>oppidum:models/lore-ipsum.xql</code> désigne le générateur de contenu <em>lore ipsum</em> fourni par Oppidum.</p>
-
-  <p>Il est également possible de définir des actions asociées avec une ressource à l&#8217;aide de l&#8217;attribut <em>@supported</em> et en utilisant l&#8217;élément fils <em>action</em>. Prenons la déclaration suivante :</p>
-
-  <pre><code>
-  &lt;collection name="societes" epilogue="standard" supported="ajouter"/&gt;
-    &lt;model src="models/societes.xql"/&gt;
-    &lt;view src="views/societes.xsl"/&gt;
-    &lt;action name="ajouter" epilogue="standard"&gt;
-      &lt;model src="oppidum:actions/bootstrap.xql"/&gt;
-      &lt;view src="views/ajouter.xsl"/&gt;
-    &lt;/action&gt;
-  &lt;/collection&gt;
-  </code></pre>
-
-  <p>Elle transforme la ressource sociétés en un contrôleur acceptant une action &#8220;ajouter&#8221;. L&#8217;action est invoquée par l&#8217;URL suivante: <code>/societes/ajouter</code>. Celle-ci peut servir à  retourne une page pour créer une nouvelle société en utilisant la librairie AXEL. Comme pour la requête GET, le pipeline de l&#8217;action est déclaré par un triplet <em>model</em>, <em>view</em> et <em>@epilogue</em>.</p>
-
-  <p>Oppidum convertit automatiquement les verbes HTTP en actions. Ils sont déclarés dans un attribut <em>@method</em> distinct de l&#8217;attribut <em>@supported</em>.</p>
-
-  <p>A titre d&#8217;exemple le traitement de la soumission d&#8217;une nouvelle société créée avec la page d&#8217;édition de société <em>ajotuer</em> est défini avec la déclaration suivante :</p>
-
-  <pre><code>
-  &lt;collection name="societes" epilogue="standard" supported="ajouter" method="POST"/&gt;
-    &lt;action name="POST"&gt;
-      &lt;model src="actions/post.xql"/&gt;
-    &lt;/action&gt;
-  &lt;/collection&gt;
-  </code></pre>
-
-  <p>Cette fois-ci le pipeline se compose d&#8217;un unique modèle, car il retourne un message de succès ou d&#8217;erreur (XML ou JSON) à la requête Ajax de la page d&#8217;édition.</p>
-
-  <h4 id="le_pipeline_abstrait">Le pipeline abstrait</h4>
-
-  <p>Oppidum génère en fait le pipeline en 2 passes. Dans la première passe il génère un pipeline <em>abstrait</em> qui n&#8217;est pas dépendant d&#8217;une implémentation. Dans la seconde passe il génère le pipeline exécutable par l&#8217;environnement hôte.</p>
-
-  <p>De manière succinte, le pipeline abstrait se compose des éléments suivants :</p>
+  <p>De manière succinte il se compose des éléments suivants :</p>
 
   <ul>
-  <li>un élément <em>model</em> qui désigne un script XQuery dans un attribut <em>@src</em></li>
-  <li>un élément <em>view</em> qui désigne une transformation XSLT dans un attribut <em>@src</em></li>
-  <li>un élément <em>epilogue</em> qui désigne le nom du gabarit à utiliser dans l&#8217;épilogue (un identifiant) dans un attribut <em>@mesh</em></li>
+  <li><strong>model</strong> désigne un script XQuery dans un attribut <strong>src</strong></li>
+  <li><strong>view</strong> désigne une transformation XSLT dans un attribut <strong>src</strong></li>
+  <li><strong>epilogue</strong> contient le nom du gabarit à utiliser dans l&#8217;épilogue (un identifiant) dans un attribut <strong>mesh</strong></li>
   </ul>
 
   <p>Ces éléments sont obtenus en combinant la commande et le mapping.</p>
 
   <p>Voici un exemple de pipeline abstrait :</p>
 
-  <pre><code>
-  &lt;pipeline&gt;
+  <pre><code>&lt;pipeline&gt;
     &lt;model src="models/revues.xql"/&gt;
     &lt;view src="views/revues.xsl"/&gt;
     &lt;epilogue mesh="standard"/&gt;
   &lt;/pipeline&gt;
   </code></pre>
 
-  <h4 id="le_pipeline_excutable">Le pipeline  exécutable</h4>
+  <h4 id="pipeline_final">Pipeline final</h4>
 
-  <p>Le pipeline exécutable est une traduction du pipeline abstrait exécutable dans la plateforme hôte. Avec eXist il utilise le langage du <a href="http://www.exist-db.org/exist/urlrewrite.xml">filtre URLRewriter</a>. </p>
+  <p>Le pipeline final est une traduction du pipeline abstrait exécutable dans la plateforme hôte. Avec eXist il utilise le langage du 
+  <a href="http://exist-db.org/exist/apps/doc/urlrewrite.xml">filtre URLRewriter</a>.</p>
 
-  <h3 id="44_les_gabarits_de_pages_ou_mesh">4.4 Les gabarits de pages (ou mesh)</h3>
+  <h2 id="7_crations_de_page_ditables_avec_axel">7. Créations de page éditables avec AXEL</h2>
 
-  <p>Le script <code>epilogue.xql</code> standard génère le contenu de la réponse HTTP en transformant le gabarit identifié par l&#8217;attribut <code>@epilogue</code> du mapping. Cette transformation consiste à recopier le gabarit et à remplacer les éléments qui sont dans le namespace <code>xmlns:site="http://oppidoc.com/oppidum/site"</code> soit par le contenu des éléments de nom équivalent fils directs de la racine <code>site:view</code> des données transmises à l&#8217;épilogue par le pipeline, soit par le résultat d&#8217;une fonction XQuery de nom équivalent définie dans l&#8217;épilogue.</p>
+  <p>Oppidum intègre la librairie AXEL et ses extensions AXEL-FORMS pour créer des formulaires. Cette section explique comment rendre une page éditable avec Oppidum.</p>
 
-  <p>Ce mécanisme est très pratique pour factoriser et insérer les composants classiques d&#8217;une application web tels que les bouton de LOGIN ou les menus primaires et secondaires. Notez que si le mapping ne définit pas d&#8217;attribut <code>epilogue</code>, l&#8217;épilogue standard recopie simplement son entrée dans la réponse HTTP.</p>
+  <p><em>En cours de rédaction&#8230;</em></p>
 
-  <h3 id="45_les_skins">4.5 Les skins</h3>
-
-  <p>Le script <code>epilogue.xql</code> standard définit une méthode <code>site:skin</code> à invoquer via un élément <code>site:skin</code> à placer dans un gabarit pour insérer les fichiers CSS et les fichiers Javascript associés avec la représentation de l&#8217;URL courante. Cette méthode interprète l&#8217;attribut <code>@skin</code> de l&#8217;élément <code>site:view</code> transmis par le pipeline à l&#8217;épilogue comme une liste d&#8217;identifiants représentant les <em>skins</em> à intéger dans la page. Chaque identifiant est associé avec un ensemble de fichiers CSS et Javascript qui sont déclarés un fichier <code>init/skin.xml</code> propre à l&#8217;application. Ce fichier doit être recopié à l&#8217;emplacement <code>/db/www/{app}/config/skin.xml</code> dans la BD. </p>
-
-  <p>Notez que le fichier <code>skin.xml</code> d&#8217;une application peut faire appel à des <em>skins</em> prédéfinies fournies avec la librairie Oppiduum et qui doivent être définies à l&#8217;emplacement <code>/db/www/oppidum/config/skin.xml</code> (installé par le script d&#8217;installation de Oppidum).</p>
-
-  <h3 id="46_l8217installation">4.6 L&#8217;installation</h3>
-
-  <p>Oppidum fourni un module pour créer des scripts d&#8217;installation de l&#8217;application dans la BD. Celui-ci s&#8217;appuie sur un langage XML décrivant les utilisateurs, les collections et les ressources à créer.</p>
-
-  <p>Le langage d&#8217;installation sert à déclarer plusieurs variables dans le scripts <code>/scripts/install.xql</code> dans le répertoire de l&#8217;application.</p>
-
-  <h3 id="47_le_contrle_d8217accs">4.7 Le contrôle d&#8217;accès</h3>
-
-  <p>Celui-ci ci est décrit dans la section <em>Gestion des erreurs et du contrôle d&#8217;accès</em> ci-dessous.</p>
-
-  <h2 id="5_structure_recommande_d8217une_application">5. Structure recommandée d&#8217;une application</h2>
-
-  <p>Les premiers projets réalisés avec Oppidum nous ont amené à privilégier l&#8217;organisation des fichiers de chaque application de la manière suivante :</p>
-
-  <pre><code>
-  actions/
-  controller.xql
-  epilogue.xql
-  init/
-  mesh/
-  models/
-  modules/
-  ressources/
-  scripts/
-  templates/
-  views/
-  </code></pre>
-
-  <p>Les fichiers <code>controller.xql</code> et <code>epilogue.xql</code> sont <strong>obligatoires</strong> et leur emplacement est fixe. Comme ils sont semblables d&#8217;un projet à l&#8217;autre, le plus simple est de partir d&#8217;un projet existant pour les copier et les adapter.</p>
-
-  <p>Le fichier <em>controller.xql</em> est imposé par eXist-DB. C&#8217;est le fichier qui recevra toutes les requêtes HTTP de l&#8217;utilisateur et qui appelera la librairie Oppidum pour générer le pipeline à exécuter. Dans la version actuelle il contient également la déclaration du mapping dans une variable.</p>
-
-  <p>Le fichier <em>epilogue.xql</em> est exécuté par le pipeline pour insérer le résultat du traitement de la requête dans un gabarit de site.</p>
-
-  <p>Les répertoires <em>models</em> et  <em>actions</em> contiennent les scripts XQuery qui implémentent respectivement les modèles des ressources et des actions de l&#8217;application.</p>
-
-  <p>Le répertoirs <em>views</em> contient les scripts XSLT qui implémentent les vues.</p>
-
-  <p>Le répertoire <em>modules</em> contient également des scripts de vues et de modèles, mais en les regroupant par modules fonctionnels de manière à simplifier le partage entre applications (pour le moment par recopie du répertoire contenant le module intéressant).</p>
-
-  <p>Le répertoire <em>init</em> contient les fichiers de configuration de l&#8217;application qui seront copiés dans la collection <code>/db/www/{app}/config</code> de l&#8217;application ainsi que les éventuels fichiers utilisés pour générer les données initiales dans <code>/db/sites/{app}/</code> ou pour tester l&#8217;application. Le contenu de ce répertoire sera copié dans la BD à l&#8217;aide du script d&#8217;installation.</p>
-
-  <p>Le répertoire <em>scripts</em> contient le script d&#8217;installation <code>install.xql</code> pour installer l&#8217;applications dans la BD et créer un jeu d&#8217;utilisateurs minimal. Il peut éventuellement contenir d&#8217;autres scripts utilisés pendant le développement (par exemple des scripts ant pour le packaging ou le déploiement).</p>
-
-  <p>Le répertoire <em>resources</em> contient toutes les ressources statiques du site regroupées en sous-répertoires (e.g. CSS, Javascript, images). Oppidum fournit quelques méthodes pour générer des URLs pointant vers ces ressources de la forme <code>/static/{app}</code> (ou <code>/static/oppidum</code> pour les ressources statiques partagées par Oppidum telles que la librairie AXEL). En production ces URLs devraient être servies directement par le proxy Web sans passer par la base de données pour bénéficier d&#8217;une politique de cache efficace.</p>
-
-  <p>Le répertoire <em>mesh</em> contient le ou les gabarits utilisés dans l&#8217;application (par exemple un gabarit spécifique pour les pages d&#8217;erreur). Chaque gabarit est un fichier XHTML. En se débrouillant bien chaque fichier gabarit devrait pouvoir s&#8217;afficher directement dans le navigateur Web pour tester les fichiers CSS correspondants.</p>
-
-  <p>Enfin le répertoire <em>templates</em> regroupe les templates XTiger XML utilisés par le site.</p>
-
-  <p>Notez que la librairie Oppidum contient en plus un répertoire <em>config</em> . Celui-ci contient des fichiers de configuration spécifiques de eXist-DB et de l&#8217;environnement servlet (<code>conf.xml</code>, <code>controller-config</code>, <code>log4j.xml</code> et <code>web.xml</code>) qui sont utilisés pour générer les fichiers WAR lors du packaging à destination de différents environnements d&#8217;exécution (e.g. Tomcat) pour la pré-production ou la production.</p>
-
-  <h2 id="6_cycle_de_dveloppement">6. Cycle de développement</h2>
-
-  <h3 id="61_dveloppement">6.1 Développement</h3>
-
-  <p>Suivre les instructions pour l&#8217;installation ci-dessus.</p>
-
-  <p>Le développement s&#8217;effectue en créant un répertoire <code>projets</code> directement dans le répertoire <code>webapp</code> d&#8217;une installation d&#8217;eXist (pour le moment le nom <code>projets</code> est fixé). Ce répertoire projet contient le répertoire <code>oppidum</code> avec la distribution Oppidum. Placez vos applications en cours de développement dans des répertoires <code>{app}</code> du nom de l&#8217;application dans des répertoires frères du répertoire <code>oppidum</code>, vous devriez obtenir la structure suivante:</p>
-
-  <pre><code>
-  {exist-home}/webapps
-  {exist-home}/webapps/projets
-  {exist-home}/webapps/projets/oppidum
-  {exist-home}/webapps/projets/{app}
-  </code></pre>
-
-  <p>L&#8217;intérêt est ainsi de pouvoir accéder dans le même serveur à toute l&#8217;aide en ligne de eXist, à la sandbox (<code>http://localhost:8080/exist</code>) et à la ou les application(s) en cours de développement (<code>http://localhost:8080/exist/projet/{app}/</code>).</p>
-
-  <p>L&#8217;intérêt est aussi de pouvoir mettre le répertoire <code>/projet/{app}</code> sous contrôle du code source avec un système comme SVN ou GitGub.</p>
-
-  <h3 id="62_pr_production_et_production">6.2 Pré-production et production</h3>
-
-  <p>Pour la pré-production et la production sous Tomcat, nous recommandons de placer toute l&#8217;application dans la base de donnée pour faciliter la maintenance et les évolutions. Voir à ce sujet le guide <a href="packaging.html">Packager et déployer une application avec Oppidum</a>.</p>
-
-  <h3 id="63_debug">6.3 Debug</h3>
-
-  <p>Ajouter <code>.debug</code> ou <code>?debug=true</code> à une URL pour voir tous les attributs ajoutés par Oppidum à la requête et qui sont accessibles avec <code>request:get-attribute</code> dans les modèles XQuery. L&#8217;affichage en mode debug montre également la commande ainsi que les pipelines générés, c&#8217;est un bon moyen pour comprendre le fonctionnement d&#8217;Oppidum.</p>
-
-  <p>Ajouter <code>.raw</code> à une requête pour voir la sortie de l&#8217;étape 2 du pipeline (transformation XSLT).</p>
-
-  <p>Ajouter <code>.xml</code> à une requête pour voir la sortie de l&#8217;étape 1 du pipeline (modèle XQuery).</p>
-
-  <p>Utiliser les méthodes <code>oppidum:log</code> et <code>oppidum:log-parameters</code> du module <code>util.xqm</code> pour créer des traces d&#8217;exécution dans un fichier <code>site.log</code> conservé avec les autres fichiers de log (<code>exist.log</code> et <code>url-rewrite.log</code>).</p>
-
-  <h2 id="7_gestion_des_erreurs_et_contrle_d8217accs">7. Gestion des erreurs et contrôle d&#8217;accès</h2>
-
-  <p>Oppidum est capable de détecter certaines erreurs ou situations particulières nécessitant d&#8217;interrompre le traitement de la requête. Dans ce cas Oppidum génère un pipeline d&#8217;erreur en lieu et place du pipeline qui aurait dû être généré.</p>
-
-  <p>Il est également possible de signaler une erreur pendant l&#8217;exécution d&#8217;un script XQuery faisant partie du pipeline généré (soit le modèle ou l&#8217;épilogue donc).</p>
-
-  <p>Dans tous les cas les messages d&#8217;erreurs sont conservés dans la base de données dans la ressource <code>/db/oppidum/config/errors.xml</code>, ceci pour simplifier la gestion multilingues et partager certains messages. Chaque application peut ajouter ses propres messages ou redéfinir ceux d&#8217;Oppidum en déclarant une resource <code>/db/sites/{app}/config/erros.xml</code>.</p>
-
-  <h3 id="71_gnration_automatique_du_pipeline_d8217erreur">7.1 Génération automatique du pipeline d&#8217;erreur</h3>
-
-  <p>Les cas suivants interrompent le processus standard de génération du pipeline et génère à la place un pipeline d&#8217;erreur :</p>
-
-  <ul>
-  <li>erreur dans l&#8217;URL ou le mapping</li>
-  <li>validation des resources dans la base de données</li>
-  <li>contrôle d&#8217;accès</li>
-  </ul>
-
-  <h4 id="erreur_dans_l8217url_ou_le_mapping">Erreur dans l&#8217;URL ou le mapping</h4>
-
-  <p>Si la requête porte sur une URL qui n&#8217;a pas d&#8217;entrée correspondante dans le mapping, ou si l&#8217;entrée correspondante est inexacte.</p>
-
-  <h4 id="validation_des_resources_dans_la_base_de_donnes">Validation des resources dans la base de données</h4>
-
-  <p>Si le mapping correspondant à la ressource REST demandée porte un attribut <em>@check=&#8221;true&#8221;</em>, alors Oppidum contrôle de l&#8217;existence de ressource de référence et génère une erreur si celle-ci nexiste pas.</p>
-
-  <h4 id="contrle_d8217accs">Contrôle d&#8217;accès</h4>
-
-  <p>Il est possible d&#8217;effectuer un contrôle d&#8217;accès en insérant des blocs <code>access</code> dans le mapping du site. Ce bloc définit des règles qui s&#8217;appliquent soit à l&#8217;item parent, soit à la collection parente suivant le contexte du bloc.</p>
-
-  <p>À titre d&#8217;exemple le bloc suivant indique que seul l&#8217;utilisateur dont le login est <em>focus</em> ou bien un utilisateur appartenant au groupe <em>site-member</em> est autorisé à lire une ressource (action <em>GET</em>). Seul l&#8217;utilisateur <em>focus</em> est autoriser à sauvegarder cette ressource (action <em>POST</em>) ou à effectuer l&#8217;action <em>ajouter</em> (i.e. ajouter une nouvelle page dans la collection en utilisant  AXEL pour l&#8217;éditer).</p>
-
-  <pre><code>
-  &lt;access&gt;
-    &lt;rule action="GET" role="u:focus g:site-member" message="rédacteur"/&gt;
-    &lt;rule action="POST ajouter" role="u:focus" message="administrateur du site"/&gt;
-  &lt;/access&gt;
-  </code></pre>
-
-  <p>Les concepts de login ou de groupe sont équivalent au <em>user</em> ou au <em>group</em> de eXist.</p>
-
-  <p>Le role est défini par un pseudo-langage qui comporte 4 éléments:</p>
-
-  <ul>
-  <li><code>u:name</code> : pour désigner l&#8217;utilisateur <em>name</em></li>
-  <li><code>g:name</code> : pour désigner un membre du groupe <em>name</em></li>
-  <li><code>all</code> : pour désigner n&#8217;importe qui</li>
-  <li><code>owner</code> : pour désigner le propriétaire de la ressource / collection de référence (PAS IMPLÉMENTÉ)</li>
-  </ul>
-
-  <p>Par défaut le rôle <code>all</code> s&#8217;applique à toutes les ressources et à toutes les actions définies dans le mapping.</p>
-
-  <p>Ce pseudo-langage est implémenté dans le module <code>lib/util.xqm</code> d&#8217;Oppidum.</p>
-
-  <p>L&#8217;attribut <code>message</code> contient une indice qui peut s&#8217;insérer dans le message d&#8217;erreur (<code>ACTION-LOGIN-FAILED</code>) généré en cas d&#8217;accès refusé.</p>
-
-  <p>Notons qu&#8217;il est également possible de définir un bloc <code>access</code> par défaut à l&#8217;aide d&#8217;une variable dans le contrôleur :</p>
-
-  <pre><code>
-  declare variable $access := &lt;access&gt;...&lt;/access&gt;
-  </code></pre>
-
-  <p>Cette variable est passée au moment de la validation des droits et de l&#8217;autorisation d&#8217;accès aux méthodes <code>oppidum:get-rights-for</code> et <code>oppidum:check-rights-for</code> (cf. le contrôleur d&#8217;un site existant).</p>
-
-  <h3 id="72_gnration_d8217erreur_pendant_l8217excution_du_pipeline_gnr">7.2 Génération d&#8217;erreur pendant l&#8217;exécution du pipeline généré</h3>
-
-  <p>Méthode <code>oppidum:throw-error</code> du module <code>util.xqm</code>. <em>A REDIGER</em></p>
-
-  <h2 id="8_crations_de_page_ditables_avec_axel">8. Créations de page éditables avec AXEL</h2>
-
-  <p>Oppidum intègre la librairie AXEL et ses extensions AXEL-FORMS pour créer des formulaires.</p>
-
-  <h2 id="9_cration_de_modules_partags">9. Création de modules partagés</h2>
-
-  <p>Le préfixe <code>{module}:</code> dans les chemins spécifiés dans les mappings où <em>module</em> est le nom d&#8217;un répertoire frère du répertoire <code>oppidum</code> a pour but de développer des modules partagés entre les applications basées sur Oppidum.</p>
-
-  <h2 id="10_volutions_futures">10. Évolutions futures</h2>
-
-  <ul>
-  <li><p><strong>Intégration de XProc</strong></p>
-
-  <p>Possibilité d&#8217;appeler un pipeline XProc comme modèle, vue ou épilogue d&#8217;un pipeline.</p></li>
-  <li><p><strong>Internationalisation et localisation</strong></p>
-
-  <p>Ajout d&#8217;un traitement post-epilogue pour localiser le texte.</p></li>
-  <li><p><strong>Epilogue en XSLT</strong></p>
-
-  <p>Possiblité de remplacer le script <code>epilogue.xql</code> par une transformation <code>epilogue.xsl</code></p></li>
-  <li><p><strong>Modélisation de vues partielles</strong></p>
-
-  <p>Extension du mapping pour pouvoir réutiliser et combiner facilement plusieurs modèles / vues pour générer une seule resource. Par exemple pour faire un blog, les <em>latest comments</em> ou les <em>latest entries</em> affichés dans les colonnes latérales sont des blocs présents sur toutes les pages, chaque bloc pourrait être généré par un modèle/vue partiels (à prévoir en se basant sur l&#8217;intégration XProc). Actuellement ce type de vues partielles est en général réalisé à l&#8217;aide de fonctions XQuery spécifiques déclarées dans le script <code>epilogue.xql</code>.</p></li>
-  <li><p><strong>Mettre en cache les pages pour éviter de les générer à chaque requête</strong></p>
-
-  <p>Le mapping peut conduire à créer et mettre à jour une collection <code>/db/caches/{app}</code> mirroir de l&#8217;architecture REST et contenant des caches pour chaque page. Prévoir dans ce cas une extension de l&#8217;API <code>oppidum:invalidate()</code> par exemple pour invalider la page courante, et une version plus élaborée pour invalider plusieurs pages.</p></li>
-  <li><p><strong>Alternatives à eXist-db</strong></p>
-
-  <p>La version actuelle d&#8217;Oppidum est fortement lièe à la base de donnée eXist-DB, mais son architecture a été conçue pour qu&#8217;il soit possible de le porter à l&#8217;avenir sur d&#8217;autres environnements (XProc, Sausalito, MarkLogic).</p></li>
-  </ul>
 </body>
 </html>
