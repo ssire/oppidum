@@ -394,6 +394,7 @@ declare function gen:more_view_parameters($cmd as element(), $pipeline as elemen
   return (
     if ($cmd/@format) then <set-attribute name="xslt.format" value="{$cmd/@format}"/> else (),
     <set-attribute name="xslt.base-url" value="{$cmd/@base-url}"/>,
+    <set-attribute name="xslt.lang" value="{$cmd/@lang}"/>,
     for $var in request:get-parameter-names() 
     return
       if (not($var = $reserved)) then
