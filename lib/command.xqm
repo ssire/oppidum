@@ -85,16 +85,19 @@ declare function command:get-default-action( $cmd as element(), $actions as elem
     )[last()]
 };
 
-declare function command:expand-paths( $exp as xs:string, $tokens as xs:string* ) as xs:string
+declare function command:expand-paths( $exp as xs:string, $tokens as xs:string*, $lang as xs:string ) as xs:string
 {
   let $expanded := replace($exp, "\$(\d)", "|var=$1|")
   return
-    string-join(
-      for $t in tokenize($expanded, "\|")
-      let $index := substring-after($t, 'var=')
-      return
-        if ($index) then $tokens[xs:decimal($index)] else $t,
-      '')
+    let $subst :=  
+        string-join(
+          for $t in tokenize($expanded, "\|")
+          let $index := substring-after($t, 'var=')
+          return
+            if ($index) then $tokens[xs:decimal($index)] else $t,
+          '')
+   return
+      replace($subst, "\$lang", $lang)
 };
 
 (: ======================================================================
@@ -241,7 +244,8 @@ declare function command:gen-resource(
   $db as xs:string?,
   $resource as xs:string?,
   $collection as xs:string?,
-  $confbase as xs:string
+  $confbase as xs:string,
+  $lang as xs:string
 ) as node()*
 {
   (: check HTTP verb is supported by target item or collection :)
@@ -271,9 +275,9 @@ declare function command:gen-resource(
           return (: resource name :)
             if ($name) then attribute { 'name' } {  $name } else (),
           (: inherited attributes @db, @resource, @collection :)
-          if ($db) then attribute { 'db' } { command:expand-paths($db, $tokens) } else (),
-          if ($resource) then attribute { 'resource' } { command:expand-paths($resource, $tokens) } else (),
-          if ($collection) then attribute { 'collection' } { command:expand-paths($collection, $tokens) } else (),
+          if ($db) then attribute { 'db' } { command:expand-paths($db, $tokens, $lang) } else (),
+          if ($resource) then attribute { 'resource' } { command:expand-paths($resource, $tokens, $lang) } else (),
+          if ($collection) then attribute { 'collection' } { command:expand-paths($collection, $tokens, $lang) } else (),
           (: optional attributes from target item or collection :)
           $page/(@access | @template | @check | @epilogue | @supported | @method | @redirect),
           $page/(access|variant),
@@ -377,7 +381,8 @@ declare function command:match-token-iter(
   $inres as xs:string?,
   $incol as xs:string?,
   $confbase as xs:string,
-  $greedy as xs:boolean
+  $greedy as xs:boolean,
+  $lang as xs:string
 ) as node()*
 {
   let $curtoken := $tokens[$index]
@@ -398,21 +403,21 @@ declare function command:match-token-iter(
     if (not($last)) then
       if ($greedy) then
         if ($page[@name]) then (: switch to non greedy iteration on the new branch :)
-          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
+          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false(), $lang)
         else
           let $nextok := $tokens[$index+1] (: look ahead 1 token :)
           return
             if ($page[not(@name)] and
                 (($page/(item|collection)[@name = $nextok]) or ($nextok = tokenize($page/@supported, ' ')))) then
-              command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
+              command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false(), $lang)
             else (: continue with greedy iteration same branch :)
-              command:match-token-iter($method, $index + 1, $tokens, $mapping, $db, $resource, $collection, $confbase, $greedy)
+              command:match-token-iter($method, $index + 1, $tokens, $mapping, $db, $resource, $collection, $confbase, $greedy, $lang)
       else
         if ($page[not(@name)]) then (: switch to greedy iteration on the new branch :)
-          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, true())
+          command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, true(), $lang)
         else
           if ($page[@name]) then (: continue with greedy iteration on the new branch :)
-            command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false())
+            command:match-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, false(), $lang)
           else  (: no page and not greedy : failure :)
             ()
     else
@@ -422,9 +427,9 @@ declare function command:match-token-iter(
         (
         command:gen-trail(boolean($action), $tokens, $count),
         if (not($page)) then
-          command:gen-resource($method, $action, $index, $tokens, $mapping, $db, $resource, $collection, $confbase)
+          command:gen-resource($method, $action, $index, $tokens, $mapping, $db, $resource, $collection, $confbase, $lang)
         else
-          command:gen-resource($method, $action, $index, $tokens, $page, $db, $resource, $collection, $confbase)
+          command:gen-resource($method, $action, $index, $tokens, $page, $db, $resource, $collection, $confbase, $lang)
         )
 };
 
@@ -436,7 +441,8 @@ declare function command:parse-token-iter(
   $indb as xs:string?,
   $inres as xs:string?,
   $incol as xs:string?,
-  $confbase as xs:string
+  $confbase as xs:string,
+  $lang as xs:string
 ) as node()*
 {
   let $curtoken := $tokens[$index]
@@ -456,19 +462,19 @@ declare function command:parse-token-iter(
   return
     if ($page[@name = '*']) then
       (: recurse in greedy mode starting at self :)
-      let $res := command:match-token-iter($method, $index, $tokens, $page, $db, $resource, $collection, $confbase, true())
+      let $res := command:match-token-iter($method, $index, $tokens, $page, $db, $resource, $collection, $confbase, true(), $lang)
       return
         if ($res) then $res else attribute { 'error' } { 'not-found' }
     else if (not($last) and $page) then
       (: recurse :)
-      command:parse-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase)
+      command:parse-token-iter($method, $index + 1, $tokens, $page, $db, $resource, $collection, $confbase, $lang)
     else (: assumes $last is true :)
       (
       command:gen-trail(boolean($action), $tokens, $count),
       if (not($page)) then
         attribute { 'error' } { 'not-found' }
       else
-        command:gen-resource($method, $action, $index, $tokens, $page, $db, $resource, $collection, $confbase)
+        command:gen-resource($method, $action, $index, $tokens, $page, $db, $resource, $collection, $confbase, $lang)
       )
 };
 
@@ -504,7 +510,7 @@ declare function command:parse-url(
       if ($mapping/error/@mesh) then attribute error-mesh { $mapping/error/@mesh } else (),
       if ($format) then attribute format { $format } else (),
       command:parse-token-iter($method, 1, $tokens, $mapping,
-        $mapping/@db, $mapping/@resource, $mapping/@collection, $mapping/@confbase)
+        $mapping/@db, $mapping/@resource, $mapping/@collection, $mapping/@confbase, $lang)
       }
     </command>
 };
