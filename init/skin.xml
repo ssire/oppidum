@@ -10,6 +10,7 @@
     </profile>
     <profile name="analytics" type="predef">
       <script meet="mode(prod)" resource="config/ga.xml"/>
+      <script meet="mode(dev)" resource="config/ga-dev.xml"/>
     </profile>
     <profile name="modernizr" type="predef">
         <script src="contribs/modernizr/modernizr.custom.12261.js"/>

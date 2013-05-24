@@ -9,7 +9,7 @@ xquery version "1.0";
    November 2011 - Copyright (c) Oppidoc S.A.R.L
    ----------------------------------------------- :)
 
-declare option exist:serialize "method=html media-type=text/html";
+declare option exist:serialize "method=html5 media-type=text/html";
 <html>
   <body>
     <h1>Oppidum</h1>
