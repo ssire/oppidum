@@ -62,7 +62,7 @@ declare function skin:_js-link( $script as element(), $cmd as element(), $base a
 {
   if ($script/@resource) then (: script element pulled from database :)
     let $src := concat($cmd/@confbase,'/',$script/@resource)
-    let $code := doc($src)/xhtml:script
+    let $code := fn:doc($src)/xhtml:script
     return
       if ($code) then
         $code

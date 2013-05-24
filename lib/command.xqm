@@ -484,7 +484,8 @@ declare function command:parse-url(
   $url as xs:string,
   $method as xs:string,
   $mapping as element(),
-  $lang as xs:string ) as element()
+  $lang as xs:string,
+  $def-lang as xs:string? ) as element()
 {
   let $extension := if (contains($url, '.')) then substring-after($url, '.') else ''
   let $raw-payload := if ($extension != '') then substring-before($url, '.') else $url
@@ -494,11 +495,20 @@ declare function command:parse-url(
   return
     <command>
       {
-      attribute base-url { $base-url },
+      attribute base-url {
+        if ($mapping/@languages) then (: multilingual application :)
+          if ($def-lang and ($lang = $def-lang)) then
+            $base-url
+          else 
+            concat($base-url, $lang, '/')
+        else
+          $base-url
+      },
       attribute app-root { $exist-root },
       attribute exist-path { $exist-path },
       attribute lang { $lang },
       attribute db { $mapping/@db },
+      if ($def-lang) then attribute def-lang { $def-lang } else (),
       $mapping/@confbase,
       $mapping/@mode,
       if ($mapping/error/@mesh) then attribute error-mesh { $mapping/error/@mesh } else (),

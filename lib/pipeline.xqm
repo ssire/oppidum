@@ -527,11 +527,21 @@ declare function gen:process(
 {    
   let $base-url := concat(request:get-context-path(), $prefix, $controller, '/')
   let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
+  let $def-lang := if ($mapping/@languages) then (: multilingual application, check default language or not :)
+                     let $code := substring(tokenize($mapping/@languages, " ")[starts-with(.,'[')],2,2)
+                     return if ($code) then $code else ()
+                   else 
+                     ()
   return
     (: Web site root redirection :)
     if ($path = ('', '/')) then
+      let $xtra := if ($mapping/@languages) then 
+                     if ($def-lang = $lang) then () else concat($lang,'/')
+                   else 
+                     ()
+      return
       <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <redirect url="{$base-url}{$mapping/@startref}"/>   
+        <redirect url="{$base-url}{$xtra}{$mapping/@startref}"/>
         <cache-control cache="yes"/>
       </dispatch>   
 
@@ -547,7 +557,7 @@ declare function gen:process(
       (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
          si on l'utilise passer $exist:root, $exist:prefix  :)
       let 
-        $cmd := command:parse-url($base-url, $app-root, $path, $path, request:get-method(), $mapping, $lang),
+        $cmd := command:parse-url($base-url, $app-root, $path, $path, request:get-method(), $mapping, $lang, $def-lang),
         $default := command:get-default-action($cmd, $actions),
         $set1 := request:set-attribute('oppidum.base-url', $base-url),      
         $set2 := request:set-attribute('oppidum.command', $cmd),      

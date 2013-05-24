@@ -48,7 +48,7 @@ let $mapping-path := concat($confbase, '/config/mapping.xml')
 let $modules-path := concat($confbase, '/config/modules.xml')
 let $mapping := fn:doc($mapping-path)/site
 let $command := if ($mapping) then 
-                  command:parse-url($base-url, $cmd/@app-root, $path, $path, $method, $mapping, 'fr')
+                  command:parse-url($base-url, $cmd/@app-root, $path, $path, $method, $mapping, 'fr', ())
                 else
                   <error>could not find "{concat($confbase, '/config/mapping.xml')}"</error>
 let $result := if ((local-name($command) = 'error') or ($type = 'Command')) then
