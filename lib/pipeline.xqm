@@ -529,12 +529,11 @@ declare function gen:process(
   let $base-url := concat(request:get-context-path(), $prefix, $controller, '/')
   let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
   let $def-lang := if ($mapping/@languages) then (: multilingual application, extract default language if defined :)
-                     let $code := substring(tokenize($mapping/@languages, " ")[starts-with(.,'[')],2,2)
-                     return if ($code) then $code else ()
+                     if ($mapping/@default) then string($mapping/@default) else ()
                    else 
                      ()
   let $path := if ($mapping/@languages) then (: multilingual support :)
-                 if (substring($exist-path, 2, 2) = $lang) then (: controller found a valid language code :)
+                 if (matches($exist-path,"^/\w\w/?$|^/\w\w/") and (substring($exist-path, 2, 2) = $lang)) then (: controller found a valid language code :)
                    let $rewrite := substring($exist-path, 4)
                    return if ($rewrite) then $rewrite else '/'
                  else
@@ -551,8 +550,8 @@ declare function gen:process(
       return
       <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="{$base-url}{$xtra}{$mapping/@startref}"/>
-        <cache-control cache="yes"/>
-      </dispatch>   
+        <cache-control cache="no"/>
+      </dispatch>
 
     (: Note: in production the proxy should serve static/* directly :)
     else if (starts-with($path, "/static/")) then
