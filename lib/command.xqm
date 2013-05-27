@@ -502,7 +502,7 @@ declare function command:parse-url(
     <command>
       {
       attribute base-url {
-        if ($mapping/@languages) then (: multilingual application :)
+        if ($mapping/@languages) then (: build a multilingual base URL including language code if not default :)
           if ($def-lang and ($lang = $def-lang)) then
             $base-url
           else 

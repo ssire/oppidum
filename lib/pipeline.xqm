@@ -522,17 +522,25 @@ declare function gen:debug-command($cmd as element()) as element()
    ======================================================================
 :)
 declare function gen:process(
-  $root as xs:string, $prefix as xs:string, $controller as xs:string, $path as xs:string, 
+  $root as xs:string, $prefix as xs:string, $controller as xs:string, $exist-path as xs:string, 
   $lang as xs:string, $debug as xs:boolean,
   $access as element(), $actions as element(), $mapping as element()) as element() 
 {    
   let $base-url := concat(request:get-context-path(), $prefix, $controller, '/')
   let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
-  let $def-lang := if ($mapping/@languages) then (: multilingual application, check default language or not :)
+  let $def-lang := if ($mapping/@languages) then (: multilingual application, extract default language if defined :)
                      let $code := substring(tokenize($mapping/@languages, " ")[starts-with(.,'[')],2,2)
                      return if ($code) then $code else ()
                    else 
                      ()
+  let $path := if ($mapping/@languages) then (: multilingual support :)
+                 if (substring($exist-path, 2, 2) = $lang) then (: controller found a valid language code :)
+                   let $rewrite := substring($exist-path, 4)
+                   return if ($rewrite) then $rewrite else '/'
+                 else
+                  $exist-path
+               else
+                $exist-path
   return
     (: Web site root redirection :)
     if ($path = ('', '/')) then
@@ -558,7 +566,7 @@ declare function gen:process(
       (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
          si on l'utilise passer $exist:root, $exist:prefix  :)
       let 
-        $cmd := command:parse-url($base-url, $app-root, $path, $path, request:get-method(), $mapping, $lang, $def-lang),
+        $cmd := command:parse-url($base-url, $app-root, $exist-path, $path, request:get-method(), $mapping, $lang, $def-lang),
         $default := command:get-default-action($cmd, $actions),
         $set1 := request:set-attribute('oppidum.base-url', $base-url),      
         $set2 := request:set-attribute('oppidum.command', $cmd),      
