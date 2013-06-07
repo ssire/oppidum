@@ -184,10 +184,10 @@ declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) 
 
 declare function epilogue:my-make-mesh-uri( $cmd as element(), $fn as xs:string ) as xs:string?
 {
-  if ($fn != '') then
-    concat($cmd/@confbase, '/mesh/', $fn, '.html')
-  else
+  if ($fn eq '') then
     ()
+  else
+    concat($cmd/@confbase, '/mesh/', $fn, if (contains($fn,'.')) then () else '.html')
 };
             
 declare function epilogue:mesh-available( $mesh-uri as xs:string, $name as xs:string? ) as xs:boolean
