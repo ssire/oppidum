@@ -183,14 +183,14 @@ return
       { 
       if (not(file:is-directory($dir))) then attribute error { 'path-not-found' } else (),
       (: eXist 1.4.1 or 1.4.2 :)
-       file:directory-list($dir, '*.zip'), 
+(:       file:directory-list($dir, '*.zip'), :)
       (: eXist 1.4.3 variant because file:directory-list no more available :)
-(:      <file:list directory="{$dir}"> 
+      <file:list directory="{$dir}"> 
         {
         file:list($dir)/file:file[ends-with(@name, '.zip')]
         }
       </file:list>,
-:)      local:collection-list()
+      local:collection-list()
       }
     </data>
       
