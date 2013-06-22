@@ -211,11 +211,11 @@ declare function skin:gen-skin( $pkg as xs:string, $mesh as xs:string?, $skin as
   let $pass1 := skin:_gen-skin-I($pkg, $mesh, $tokens)
   let $pass2 :=  (: predef resolution :)
       (
-      skin:_gen-skin-II($pkg, $pass1[(local-name(.) = 'predef') and not(@module)]/text(), $tokens),
       for $mod in distinct-values($pass1/@module)
       let $items := $pass1[@module = $mod]/text()
       return 
-        skin:_gen-skin-II($mod, $items, $tokens)
+        skin:_gen-skin-II($mod, $items, $tokens),
+      skin:_gen-skin-II($pkg, $pass1[(local-name(.) = 'predef') and not(@module)]/text(), $tokens)
       )
   return (: returns link elements before script elements :)
     (
