@@ -72,8 +72,14 @@ declare variable $mapping := <site startref="home" supported="login logout insta
   </item>
   <collection name="test" supported="naction">
     <!-- <import module="test"/> -->
-    <item name="generator">
+    <item name="generator" method="POST">
+      <access>
+        <rule action="POST" role="all"/>
+      </access>
       <model src="oppidum:test/generator.xql"/>
+      <action name="POST">
+        <model src="oppidum:test/generator.xql"/>
+      </action>
     </item>
     <item name="skin">
       <model src="oppidum:test/skin.xql"/>
