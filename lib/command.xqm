@@ -322,8 +322,8 @@ declare function command:find-item-or-collection(
     return
       if ($match) then
         let $vars := (
-                     if ($mapping/@resource) then $mapping/@resource else if ($inres) then $inres else '-1',
-                     if ($mapping/@collection) then $mapping/@collection else if ($incol) then $incol else '-1',
+                     if ($match[3]/@resource) then $match[3]/@resource else if ($mapping/@resource) then $mapping/@resource else if ($inres) then $inres else '-1',
+                     if ($match[3]/@collection) then $match[3]/@collection else if ($mapping/@collection) then $mapping/@collection else if ($incol) then $incol else '-1',
                      if ($mapping/@template) then $mapping/@template else '-1',
                      if ($mapping/@epilogue) then $mapping/@epilogue else '-1'
                      )
@@ -361,7 +361,7 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
       ()
   return
     if ($found) then
-      ($found, $cur/@param/string())
+      ($found, if ($cur/@param) then $cur/@param/string() else '', $cur)
     else
       let $next := subsequence($imports,2)
       return
