@@ -153,9 +153,8 @@ declare function epilogue:img-link( $package as xs:string, $files as xs:string*,
    called from the epilogue iff the pipeline defines a non-empty mesh
    ======================================================================
 :) 
-declare function epilogue:get-mesh( $cmd as element(), $pipeline as element() ) as element()?
+declare function epilogue:get-mesh( $cmd as element(), $fn as xs:string ) as element()?
 {
-  let $fn := string($pipeline/epilogue/@mesh)
   let $mesh := epilogue:my-make-mesh-uri($cmd, $fn)
   return
     if ($mesh) then
@@ -247,5 +246,10 @@ declare function epilogue:finalize() as element()*
     if ($redirect) then
       response:redirect-to(xs:anyURI($redirect))
     else
-      epilogue:get-mesh(request:get-attribute('oppidum.command'), request:get-attribute('oppidum.pipeline'))
+      let $key := string(request:get-attribute('oppidum.pipeline')/epilogue/@mesh)
+      return 
+        if ($key ne "*") then
+          epilogue:get-mesh(request:get-attribute('oppidum.command'), $key)
+        else
+          ()
 };
