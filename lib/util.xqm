@@ -196,9 +196,9 @@ declare function oppidum:render-error(
         $sitefile := concat($db, '/config/errors.xml')
       return
         if (doc-available($sitefile)
-           and (not(empty(doc($sitefile)/errors/error[@type = $err-type])))) then
-           doc($sitefile)/errors/error[@type = $err-type]
-        else doc($oppidum:DEFAULT_ERR_LOC)/errors/error[@type = $err-type],
+           and (not(empty(fn:doc($sitefile)/errors/error[@type = $err-type])))) then
+           fn:doc($sitefile)/errors/error[@type = $err-type]
+        else fn:doc($oppidum:DEFAULT_ERR_LOC)/errors/error[@type = $err-type],
     $msgs :=
       if ($error/message[@lang = $lang]) then
         $error/message[@lang = $lang]
@@ -226,6 +226,32 @@ declare function oppidum:render-error(
       <message>{$text}</message>
       }
     </error>
+};
+
+(: ======================================================================
+   Returns the full error message for an error with a given type and clue
+   Uses /config/errors.xml database(s) to expand error messages
+   Returns an <error code=""><message/></error> fragment
+   Eventually sets the response status code if $exec is true()
+   ======================================================================
+:)
+declare function oppidum:render-message(
+  $db as xs:string,
+  $type as xs:string,
+  $clues as xs:string*,
+  $lang as xs:string) as element()
+{
+  let $msg-uri := concat($db, '/config/messages.xml')
+  let $found := fn:doc($msg-uri)/messages/info[@type = $type] 
+                (: FIXME: fallback to Oppidum default messages :)
+  let $candidates := if ($found/message[@lang = $lang]) then $found/message[@lang = $lang] else $found/message
+  let $preferred := if ($clues) then string($candidates[string(@noargs) != 'yes'][1]) else string($candidates[1])
+  let $src := if ($preferred) then $preferred else concat("Message (", $type, ")")
+  let $arg := if ($clues) then $clues else ''
+  let $text := if (contains($src, "%s")) then replace($src, "%s", $arg) else $src
+               (: FIXME: extend to multiple clues !!! :)
+  return
+    <message type="{$type}">{ $text }</message>
 };
 
 (: ======================================================================
@@ -282,6 +308,20 @@ declare function oppidum:render-errors( $db as xs:string, $lang as xs:string ) a
   let $clue := substring-after($e, ':')
   return
    oppidum:render-error($db, $type, if ($clue != '') then $clue else (), $lang, true())
+};
+
+(: ======================================================================
+   Consumes the current message stack filled with oppidum:add-error
+   and returns a list of expanded <message> messages
+   ======================================================================
+:)
+declare function oppidum:render-messages( $db as xs:string, $lang as xs:string ) as node()*
+{
+  for $e in oppidum:get-messages()
+  let $type := substring-before($e, ':')
+  let $clue := substring-after($e, ':')
+  return
+    oppidum:render-message($db, $type, if ($clue != '') then $clue else (), $lang)
 };
 
 (: ======================================================================
