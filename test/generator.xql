@@ -116,7 +116,7 @@ function saveSuccessCb (response, status, xhr) {{
   $('#results').text(xhr.responseText);
 }}
 function saveErrorCb (xhr, status, e) {{
-  $('#results').text('POST error ' + status);
+  $('#results').html('ERROR (' + xhr.status + ') : ' + xhr.responseText);
 }}  
 function run(goal) {{
   var url = document.forms[0]['base-url'].value + document.forms[0].path.value,
@@ -126,7 +126,7 @@ function run(goal) {{
   }} else {{
     $.ajax({{
       url : url,
-      type : 'post',
+      type : goal,
       data : data,
       dataType : 'xml',
       cache : false,
@@ -187,6 +187,9 @@ function duplicateProject() {{
           <p>
             <button onclick="javascript:run('post')">POST</button> will send the XML data below to the path URL :
           </p>
+          <p>
+            <button onclick="javascript:run('delete')">DELETE</button> will send a DELETE to the path URL
+          </p>          
           <p><textarea id="data"></textarea></p>
         </fieldset>
     </body>
