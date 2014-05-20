@@ -1,3 +1,6 @@
+<!-- ======================================================================
+                       Oppidum framework error messages
+     ====================================================================== -->
 <errors>
   <error type="URI-NOT-FOUND" code="404">
     <message lang="fr">La page demandée n'existe pas</message>
