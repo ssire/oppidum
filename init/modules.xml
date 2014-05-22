@@ -1,3 +1,7 @@
+<!-- ======================================================================
+                      Oppidum framework predefined modules
+                   FIXME: currently for testing purposes only
+     ====================================================================== -->
 <modules>
   <module id="test-a">
     <action name="GET">

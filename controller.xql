@@ -14,7 +14,8 @@ xquery version "1.0";
    and to use an Apache proxy or NGINX proxy configured to directly serve all
    '/oppidum/static/*' resources directly from the file system.
 
-   COPY this file file to the '/db/www/root' collection if you want to use it
+   To use this script you must first execute scripts/bootstrap.sh to intialize 
+   the /db/www/oppidum/config and /db/www/oppidum/mesh collections
 
    February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
    ------------------------------------------------------------------ :)
@@ -46,54 +47,6 @@ declare variable $actions := <actions error="models/error.xql">
   </action>
 </actions>;
 
-(: ======================================================================
-                  Site mappings
-   ====================================================================== :)
-declare variable $mapping := <site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum" mode="test">
-  <!-- <error mesh="standard"/> -->
-  <item name="home">
-    <model src="models/version.xql"/>
-  </item>
-  <!-- Oppidum administration module (backup / restore) -->
-  <item name="admin" resource="none" method="POST">
-    <access>
-      <rule action="GET POST" role="u:admin" message="admin"/>
-    </access>
-    <model src="oppidum:modules/admin/restore.xql"/>
-    <view src="oppidum:modules/admin/restore.xsl"/>
-    <action name="POST">
-      <model src="oppidum:modules/admin/restore.xql"/>
-      <view src="oppidum:modules/admin/restore.xsl"/>
-    </action>
-  </item>
-  <item name="scaffold" collection="monappli" resource="none">
-    <model src="models/scaffold.xql"/>
-    <view src="views/scaffold.xsl"/>
-  </item>
-  <collection name="test" supported="naction">
-    <!-- <import module="test"/> -->
-    <item name="generator" method="POST">
-      <access>
-        <rule action="POST" role="all"/>
-      </access>
-      <model src="oppidum:test/generator.xql"/>
-      <action name="POST">
-        <model src="oppidum:test/generator.xql"/>
-      </action>
-    </item>
-    <item name="skin">
-      <model src="oppidum:test/skin.xql"/>
-    </item>
-    <item name="inspect" supported="POST">
-      <model src="oppidum:models/inspect.xql"/>
-      <view/>
-      <action name="POST">
-        <model src="oppidum:models/inspect.xql"/>
-      </action>
-    </item>
-  </collection>
-</site>;
-
 declare variable $curtain := (); 
 (:declare variable $curtain := <site startref="home" supported="login" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum" mode="test">
    <item name="*">
@@ -101,7 +54,9 @@ declare variable $curtain := ();
  </item>
 </site>;:)
 
-if ($curtain and (xdb:get-current-user() != 'admin')) then 
-  gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $curtain)
-else
-  gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)
+let $mapping := fn:doc('/db/www/oppidum/config/mapping.xml')/site
+return
+  if ($curtain and (xdb:get-current-user() != 'admin')) then 
+    gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $curtain)
+  else
+    gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)

@@ -1,12 +1,10 @@
-<site startref="home" supported="login logout install" db="/db/www/oppidum"
-  confbase="/db/www/oppidum" key="oppidum" mode="test">
+<!-- ======================================================================
+                        Oppidum framework mapping
+     ====================================================================== -->
+<site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum" mode="dev">
   <!-- <error mesh="standard"/> -->
-  <item name="home" supported="bark">
+  <item name="home">
     <model src="models/version.xql"/>
-    <action name="bark" collection="BARK">
-      <model src="oppidum:barl.xql"/>
-    </action>
-    <collection name="vide"/>
   </item>
   <!-- Oppidum administration module (backup / restore) -->
   <item name="admin" resource="none" method="POST">
@@ -24,20 +22,26 @@
     <model src="models/scaffold.xql"/>
     <view src="views/scaffold.xsl"/>
   </item>
-  <collection name="test" supported="action" collection="$1" resource="main" template="MAIN" epilogue="MAIN">
-    <model src="test-get-implicit.xql">
-      <param name="foo" value="MAIN"/>
-      <param name="bar" value="MAIN"/>
-    </model>
-    <action name="action">
-      <model src="test-action.xql">
-        <param name="foo" value="MAIN"/>
-        <param name="bar" value="MAIN"/>
-      </model>
-    </action>
-    <item name="generator">
-      <model src="test/generator.xql"/>
+  <collection name="test">
+    <!-- <import module="test"/> -->
+    <item name="generator" method="POST">
+      <access>
+        <rule action="POST" role="all"/>
+      </access>
+      <model src="oppidum:test/generator.xql"/>
+      <action name="POST">
+        <model src="oppidum:test/generator.xql"/>
+      </action>
     </item>
-    <import module="test-a" param="foo=REWRITTEN"/>
+    <item name="skin">
+      <model src="oppidum:test/skin.xql"/>
+    </item>
+    <item name="inspect" supported="POST">
+      <model src="oppidum:models/inspect.xql"/>
+      <view/>
+      <action name="POST">
+        <model src="oppidum:models/inspect.xql"/>
+      </action>
+    </item>
   </collection>
 </site>

@@ -1,4 +1,6 @@
-<!-- Predefined Oppidum skins -->
+<!-- ======================================================================
+                      Oppidum framework predefined skins
+     ====================================================================== -->
 <skin xmlns="http://oppidoc.com/oppidum/skin">
     <profile name="flash" type="predef">
         <link href="css/flash.css"/>
