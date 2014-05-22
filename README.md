@@ -53,7 +53,7 @@ Oppidum is compatible with exist 1.4.x versions out of the box. We are actually 
 How to get most benefits of it ?
 ----------------
 
-Oppidum has been developped to take benefits of [AXEL]([https://github.com/ssire/axel) (Adaptable XML Editing Library). This is a JavaScript client-side library for generating document editors into web pages. It works by transforming XTiger XML document templates into editable documents. The templates are XHTML files enriched with instrutions to control editing. It can be used together with the [AXEL-FORMS](https://github.com/ssire/axel-forms) extensions to create form-oriented user interfaces with dynamic constraints checking.
+Oppidum has been developped to take benefits of [AXEL]([https://github.com/ssire/axel) (Adaptable XML Editing Library). This is a JavaScript client-side library for generating document editors into web pages. It works by transforming XTiger XML document templates into editable documents. The templates are XHTML files enriched with instructions to control editing. It can be used together with the [AXEL-FORMS](https://github.com/ssire/axel-forms) extensions to create form-oriented user interfaces with dynamic constraints checking.
 
 Some Oppidum modules are available in different editions to speed up application development (e.g. image or file upload, etc.). You are encouraged to develop and share your own modules.
 
