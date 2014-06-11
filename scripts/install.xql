@@ -30,6 +30,8 @@ declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
   <collection name="/db/www" policy="admin" inherit="true"/>
   <group name="config" mandatory="true">
     <collection name="/db/www/oppidum/config">
+      <files pattern="init/mapping.xml"/>
+      <files pattern="init/modules.xml"/>
       <files pattern="init/errors.xml"/>
       <files pattern="init/skin.xml"/>
     </collection>

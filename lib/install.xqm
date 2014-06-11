@@ -321,7 +321,7 @@ declare function install:install-policies(
   <p>Set permissions :</p>,
   <ul>
     {
-    for $c in ($specs/(install:collection[@policy] | install:group[@name = $targets]/install:collection[@policy]))
+    for $c in ($specs/install:collection[@policy] | $specs/install:group[@name = $targets]/install:collection[@policy])
     let $p := $policies/install:policy[@name = $c/@policy]
     return
       if ($p) then

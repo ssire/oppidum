@@ -190,15 +190,14 @@ declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:st
 :)
 declare function gen:must-authenticate($cmd as element()) as element()
 {                                                          
-  let 
-    $uri := request:get-uri(),                             
+  let (: FIXME: redirection to include query string ? :)
+    $uri := concat($cmd/@base-url, $cmd/@trail, if ($cmd/@verb eq 'custom') then concat('/', $cmd/@action) else ()),
     $method := request:get-method(),
     $grantee := request:get-attribute('oppidum.grantee')
       (: optional grantee should have been set when checking rights :)
-    
-  return              
+  return
     (: variant: if (($method = 'GET') and (not($cmd/@format) or ($cmd/@format = 'html'))) then :)
-    if (($method = 'GET') and (not($cmd/@format) or (string($cmd/@format) != 'xml'))) then
+    if (($method eq 'GET') and (not($cmd/@format) or ($cmd/@format ne 'xml'))) then
       let 
         $goto := concat($cmd/@base-url, 'login?url=', $uri),
         $exec := (
@@ -526,7 +525,10 @@ declare function gen:process(
   $lang as xs:string, $debug as xs:boolean,
   $access as element(), $actions as element(), $mapping as element()) as element() 
 {    
-  let $base-url := concat(request:get-context-path(), $prefix, $controller, '/')
+  let $base-url := if ($mapping/@base-url) then
+                     string($mapping/@base-url)
+                   else 
+                     concat(request:get-context-path(), $prefix, $controller, '/')
   let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
   let $def-lang := if ($mapping/@languages) then (: multilingual application, extract default language if defined :)
                      if ($mapping/@default) then string($mapping/@default) else ()
@@ -583,14 +585,3 @@ declare function gen:process(
         else
           $pipeline
 };
-
-(:let $null := oppidum:log-parameters( <parameters>
-      <param name="exist:prefix" value="{$exist:prefix}"/>
-      <param name="exist:root" value="{$exist:root}"/>
-      <param name="exist:controller" value="{$exist:controller}"/>
-      <param name="exist:path" value="{$exist:path}"/>
-      <param name="exist:resource" value="{$exist:resource}"/>
-      <param name="base-url" value="{$base-url}"/>
-      <param name="app-root" value="{$app-root}"/>
-      <param name="context" value="{request:get-context-path()}"/>
-    </parameters>  ):)

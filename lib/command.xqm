@@ -268,7 +268,12 @@ declare function command:gen-resource(
             command:import-action($index, $method, $page, $resource, $collection, $confbase)
     return
       (
-        attribute { 'action' } { if ($action-token) then $action-token else $method },
+        if ($action-token) then
+          ( attribute { 'action' } { $action-token },
+            attribute { 'verb' } { 'custom' } )
+        else 
+          ( attribute { 'action' } { $method },
+            attribute { 'verb' } { 'http' } ),
         attribute { 'type' } { name($page) }, (: item or collection :)
         element { 'resource' } {
           let $name :=  if ($action-token) then $tokens[$index - 1] else $tokens[$index]

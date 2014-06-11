@@ -23,7 +23,7 @@
     <view src="views/scaffold.xsl"/>
   </item>
   <collection name="test">
-    <!-- <import module="test"/> -->
+    <!-- <import module="test-a"/> -->
     <item name="generator" method="POST">
       <access>
         <rule action="POST" role="all"/>
@@ -36,9 +36,8 @@
     <item name="skin">
       <model src="oppidum:test/skin.xql"/>
     </item>
-    <item name="inspect" supported="POST">
+    <item name="inspect" method="POST">
       <model src="oppidum:models/inspect.xql"/>
-      <view/>
       <action name="POST">
         <model src="oppidum:models/inspect.xql"/>
       </action>

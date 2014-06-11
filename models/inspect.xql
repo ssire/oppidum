@@ -20,5 +20,8 @@ declare option exist:serialize "method=xml media-type=application/xml";
  return
   <header name="{$name}" value="{$value}"/>
  }
+ { <get-context-path>{request:get-context-path()}</get-context-path> }
+ { <get-uri>{request:get-uri()}</get-uri> }
+ { <get-query-string>{request:get-query-string()}</get-query-string> }
 </request>
  
