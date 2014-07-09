@@ -18,10 +18,26 @@
       <view src="oppidum:modules/admin/restore.xsl"/>
     </action>
   </item>
+  <!-- Oppidum localization module -->
+  <item name="localization">
+    <item name="messages" method="POST">
+      <model src="modules/localization/messages.xql"/>      
+      <action name="POST">
+        <model src="modules/localization/messages.xql"/>      
+      </action>
+    </item>
+  </item>
+  <!-- Oppidum benchmark module -->
+  <item name="benchmark">
+    <model src="modules/benchmark/fibonacci.xql"/>
+    <view src="modules/benchmark/fibonacci.xsl"/>
+  </item>
+  <!-- Placeholder pipeline to be used while constructing apps -->
   <item name="scaffold" collection="monappli" resource="none">
     <model src="models/scaffold.xql"/>
     <view src="views/scaffold.xsl"/>
   </item>
+  <!-- TO COME : future Oppidum IDE to test and debug applications  -->
   <collection name="test">
     <!-- <import module="test-a"/> -->
     <item name="generator" method="POST">
