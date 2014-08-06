@@ -10,59 +10,38 @@
 
 declare namespace request = "http://exist-db.org/xquery/request";
 
+declare namespace site = "http://oppidoc.com/oppidum/site";
+
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 import module namespace skin = "http://oppidoc.com/oppidum/skin" at "../lib/skin.xqm";
 
 declare option exist:serialize "method=html5 media-type=text/html";
 
 let $start := util:system-time()
-let $cmd := request:get-attribute('oppidum.command')
-let $pkg := request:get-parameter("pkg", 'oppidoc')
-let $mesh := request:get-parameter("mesh", 'standard')
+let $saved-cmd := request:get-attribute('oppidum.command')
+let $pkg := request:get-parameter("pkg", 'oppidum')
+let $mesh := request:get-parameter("mesh", 'devtools')
 let $skin := request:get-parameter("skin", ())
-let $confbase := request:get-parameter("confbase", '/db/www/oppidoc')
-let $base-url := request:get-parameter("base-url", $cmd/@base-url/string())
+let $confbase := request:get-parameter("confbase", '/db/www/oppidum')
+let $base-url := request:get-parameter("base-url", $saved-cmd/@base-url/string())
 let $trail := request:get-parameter("trail", '')
-let $mode := request:get-parameter("mode", 'test')
+let $mode := request:get-parameter("mode", 'dev')
 let $error := if (request:get-parameter("error", ())) then oppidum:add-error('ERROR', (), false()) else ()
 let $message := if (request:get-parameter("message", ())) then oppidum:add-message('MESSAGE', (), false()) else ()
 let $fakecommand := 
   <command mode="{$mode}" trail="{$trail}" confbase="{$confbase}" base-url="{$base-url}">
     <resource epilogue="{$mesh}"/>
   </command>
-let $sideeffect := request:set-attribute('oppidum.command', $fakecommand)
+let $fake-cmd := request:set-attribute('oppidum.command', $fakecommand)
 let $result := skin:gen-skin($pkg, $mesh, $skin)
 let $end := util:system-time()
 let $runtimems := (($end - $start) div xs:dayTimeDuration('PT1S'))  * 1000 
+let $restore-cmd := request:set-attribute('oppidum.command', $saved-cmd)
 return 
-  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-      <title>Oppidum skin test</title>
-      <style type="text/css">
-      p {{
-        margin: 0;
-      }}
-      div.code {{
-        margin: 1em 2em 2em 1em;
-        border: solid 1px black;
-        padding: 1em 2em;
-      }}
-      pre {{
-        white-space: pre-wrap; /* css-3 */
-        white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
-        white-space: -pre-wrap; /* Opera 4-6 */
-        white-space: -o-pre-wrap; /* Opera 7 */
-        word-wrap: break-word; /* Internet Explorer 5.5+ */
-      }}
-      .error {{
-        color:red
-      }}
-      </style>
-      { $result }
-    </head>
-    <body style="margin: 2em 2em">
-      <h1>Oppidum skin test</h1>
+  <site:view skin="skin">
+    <site:title>Oppidum skin simulator</site:title>
+    <site:content>
+      <h1>Skin simulator</h1>
       <p><b>Current parameters</b>: package ({$pkg}), mesh: ({$mesh}), skin: ({$skin})</p>
       <p><b>Generated links and scripts</b> in {$runtimems} ms</p>
       <p><b>Summary</b></p>
@@ -116,6 +95,6 @@ return
         </p>
         <p><input type="submit"/></p>
       </form>
-    </body>
-  </html>
+    </site:content>
+  </site:view>
     

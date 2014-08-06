@@ -1,0 +1,63 @@
+body {
+  margin: 2em 2.5em;
+  font-family: Georgia, Arial, serif;
+  line-height: 1.3;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+}
+dd {
+  margin-bottom: 0.2em;
+}
+h1 {
+  margin: 1em auto;
+}
+h1, h2, h3, h4 {
+  font-family: Trebuchet, Helvetica, sans-serif;
+}
+h2, h3, h4 {
+  margin: 1em 0 0.25em 0;
+}
+p {
+  margin: 0.75em 0 0.25em 0;
+}
+h2 + p, h3 + p, h4 + p {
+  margin-top: 0.5em;
+}
+p.img {
+  margin: 1.5em 0;
+  text-align: center;
+}
+pre {
+  margin: 1em 0;
+  border: solid 1px gray;
+  padding: 5px 10px;
+}
+@media print {
+  #header, #nav {
+    display: none;
+  }
+  body.devtools {
+    margin: 2em 2.5em;
+  }
+  #content {
+    margin: 0;
+  }
+  body, h1 {
+    margin-top: 0;
+  }
+  body {
+    font-size: 10pt;
+  }
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+  p {
+    text-align: justify;
+  }
+  pre {
+    font-size: 8pt;
+    page-break-inside: avoid;
+  }
+}

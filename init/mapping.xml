@@ -1,7 +1,7 @@
 <!-- ======================================================================
                         Oppidum framework mapping
      ====================================================================== -->
-<site startref="home" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum" mode="dev">
+<site startref="devtools" supported="login logout install" db="/db/www/oppidum" confbase="/db/www/oppidum" key="oppidum" mode="dev">
   <!-- <error mesh="standard"/> -->
   <item name="home">
     <model src="models/version.xql"/>
@@ -20,10 +20,10 @@
   </item>
   <!-- Oppidum localization module -->
   <item name="localization">
-    <item name="messages" method="POST">
-      <model src="modules/localization/messages.xql"/>      
+    <item name="messages" method="POST" epilogue="devtools">
+      <model src="modules/localization/messages.xql"/>
       <action name="POST">
-        <model src="modules/localization/messages.xql"/>      
+        <model src="modules/localization/messages.xql"/>
       </action>
     </item>
   </item>
@@ -37,19 +37,32 @@
     <model src="models/scaffold.xql"/>
     <view src="views/scaffold.xsl"/>
   </item>
+  <!-- Oppidum devtools module -->
+  <item name="devtools" resource="file:///test/devtools.xml" epilogue="devtools">
+  </item>
+  <collection name="docs">
+    <item name="toc" resource="file:///docs/toc.html" epilogue="devtools"/>
+    <item name='fr'>
+      <item name="guide" resource="file:///docs/fr/guide.html"/>
+      <item name="packaging" resource="file:///docs/fr/packaging.html"/>
+    </item>
+    <collection name="images">
+      <item resource="file:///docs/images/*"/>
+    </collection>
+  </collection>
   <!-- TO COME : future Oppidum IDE to test and debug applications  -->
   <collection name="test">
     <!-- <import module="test-a"/> -->
-    <item name="generator" method="POST">
+    <item name="generator" method="POST" epilogue="devtools">
       <access>
         <rule action="POST" role="all"/>
       </access>
       <model src="oppidum:test/generator.xql"/>
-      <action name="POST">
+      <action name="POST" epilogue="devtools">
         <model src="oppidum:test/generator.xql"/>
       </action>
     </item>
-    <item name="skin">
+    <item name="skin" epilogue="devtools">
       <model src="oppidum:test/skin.xql"/>
     </item>
     <item name="inspect" method="POST">
@@ -57,6 +70,14 @@
       <action name="POST">
         <model src="oppidum:models/inspect.xql"/>
       </action>
+    </item>
+    <item name="errors" epilogue="devtools">
+      <model src="oppidum:test/errandmsg.xql"/>
+      <view src="oppidum:test/errandmsg.xsl"/>
+    </item>
+    <item name="messages" epilogue="devtools">
+      <model src="oppidum:test/errandmsg.xql"/>
+      <view src="oppidum:test/errandmsg.xsl"/>
     </item>
   </collection>
 </site>

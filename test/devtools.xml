@@ -1,0 +1,13 @@
+<site:view xmlns:site="http://oppidoc.com/oppidum/site">
+  <site:content xmlns="http://www.w3.org/1999/xhtml">
+  <h1>Developer Tools</h1>
+  <p>The developer tools is an Oppidum application that groups together several utilities which have proved useful to develop and debug applications made with Oppidum.</p>
+  <p>Use the menu on the left to navigate.</p>
+  <h2>Third party tools</h2>
+  <p>Here is a list of other third party tools available from other sources.</p>
+  <dl>
+    <dt>Supergrid</dt>
+    <dd>A formular generator based on Bootstrap grid and on AXEL/AXEL-FORMS libraries. It uses a domain specific language to speed up formular development. Contact <a href="mailto:s.sire@oppidoc.fr">Stéphane Sire</a> at <a href="http://www.oppidoc.fr" target="_blank">Oppidoc</a> if interested.</dd>
+  </dl>
+  </site:content>
+</site:view>

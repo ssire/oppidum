@@ -1,0 +1,33 @@
+<html xmlns:site="http://oppidoc.com/oppidum/site" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <site:title/>
+    <site:skin force="true">
+      <link rel="stylesheet" href="../resources/css/flash.css" type="text/css" charset="utf-8"></link>
+      <link rel="stylesheet" href="../resources/css/devtools.css" type="text/css" charset="utf-8"></link>
+    </site:skin>
+  </head>
+  <body class="devtools">
+    <div id="header">
+      Oppidum developer tools
+    </div>
+    <div id="nav">
+      <site:navigation force="true">Menu</site:navigation>
+    </div>
+    <div id="content">
+      <div id="error" condition="has-error">
+        <span class="ui-close" onclick="javascript:document.errorOff()">X</span>
+        <site:error force="true">
+            <p>ERROR</p>
+        </site:error>
+      </div>
+      <div id="message" condition="has-message">
+        <span class="ui-close" data-timeout="1500" onclick="javascript:document.messageOff()">X</span>
+        <site:message force="true">
+            <p>MESSAGE</p>
+        </site:message>
+      </div>
+      <site:content>CONTENT</site:content>
+    </div>
+  </body>
+</html>

@@ -466,7 +466,7 @@ declare function install:install-bundle(
             {
             install:do-install-bundle($base, $policies, $bundle, $title)
             }
-            <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
+            <p>Goto : <a href="install">installation</a> | <a href=".">home</a>  | <a href="../oppidum/devtools">devtools</a></p>
           </div>
         else
           install:gen-forms-for-bundles(($bundle), false())
@@ -543,7 +543,7 @@ declare function install:install(
                   else ()
                   )
               }
-              <p>Goto : <a href="install">installation</a> | <a href=".">home</a></p>
+              <p>Goto : <a href="install">installation</a> | <a href=".">home</a> | <a href="../oppidum/devtools">devtools</a></p>
             </div>
           else (
             <p>Select the files to copy to the database below; <span

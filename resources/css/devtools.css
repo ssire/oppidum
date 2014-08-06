@@ -1,0 +1,63 @@
+body.devtools {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: lightgray;
+  padding: 5px 20px;
+  text-align: center;
+  color: white;
+}
+
+#nav {
+  float: left;
+  margin: 0 15px 0 15px;
+  width: 80px;
+  padding: 10px 10px;
+  background: lightgray;
+  border: double 1px #999;
+}
+
+#content {
+  margin: 50px 10px 10px 140px;
+}
+
+a {
+  outline: none;
+}
+
+a.ajax {
+  text-decoration: none;
+}
+
+#nav ul {
+  margin: 0;
+  padding: 0;
+}
+
+#nav li {
+  list-style-type: none;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+#nav a {
+  color: black;
+  text-decoration: none;
+}
+
+#nav hr {
+  color: #999;
+}
+
+fieldset {
+  padding: 1em 0.5em;
+  border: solid 1px #999;
+}

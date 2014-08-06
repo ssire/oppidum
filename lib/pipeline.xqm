@@ -298,7 +298,13 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
         let $src := 
           if ((string($cmd/@action) = 'GET') and (starts-with($cmd/resource/@resource, 'file:///'))) then
             (: special case to store resources to local file system :)
-            (substring-after($cmd/resource/@resource, 'file:///'), ())
+            (
+            if (ends-with($cmd/resource/@resource, '*')) then
+              replace(substring-after($cmd/resource/@resource, 'file:///'), '\*', concat($cmd/resource/@name, '.', $cmd/@format))
+            else
+              substring-after($cmd/resource/@resource, 'file:///')
+            , 
+            ())
           else if ($inline-action/model) then 
             (string($inline-action/model/@src), $inline-action/model)
           else 

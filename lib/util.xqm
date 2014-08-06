@@ -41,6 +41,15 @@ declare function oppidum:path-to-config ( $fn as xs:string? ) as xs:string
   return if ($fn) then concat($cb, '/config/', $fn) else concat($cb, '/config')
 };
 
+declare function oppidum:replace-clues( $text as xs:string, $clues as xs:string* ) as xs:string {
+  if (not(contains($text, "%s"))) then 
+    $text
+  else
+    oppidum:replace-clues(
+      replace($text, concat('(^.*?)', "%s"), concat('$1', $clues[1])), (: replace first :)
+      subsequence($clues,2))  
+};
+
 (: ======================================================================
    Returns the resource element from the command
    FIXME: this is a trick for epilogue scripts which often declare
@@ -105,25 +114,30 @@ declare function oppidum:log-parameters( $params as element() ) as empty()
 };
 
 (: ======================================================================
-   Asks epilogue to redirect
+   Stores error or message ($type, $clues) tuples into session (or request)
+   for later retrieval and rendering usually done via a call to 
+   oppidum:render-(errors | messages)
+   Marshals the tuples into a string because XQuery has no sequences of sequences
    ======================================================================
 :)
 declare function oppidum:my-add-error-or-msg(
-  $from as xs:string, $type as xs:string,
-  $object as xs:string*, $sticky as xs:boolean ) as empty()
+  $from as xs:string, 
+  $type as xs:string,
+  $clues as xs:string*, 
+  $sticky as xs:boolean ) as empty()
 {
   if ($sticky) then
     let
       $cur := session:get-attribute($from),
-      $new := (for $e in $cur return $e, concat($type, ':', $object))
+      $new-stack := ($cur, concat($type, ':', string-join($clues, '^^')))
     return
-      session:set-attribute($from, $new)
+      session:set-attribute($from, $new-stack)
   else
     let
       $cur := request:get-attribute($from),
-      $new := (for $e in $cur return $e, concat($type, ':', $object))
+      $new-stack := ($cur, concat($type, ':', string-join($clues, '^^')))
     return
-      request:set-attribute($from, $new)
+      request:set-attribute($from, $new-stack)
 };
 
 declare function oppidum:my-get-error-or-msg($from as xs:string) as xs:string*
@@ -131,15 +145,15 @@ declare function oppidum:my-get-error-or-msg($from as xs:string) as xs:string*
   let
     $flash := session:get-attribute($from),
     $empty := session:set-attribute($from, ())
-  return ( request:get-attribute($from), $flash)
+  return (request:get-attribute($from), $flash)
 };
 
-declare function oppidum:add-error( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as element()
+declare function oppidum:add-error( $type as xs:string, $clues as xs:string*, $sticky as xs:boolean ) as element()
 {
-  let $null := oppidum:my-add-error-or-msg('errors', $type, $object, $sticky)
+  let $null := oppidum:my-add-error-or-msg('errors', $type, $clues, $sticky)
   return
     <error>{
-      if ($object) then attribute object { $object } else (),
+      if (empty($clues)) then () else attribute object { $clues },
       $type
     }</error>
 };
@@ -155,12 +169,12 @@ declare function oppidum:get-errors() as xs:string*
   oppidum:my-get-error-or-msg('errors')
 };
 
-declare function oppidum:add-message( $type as xs:string, $object as xs:string*, $sticky as xs:boolean ) as element()
+declare function oppidum:add-message( $type as xs:string, $clues as xs:string*, $sticky as xs:boolean ) as element()
 {
-  let $null := oppidum:my-add-error-or-msg('flash', $type, $object, $sticky)
+  let $null := oppidum:my-add-error-or-msg('flash', $type, $clues, $sticky)
   return
     <success>{
-      if ($object) then attribute object { $object } else (),
+      if (empty($clues)) then () else attribute object { $clues },
       $type
     }</success>
 };
@@ -205,34 +219,33 @@ declare function oppidum:render-error(
       else
         $error/message, (: any language :)
     $msg :=
-      if ($err-clue) then
-        string($msgs[string(@noargs) != 'yes'][1])
+      if (empty($err-clue)) then
+        string($msgs[1])
       else
-        string($msgs[1]),
+        string($msgs[string(@noargs) != 'yes'][1]),
     $message := if ($msg) then $msg else concat("Error (", $err-type, ")"),
-    $arg := if ($err-clue) then $err-clue else '',
-    $text := if (contains($message, "%s")) then replace($message, "%s", $arg) else $message
-    (: FIXME: substituer la clue :)
-
+    $arg := if (empty($err-clue)) then '' else $err-clue,
+    $text := oppidum:replace-clues($message, $arg)
   return
     <error>
       {
-      if ($error/@code) then
+      if ($error/@code) then (
+        attribute status { string($error/@code) },
         if ($exec) then
           response:set-status-code($error/@code)
         else
-          attribute code { $error/@code }
+          ()
+        )
       else (),
-      <message>{$text}</message>
+      <message type="{$err-type}">{$text}</message>
       }
     </error>
 };
 
 (: ======================================================================
-   Returns the full error message for an error with a given type and clue
-   Uses /config/errors.xml database(s) to expand error messages
-   Returns an <error code=""><message/></error> fragment
-   Eventually sets the response status code if $exec is true()
+   Returns the full information message for a message with a given type and clue
+   Uses config/messages.xml database(s) to expand error messages
+   Directly returns a <message type="..">...</message> element
    ======================================================================
 :)
 declare function oppidum:render-message(
@@ -241,17 +254,60 @@ declare function oppidum:render-message(
   $clues as xs:string*,
   $lang as xs:string) as element()
 {
+  oppidum:render-message($db, $type, $clues, $lang, false(), ())
+};
+
+(: ======================================================================
+   Same as simpler oppidum:render-message() function 
+   In addition sets the response status code when $exec is true()
+   ======================================================================
+:)
+declare function oppidum:render-message(
+  $db as xs:string,
+  $type as xs:string,
+  $clues as xs:string*,
+  $lang as xs:string,
+  $exec as xs:boolean) as element()
+{
+  oppidum:render-message($db, $type, $clues, $lang, $exec, ())
+};
+
+(: ======================================================================
+    Same as simpler oppidum:render-message() function 
+    In addition wraps the <message> element inside a wrapper element
+    FIXME: 
+    - check @envelope on message to set wrapper element name
+    - fallback to Oppidum default messages if not $found
+   ======================================================================
+:)
+declare function oppidum:render-message(
+  $db as xs:string,
+  $type as xs:string,
+  $clues as xs:string*,
+  $lang as xs:string,
+  $exec as xs:boolean,
+  $wrapper as xs:string?
+  ) as element()
+{
   let $msg-uri := concat($db, '/config/messages.xml')
   let $found := fn:doc($msg-uri)/messages/info[@type = $type] 
-                (: FIXME: fallback to Oppidum default messages :)
   let $candidates := if ($found/message[@lang = $lang]) then $found/message[@lang = $lang] else $found/message
-  let $preferred := if ($clues) then string($candidates[string(@noargs) != 'yes'][1]) else string($candidates[1])
-  let $src := if ($preferred) then $preferred else concat("Message (", $type, ")")
-  let $arg := if ($clues) then $clues else ''
-  let $text := if (contains($src, "%s")) then replace($src, "%s", $arg) else $src
-               (: FIXME: extend to multiple clues !!! :)
+  let $msg := if (empty($clues)) then $candidates[1] else $candidates[string(@noargs) != 'yes'][1]
+  let $src := if ($msg) then string($msg) else concat("Message (", $type, ")")
+  let $arg := if (empty($clues)) then '' else $clues
+  let $text := oppidum:replace-clues($src, $arg)
   return
-    <message type="{$type}">{ $text }</message>
+    (
+    if (($found/@code) and $exec) then response:set-status-code($found/@code) else (),
+    if ($wrapper) then
+      element { $wrapper }
+        {
+        if ($found/@code) then attribute status { string($found/@code) } else (),
+        <message type="{$type}">{ $text }</message>
+        }
+    else
+      <message type="{$type}">{ $text }</message>
+    )
 };
 
 (: ======================================================================
@@ -280,48 +336,64 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
    that will cause eXist to terminate the pipeline rendering.
    ======================================================================
 :)
-declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string? ) as element()
+declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
 {
   let $cmd := request:get-attribute('oppidum.command')
   let $level := oppidum:get-pipeline-type($cmd)
   return
-    if ($level < 3) then (: expands the error message :)
+    if ($level < 3) then (: immediate rendering of error :)
       let $pipeline := request:get-attribute('oppidum.pipeline')
       let $set-status := ($level = 1) or (($level = 2) and empty($pipeline/view[@onerror]))
       (: because a model-view pipeline may ask to execute the view even in case of error with onerror="render" :)
       return oppidum:render-error($cmd/@confbase, $err-type, $err-clue, $cmd/@lang, $set-status)
     else
-      (: stores error message for later rendering in the epilogue :)
+      (: side storage of error for later rendering by the epilogue :)
       oppidum:add-error($err-type, $err-clue, if (($level = 4) or (request:get-attribute('oppidum.redirect.to'))) then true() else false())
 };
 
 (: ======================================================================
    Consumes the current error stack filled with oppidum:add-error
-   and returns a list of expanded <error> messages
+   Unmarshals the error tuples and returns a list of expanded <error> messages
    Sets the response status code (so it must be called at the end of a pipeline)
    ======================================================================
 :)
 declare function oppidum:render-errors( $db as xs:string, $lang as xs:string ) as node()*
 {
-  for $e in oppidum:get-errors()
-  let $type := substring-before($e, ':')
-  let $clue := substring-after($e, ':')
+  for $err in oppidum:get-errors()
+  let $type := substring-before($err, ':')
+  let $clues := tokenize(substring-after($err, ':'), '\^\^')
   return
-   oppidum:render-error($db, $type, if ($clue != '') then $clue else (), $lang, true())
+   oppidum:render-error($db, $type, $clues, $lang, true())
+};
+
+declare function oppidum:throw-message( $msg-type as xs:string, $clues as xs:string* ) as element()
+{
+  let $cmd := request:get-attribute('oppidum.command')
+  let $level := oppidum:get-pipeline-type($cmd)
+  return
+    if ($level < 3) then (: immediate rendering of message :)
+      let $pipeline := request:get-attribute('oppidum.pipeline')
+      let $set-status := ($level = 1)
+      return 
+        oppidum:render-message($cmd/@confbase, $msg-type, $clues, $cmd/@lang, $set-status, 'success')
+    else
+      (: side storage of message for later rendering by the epilogue :)
+      oppidum:add-message($msg-type, $clues, if (($level = 4) or (request:get-attribute('oppidum.redirect.to'))) then true() else false())
 };
 
 (: ======================================================================
    Consumes the current message stack filled with oppidum:add-error
-   and returns a list of expanded <message> messages
+   Unmarshals the message tuples and returns a list of expanded <message> messages
+   Sets the optional response status code (so it must be called at the end of a pipeline)
    ======================================================================
 :)
 declare function oppidum:render-messages( $db as xs:string, $lang as xs:string ) as node()*
 {
   for $e in oppidum:get-messages()
   let $type := substring-before($e, ':')
-  let $clue := substring-after($e, ':')
+  let $clues := tokenize(substring-after($e, ':'), '\^\^')
   return
-    oppidum:render-message($db, $type, if ($clue != '') then $clue else (), $lang)
+    oppidum:render-message($db, $type, $clues, $lang, true())
 };
 
 (: ======================================================================

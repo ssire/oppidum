@@ -1,0 +1,37 @@
+div.code {
+  margin: 1em 2em 2em 1em;
+  border: solid 1px black;
+  padding: 1em 2em;
+}
+pre {
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+form p {
+  margin: 0;
+}
+fieldset {
+  position: relative;
+}
+#left {
+  float:left;
+  width:300px;
+}
+#right {
+  margin-left: 400px;
+}
+#data {
+  width: 100%;
+  min-height: 200px;
+}
+fieldset p {
+  margin: 0 0 0.5em 0;
+  clear: both;
+}
+span.label {
+  float: left;
+  width: 100px;
+}
