@@ -1,23 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<site:view skin="docs" xmlns:site="http://oppidoc.com/oppidum/site" xmlns="http://www.w3.org/1999/xhtml">
+  <site:backup>
+    <head>
+  	  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+    </head>
+    <link rel="stylesheet" href="../../resources/css/docs.css" charset="utf-8"></link>
+    <!--
+    TextMate post-generation instructions : replace "<pre><code>(.*)" by "<pre><code>\n    $1"
+     -->
+  </site:backup>
+  <site:content xmlns="http://www.w3.org/1999/xhtml">
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-	<title>Packager et déployer une application avec Oppidum</title>
-  <link rel="stylesheet" href="../../resources/css/docs.css" type="text/css" media="screen" title="no title" charset="utf-8">
-  <!--
-  Pour TextMate
-  s/</pre></code>/</pre></code>/
-  s/<pre><code>    (.*)/<pre><code>  $1/
-   -->
-</head>
-
-<body>
   <h1 id="packager_et_dployer_une_application_avec_oppidum">Packager et déployer une application avec Oppidum</h1>
 
-  <p>Par Stéphane Sire (Oppidoc), <a href="&#109;&#x61;&#x69;&#108;&#x74;o:&#x73;&#x2E;&#115;&#105;&#x72;&#101;&#64;&#111;p&#112;&#105;&#100;&#111;&#99;&#46;&#x66;&#x72;">&#x73;&#x2E;&#115;&#105;&#x72;&#101;&#64;&#111;p&#112;&#105;&#100;&#111;&#99;&#46;&#x66;&#x72;</a>, Janvier 2013</p>
+  <p>Par Stéphane Sire (Oppidoc), <a href="&#x6D;&#97;&#105;&#x6C;&#116;&#111;:&#x73;&#46;s&#x69;&#x72;e&#64;&#111;&#x70;&#112;&#105;&#100;&#111;c&#x2E;&#x66;&#x72;">&#x73;&#46;s&#x69;&#x72;e&#64;&#111;&#x70;&#112;&#105;&#100;&#111;c&#x2E;&#x66;&#x72;</a>, Janvier 2013</p>
 
   <p>Le développement de l&#8217;application s&#8217;effectue directement avec la configuration par défaut d&#8217;eXist qui fonctionne avec le serveur d&#8217;application Jetty. Pour la mise en production vous pouvez au choix conserver celle-ci (cf. <a href="http://exist-open.markmail.org/thread/bwhv3c2rk7gpmfui">mail</a>) ou bien utiliser un autre serveur d&#8217;application tel que Tomcat. Dans ce dernier cas il faut générer un fichier WAR contenant eXist-DB et des archives ZIP contenant Oppidum, le code de votre application et les données de votre application.</p>
 
@@ -65,6 +60,7 @@
   <p>A noter qu&#8217;en production il faut aussi couper l&#8217;accès à l&#8217;API REST de eXist qui est par ailleurs nécessaire pour exécuter l&#8217;application depuis la base de données. Pour cela il faut modifier le fichier <code>web.xml</code> et metttre le paramètre <em>hidden</em> à <code>true</code> du servlet EXistServlet :</p>
 
   <pre><code>
+  
   &lt;init-param&gt;
      &lt;param-name&gt;hidden&lt;/param-name&gt;
      &lt;param-value&gt;true&lt;/param-value&gt;
@@ -390,5 +386,6 @@
   <p>Nous recommandons de définir un répertoire <code>database</code> en dehors du répertoire tomcat, sur lequel l&#8217;application peut écrire et accessible par FTP. Le module d&#8217;administration de Oppidum permet de faire manuellement une backup sélective (et une restoration) de tout ou partie de la BD dans une archive .ZIP dans un répertoire externe. Nous utilisons cette procédure lors des mises à jour.</p>
 
   <p>Il est aussi possible de configurer l&#8217;application (via le fichier <code>conf.xml</code>) pour effectuer périodiquement une backup dans une répertoire défini à l&#8217;avance. Voir la documentation de eXist-DB.</p>
-</body>
-</html>
+
+  </site:content>
+</site:view>

@@ -11,6 +11,8 @@ xquery version "1.0";
    
 module namespace gen = "http://oppidoc.com/oppidum/generator";
 
+declare namespace exist = "http://exist.sourceforge.net/NS/exist";
+
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
@@ -253,21 +255,31 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
               {
               if ($variant/@epilogue) then $variant/@epilogue else $cmd/resource/@epilogue,
               if ($variant/@check) then $variant/@check else $cmd/resource/@check,
+              if ($variant/@resource) then $variant/@resource else $cmd/resource/@resource,
               if ($variant/model) then $variant/model else if ($cmd/resource/action/model) then $cmd/resource/action/model else $cmd/resource/model,
               if ($variant/view) then $variant/view else if ($cmd/resource/action/view) then $cmd/resource/action/view else $cmd/resource/view
               }
               </action> 
-            else  
-              <action/> (: no variant for the given format, that's an error unless there is a default action - FIXME Issue #16 :)   
+            else 
+              (: no variant for the format, it's an error unless there's a default action or a pass through syntax - FIXME Issue #16 :)            
+              if (starts-with($cmd/resource/@resource, 'file:///:self')) then
+                (: special pass through :self catch-all files syntax to serve all files from their parent :)
+                <action> 
+                  { $cmd/resource/@resource }
+                </action>
+              else
+                <action/>
+            
         else
           if ($cmd/resource/action) then 
             $cmd/resource/action
           else
-            (: syntactic sugar : implicit action :)
+            (: syntactic sugar : generates action from item or collection primary content :)
             <action>
             {
             $cmd/resource/@epilogue,
             $cmd/resource/@check,
+            $cmd/resource/@resource,
             $cmd/resource/model,
             $cmd/resource/view
             }
@@ -296,13 +308,13 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
         
         (: MODEL :)
         let $src := 
-          if ((string($cmd/@action) = 'GET') and (starts-with($cmd/resource/@resource, 'file:///'))) then
-            (: special case to store resources to local file system :)
+          if ((string($cmd/@action) = 'GET') and (starts-with($inline-action/@resource, 'file:///'))) then
             (
-            if (ends-with($cmd/resource/@resource, '*')) then
-              replace(substring-after($cmd/resource/@resource, 'file:///'), '\*', concat($cmd/resource/@name, '.', $cmd/@format))
+            (: special case to target multiple files at once in a same parent :)              
+            if (ends-with($inline-action/@resource, '*')) then
+              replace(substring-after($inline-action/@resource, 'file:///'), '\*', concat($cmd/resource/@name, '.', $cmd/@format))
             else
-              substring-after($cmd/resource/@resource, 'file:///')
+              substring-after($inline-action/@resource, 'file:///')
             , 
             ())
           else if ($inline-action/model) then 
@@ -347,7 +359,7 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
    In case of error, sets "oppidum.pipeline" with the rendered error pipeline.
    ======================================================================
  :)                                        
-declare function gen:check($cmd as element(), $pipeline as element()) as element()*
+declare function gen:check($cmd as element(), $pipeline as element(), $granted as xs:boolean ) as element()*
 {
   if ($cmd/@error) then                
     if ($cmd/@error = 'not-found') then
@@ -361,12 +373,10 @@ declare function gen:check($cmd as element(), $pipeline as element()) as element
       else        
         gen:error($cmd, 'NO-PIPELINE-ERROR', ())
     else 
-      let $granted := request:get-attribute('oppidum.granted')
-      return 
-        if (not($granted)) then
-          gen:must-authenticate($cmd)
-        else
-          ()
+      if (not($granted)) then
+        gen:must-authenticate($cmd)
+      else
+        ()
 };
 
 declare function gen:expand-paths( $exp as xs:string, $trail as xs:string ) as xs:string
@@ -389,7 +399,7 @@ declare function gen:model_parameters($cmd as element(), $pipeline as element())
 {
   for $p in $pipeline/model/param
   return
-    <set-attribute name="{concat('xquery.', $p/@name)}" value="{$p/@value}"/>
+    <exist:set-attribute name="{concat('xquery.', $p/@name)}" value="{$p/@value}"/>
 };
 
 declare function gen:more_view_parameters($cmd as element(), $pipeline as element()) as element()*
@@ -397,18 +407,18 @@ declare function gen:more_view_parameters($cmd as element(), $pipeline as elemen
   (: some paramater names are reserved, see "URL Rewriting and MVC Framework" in eXist-db doc :)
   let $reserved := ("user", "password", "stylesheet", "rights", "base-url", "format", "input")
   return (
-    if ($cmd/@format) then <set-attribute name="xslt.format" value="{$cmd/@format}"/> else (),
-    <set-attribute name="xslt.base-url" value="{$cmd/@base-url}"/>,
-    <set-attribute name="xslt.lang" value="{$cmd/@lang}"/>,
+    if ($cmd/@format) then <exist:set-attribute name="xslt.format" value="{$cmd/@format}"/> else (),
+    <exist:set-attribute name="xslt.base-url" value="{$cmd/@base-url}"/>,
+    <exist:set-attribute name="xslt.lang" value="{$cmd/@lang}"/>,
     for $var in request:get-parameter-names() 
     return
       if (not($var = $reserved)) then
-        <set-attribute name="{concat('xslt.', $var)}" value="{request:get-parameter($var, ())}"/>
+        <exist:set-attribute name="{concat('xslt.', $var)}" value="{request:get-parameter($var, ())}"/>
       else (),
     for $p in $pipeline/view/param
     return
       if (not($p/@name = $reserved)) then
-        <set-attribute name="{concat('xslt.', $p/@name)}" value="{gen:expand-paths($p/@value, $cmd/@trail)}"/>
+        <exist:set-attribute name="{concat('xslt.', $p/@name)}" value="{gen:expand-paths($p/@value, $cmd/@trail)}"/>
       else ()
     )
 };
@@ -419,24 +429,35 @@ declare function gen:more_view_parameters($cmd as element(), $pipeline as elemen
    As a side effect sets "oppidum.pipeline" with the rendered pipeline.
    ======================================================================
 :)     
-declare function gen:render($cmd as element(), $pipeline as element(), $mkey as xs:string) as element()*
+declare function gen:render( $cmd as element(), $pipeline as element(), $mkey as xs:string, $rights as xs:string ) as element()*
 {
   let 
-    $avail := if (not($pipeline/@check)) then 'yes' else gen:check-availability($cmd, $pipeline),
-    $void := request:set-attribute('oppidum.pipeline', $pipeline)
+    $avail := if (not($pipeline/@check)) then 'yes' else gen:check-availability($cmd, $pipeline)
     
   return 
-    <exist:dispatch xmlns:exist="http://exist.sourceforge.net/NS/exist">
-    {                
+    <exist:dispatch>
+    {
+    (: selfie to prevent gen:process to set oppidum environment variables since a selfie pipeline does not need it
+       and to avoid clearing the variables for the "caller" pipeline - eXist 2.x compatiblity  :)
+    if ($pipeline/model/@src eq ':self' and not($pipeline/(view | epilogue))) then 
+      attribute selfie { "1" }
+    else 
+      request:set-attribute('oppidum.pipeline', $pipeline)
+    }
+    {
       (: MODEL :)  
       if ($pipeline/model) then
         (: FIXME: turn DB-NOT-FOUND into a pre-construction error ? :)
         if ($avail = 'yes') then
-          <forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src, $mkey)}" xmlns="http://exist.sourceforge.net/NS/exist">
-            <set-header name="Cache-Control" value="no-cache"/>
-            <set-header name="Pragma" value="no-cache"/>
-            { gen:model_parameters($cmd, $pipeline) }
-          </forward>          
+          (: extracts file directly from file system / db depending on controller's position, compatible with exist 2.x :)
+          if ($pipeline/model/@src eq ':self') then
+            ()
+          else
+            <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src, $mkey)}" xmlns="http://exist.sourceforge.net/NS/exist">
+              <set-header name="Cache-Control" value="no-cache"/>
+              <set-header name="Pragma" value="no-cache"/>
+              { gen:model_parameters($cmd, $pipeline) }
+            </exist:forward>
         else              
           <exist:forward url="{gen:path-to-lib($cmd/@app-root, $cmd/@exist-path, 'models/error.xql', 'oppidum')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
@@ -462,15 +483,13 @@ declare function gen:render($cmd as element(), $pipeline as element(), $mkey as 
               <exist:redirect url="{concat($cmd/@base-url, string-join((tokenize($cmd/@trail, '/')[. ne ''])[position() < last()], '/'))}"/>
             else
               if ($pipeline/view and (($avail = 'yes') or (string($pipeline/view/@onerror) = "render"))) then
-                let 
-                  $src := $pipeline/view/@src,
-                  $rights := request:get-attribute('oppidum.rights')
+                let $src := $pipeline/view/@src
                 return
-                  <forward servlet="XSLTServlet" xmlns="http://exist.sourceforge.net/NS/exist">
+                  <exist:forward servlet="XSLTServlet" xmlns="http://exist.sourceforge.net/NS/exist">
                     <set-attribute name="xslt.stylesheet" value="{gen:path-to-view($cmd/@app-root, $src, $mkey)}"/>
                     <set-attribute name="xslt.rights" value="{$rights}"/>
                     { gen:more_view_parameters($cmd, $pipeline) }
-                  </forward>
+                  </exist:forward>
               else 
                 (),        
               (: EPILOGUE :)  
@@ -491,19 +510,24 @@ declare function gen:render($cmd as element(), $pipeline as element(), $mkey as 
    defaults. $mkey is the application name to resolve mapping URIs.
    ======================================================================
 :)     
-declare function gen:pipeline($cmd as element(), $default as element()*, $mkey as xs:string ) as element()*
+declare function gen:pipeline(
+  $cmd as element(), 
+  $default as element()*, 
+  $mkey as xs:string, 
+  $rights as xs:string, 
+  $granted as xs:boolean  ) as element()*
 {     
   (: tries to resolve the command into a pipeline specification :)
   let $pipeline := gen:resolve($cmd, $default)
   return
     (: checks the resolved pipeline is executable, 
        otherwise replaces it with an error pipeline specification :)
-    let $error := gen:check($cmd, $pipeline)
+    let $error := gen:check($cmd, $pipeline, $granted)
     return
       if ($error) then 
-        gen:render($cmd, $error, $mkey)
+        gen:render($cmd, $error, $mkey, $rights)
       else 
-        gen:render($cmd, $pipeline, $mkey)
+        gen:render($cmd, $pipeline, $mkey, $rights)
 };           
 
 (: ======================================================================
@@ -568,19 +592,37 @@ declare function gen:process(
           <forward url="{gen:path-to-static-resource($app-root, $path, $path, string($mapping/@key))}"/>
           <cache-control cache="yes"/>
        </dispatch>
-     
+
+    (: required for exist 2.x to serve static resources in second pass :)
+    else if (starts-with($path, "/resources/")) then
+      <ignore xmlns="http://exist.sourceforge.net/NS/exist">
+        <cache-control cache="no"/>
+      </ignore>
+
     else
       (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
          si on l'utilise passer $exist:root, $exist:prefix  :)
       let 
         $cmd := command:parse-url($base-url, $app-root, $exist-path, $path, request:get-method(), $mapping, $lang, $def-lang),
         $default := command:get-default-action($cmd, $actions),
-        $set1 := request:set-attribute('oppidum.base-url', $base-url),      
-        $set2 := request:set-attribute('oppidum.command', $cmd),      
-        $rights := request:set-attribute('oppidum.rights', oppidum:get-rights-for($cmd, $access)),
-        $granted := request:set-attribute('oppidum.granted', oppidum:check-rights-for($cmd, $access)),
-        $pipeline := gen:pipeline($cmd, $default, string($mapping/@key))
-      return 
+        $rights := oppidum:get-rights-for($cmd, $access),
+        $granted := oppidum:check-rights-for($cmd, $access),
+        $pipeline := gen:pipeline($cmd, $default, string($mapping/@key), $rights, $granted)
+      return
+        ( 
+        if (not($pipeline/@selfie)) then
+          (: sets oppidum "environment" variables for the pipeline scripts :)
+          let $raw-ppl := request:get-attribute('oppidum.pipeline')
+          return
+            (
+            request:set-attribute('oppidum.base-url', $base-url),
+            request:set-attribute('oppidum.command', $cmd),
+            request:set-attribute('oppidum.rights', $rights),
+            request:set-attribute('oppidum.granted', $granted),
+            request:set-attribute('oppidum.mesh', if ($raw-ppl/epilogue/@mesh) then string($raw-ppl/epilogue/@mesh) else ())
+            )
+        else
+          (),
         (: debug :)
         if ($debug and (($cmd/@format = 'debug') or (request:get-parameter('debug', '') = 'true'))) then
           let 
@@ -590,4 +632,5 @@ declare function gen:process(
             gen:debug-command($cmd)
         else
           $pipeline
+        )
 };

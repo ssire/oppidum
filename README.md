@@ -32,30 +32,46 @@ There is a [tutorial repository](https://github.com/ssire/tutorial) that contain
 
 We have also setup an [oppidum-dev](https://groups.google.com/forum/?fromgroups#!forum/oppidum-dev) Google group to share assistance and discuss new features.
 
+As a general introduction you can read the [XML London 2013 presentation of Oppidum](http://xmllondon.com/2013/presentations/sire/). 
+
 How to test it ?
 ----------------
 
 You need to install [eXist-db](http://exist-db.org/exist/download.xml) on your system first. 
 
-Then clone Oppidum from this repository directly inside the `webapp` folder of your eXist installation. We strongly advise to create a `projets` folder inside the `webapp` folder and to checkout oppidum within that folder (actually you MUST name this folder `projets` in french for the automatic installation scripts to work - _this will be corrected_) :
+Then create a project folder that will contain your oppidum applications directly inside the the `webapp` folder of your eXist installation. For instance you can call it `projects`. The next step is to clone Oppidum inside your projects folder. This should create an `oppidum` folder into your project folder. Then edit the `oppidum/scripts/install.xql` file to set your project path into the `$local:base` variable at line 19. Note that by defaut this is set to `/projets/oppidum` (note the project folder is named __projets__ in French, so if you do not want to change anything call your projects folder `projets`) :
 
     cd {eXist-Home}/webapp
-    mkdir projets
-    cd projects
-    git clone git://github.com/ssire/oppidum.git
+    mkdir "your projects folder name"
+    cd "your projects folder name"
+    git clone https://github.com/ssire/oppidum.git
+    # or git clone git://github.com/ssire/oppidum.git if you have setup ssh with your github account
+    vim oppidum/scripts/install.xql 
+    # edit line 19 to replace "projets" with "your projects folder name"
 
-For convenience Oppidum distribution contains a `script/start.sh` shell script that you can use to start eXist-db. Then you can point your browser to `http://localhost:8080/exist/projets/oppidum` to see a version screen. You can use the `script/stop.sh` to stop it (edit the file to set your database password within it). 
+Then you need to start eXist-DB and to execute `./bootstrap.sh` (from the `oppidum/scripts` folder) to install a few oppidum files into the database, passing as first parameter the database admin password :
 
-You should then develop your application in a sibling folder of the `oppidum` folder inside the `projets` folder.
+    cd {eXist-Home}/webapp
+    cd "your projects folder name"/oppidum/scripts
+    ./bootstrap.sh password
+    
+That's it ! You can now point your browser to `http:localhost:8080/exist/"your projects folder name"/oppidum` (assuming you didn't change eXist-DB default listening port).
+    
+For convenience Oppidum distribution contains a `script/start.sh` shell script that you can use to start eXist-db. You can use the `script/stop.sh` to stop it (edit the file to set your database password within it). Both script must be run from the `oppidum` folder location because they use relative urls to invoke eXist-DB shell commands to start/stop the database.
 
-Oppidum is compatible with exist 1.4.x versions out of the box. We are actually doing efforts to fully integrate it with the new eXist 2.0 release integrated development environment.
+Note : if you are using the mapping simulator tool you also need to edit `oppidum/resources/lib/generator.js` line 29 to replace "projets" with "your projects folder name".
+
+Compatiblity
+----------------
+
+Oppidum runs with eXist-DB 1.4.x and 2.x out of the box on computers running Linux and Apple OS X. We haven't tested it on windows computer yet, there should be some issues with path separator in the library code. For eXist-2.x you need to have a Java SDK version 1.7 or superior. We are actually doing efforts to improve integration with eXist-DB 2.x to release Oppidum as a XAR package in the future (and to remove the dependency to the project folder name in the installer).
 
 How to get most benefits of it ?
 ----------------
 
 Oppidum has been developped to take benefits of [AXEL]([https://github.com/ssire/axel) (Adaptable XML Editing Library). This is a JavaScript client-side library for generating document editors into web pages. It works by transforming XTiger XML document templates into editable documents. The templates are XHTML files enriched with instructions to control editing. It can be used together with the [AXEL-FORMS](https://github.com/ssire/axel-forms) extensions to create form-oriented user interfaces with dynamic constraints checking.
 
-Some Oppidum modules are available in different editions to speed up application development (e.g. image or file upload, etc.). You are encouraged to develop and share your own modules.
+Some Oppidum modules are available in different editions to speed up application development (e.g. image or file upload, forms generator, etc.). You are encouraged to develop and share your own modules.
 
 Editions
 --------

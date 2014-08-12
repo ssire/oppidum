@@ -4,8 +4,12 @@
 # Preconditions
 # - eXist instance running
 # - edit ../../../../client.properties to point to the running instance (port number, etc.)
+# - to be run from the script folder itself (because of relative paths)
 # ---
 # Creates the initial /db/www/oppidum/config and /db/www/oppidum/mesh collections
-# Then you can point your browser to http://localhost:8080/exist/{project directory}/oppidum
+# Sets execute permission (eXist 2.x compatibility)
+# Then you can point your browser to http://localhost:8080/exist/{your projects folder name}/oppidum
 ../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/mesh -p ../mesh
 ../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/config -p ../init
+echo "xmldb:chmod-collection('/db/www/oppidum/config', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x
+echo "xmldb:chmod-collection('/db/www/oppidum/mesh', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x

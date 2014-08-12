@@ -19,7 +19,7 @@ declare option exist:serialize "method=xhtml media-type=text/html indent=yes";
 declare variable $local:base := "/projets/oppidum";
 
 declare variable $policies := <policies xmlns="http://oppidoc.com/oppidum/install">
-  <policy name="admin" owner="admin" group="dba" perms="rwur--r--"/>
+  <policy name="admin" owner="admin" group="dba" perms="rwur-ur-u"/>
 </policies>;
 
 declare variable $site := <site xmlns="http://oppidoc.com/oppidum/install">

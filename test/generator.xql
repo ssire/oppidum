@@ -59,7 +59,7 @@ let $result := if ((local-name($command) = 'error') or ($type = 'Command')) then
                else
                  let $default := <actions/>
                  return
-                   gen:pipeline($command, $default, string($mapping/@key))
+                   gen:pipeline($command, $default, string($mapping/@key), '', true())
 
 (: end timer :)
 let $end := util:system-time()

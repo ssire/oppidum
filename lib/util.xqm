@@ -62,19 +62,13 @@ declare function oppidum:get-resource ( $cmd as element() ) as element()?
   $cmd/resource
 };
 
+(: ======================================================================
+   Returns the mesh name to use to render the current pipeline or the empty sequence
+   ======================================================================
+:)
 declare function oppidum:get-epilogue ( $cmd as element() ) as xs:string?
 {
-  if ($cmd/resource/@epilogue) then
-    string($cmd/resource/@epilogue)
-  else if ($cmd/resource/action) then
-    string($cmd/resource/action/@epilogue)
-  else (: FIXME: special case when pipeline is inherited from a default action :)
-    let $pipeline := request:get-attribute('oppidum.pipeline')
-    return 
-      if ($pipeline/epilogue) then 
-        string($pipeline/epilogue/@mesh)
-      else 
-        ()
+  request:get-attribute('oppidum.mesh')
 };
 
 (: ======================================================================

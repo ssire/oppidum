@@ -95,7 +95,7 @@ declare function install:webapp-home( $localPath as xs:string ) {
 
 declare function install:create-collection($parent as xs:string, $collection as xs:string)
 {
-  if (xdb:collection-exists(concat($parent, '/', $collection))) then
+  if (xdb:collection-available(concat($parent, '/', $collection))) then
     <li>Collection {concat($parent, '/', $collection)} already exists, skip creation</li>
   else
     let $r := xdb:create-collection($parent, $collection)
@@ -206,7 +206,7 @@ declare function install:install-collection($home as xs:string, $col as element(
     let $tokens := tokenize($col-name, '/')[. != '']
     for $i in 2 to count($tokens)
     let $cur := concat('/', string-join($tokens[position() <= $i], '/'))
-    where ($i = count($tokens)) or not(xdb:collection-exists($cur))
+    where ($i = count($tokens)) or not(xdb:collection-available($cur))
     return
       install:create-collection(concat("/", string-join($tokens[position() <= ($i - 1)], '/')), $tokens[$i]),
     for $f in $col/install:files

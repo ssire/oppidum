@@ -41,18 +41,25 @@
   <item name="devtools" resource="file:///test/devtools.xml" epilogue="devtools">
   </item>
   <collection name="docs">
-    <item name="toc" resource="file:///docs/toc.html" epilogue="devtools"/>
+    <item name="toc" resource="file:///docs/toc.html" epilogue="devtools">
+      <variant name="GET" format="html" resource="file:///:self" epilogue=""/>
+    </item>
     <item name='fr'>
-      <item name="guide" resource="file:///docs/fr/guide.html"/>
-      <item name="packaging" resource="file:///docs/fr/packaging.html"/>
+      <item name="guide">
+        <variant name="GET" format="html" resource="file:///:self" epilogue="devtools"/>
+      </item>
+      <item name="packaging">
+        <variant name="GET" format="html" resource="file:///:self" epilogue="devtools"/>
+      </item>
     </item>
     <collection name="images">
-      <item resource="file:///docs/images/*"/>
+      <item resource="file:///:self"/>
     </collection>
   </collection>
   <!-- TO COME : future Oppidum IDE to test and debug applications  -->
   <collection name="test">
     <!-- <import module="test-a"/> -->
+    <item name="devtools" resource="file:///:self"/>
     <item name="generator" method="POST" epilogue="devtools">
       <access>
         <rule action="POST" role="all"/>
