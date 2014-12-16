@@ -87,11 +87,15 @@ declare function skin:_js-link( $script as element(), $cmd as element(), $base a
           }
       else 
         (),
-      if ($script/@data-bundles-path) then
+      if ($script/@data-bundles-path) then (: URL rewrite :)
         attribute { 'data-bundles-path' } { concat($base, $script/@data-bundles-path) }
       else
         (),
-      attribute { 'type' } { 'text/javascript' }, 
+      if ($script/@type) then
+        $script/@type
+      else
+        attribute { 'type' } { 'text/javascript' },
+      $script/@*[not(local-name(.) = ('src', 'data-bundles-path', 'type'))],
       if (not($script/@src)) then 
         $script/text()
       else
