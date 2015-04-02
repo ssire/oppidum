@@ -103,7 +103,13 @@ declare function site:message( $cmd as element() ) as node()*
     return (
       (: trick because messages are stored inside session :)
       if ($m/@type = "ACTION-LOGOUT-SUCCESS") then session:invalidate() else (),
-      <p>{ $m/text() }</p>
+      <p>
+        {(
+        for $a in $m/@*[local-name(.) ne 'type']
+        return attribute { concat('data-', local-name($a)) } { string($a) },
+        $m/text() 
+        )}
+      </p>
       )
 };
 

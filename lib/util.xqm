@@ -271,7 +271,6 @@ declare function oppidum:render-message(
     In addition wraps the <message> element inside a wrapper element
     FIXME: 
     - check @envelope on message to set wrapper element name
-    - fallback to Oppidum default messages if not $found
    ======================================================================
 :)
 declare function oppidum:render-message(
@@ -293,14 +292,21 @@ declare function oppidum:render-message(
   return
     (
     if (($found/@code) and $exec) then response:set-status-code($found/@code) else (),
-    if ($wrapper) then
-      element { $wrapper }
-        {
-        if ($found/@code) then attribute status { string($found/@code) } else (),
-        <message type="{$type}">{ $text }</message>
-        }
-    else
-      <message type="{$type}">{ $text }</message>
+    let $body := <message type="{$type}">
+                   {( 
+                   if ($found) then $found/@*[not(local-name() = ('type', 'code'))] else (),
+                   $text 
+                   )}
+                 </message>
+    return
+      if ($wrapper) then
+        element { $wrapper }
+          { 
+          if ($found/@code) then attribute status { string($found/@code) } else (),
+          $body
+          }
+      else
+        $body
     )
 };
 
