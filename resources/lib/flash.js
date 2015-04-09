@@ -36,8 +36,8 @@
     n.style.display = 'none';
   }
 
-  document.messageOff = function () { discard('message') };
-  document.errorOff = function () { discard('error') };
+  document.messageOff = function () { discard('message'); };
+  document.errorOff = function () { discard('error'); };
 
   window.onload = init;
 }());
