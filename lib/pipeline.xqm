@@ -158,7 +158,7 @@ declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:st
         {                                                                                                    
         (: FIXME: maybe some POST request are not Ajax or debug request... :)  
         if ((string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')) then
-          <epilogue mesh=""/>
+          <epilogue mesh="{ $cmd/@error-mesh }"/>
           (: mesh may be an empty string anyway we force it to call epilogue :)
         else 
           () 
