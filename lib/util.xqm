@@ -415,7 +415,7 @@ declare function oppidum:check-rights-for( $cmd as element(), $defaults as eleme
         let $rule := $rules/rule[$cmd/@action = tokenize(@action, ' ')]
         return
           if ($rule) then
-            oppidum:my-access-control(oppidum:test-role-for-command($rule/@role, $cmd), $rule)
+            oppidum:my-access-control(oppidum:test-rule-for-command($rule, $cmd), $rule)
           else
             true()
 };
@@ -445,7 +445,21 @@ declare function oppidum:get-rights-for( $cmd as element(), $defaults as element
     return string-join(
       for $a in $actions
       let $rule := $rules/rule[$a = tokenize(@action, ' ')]
-      return if (not($rule) or (oppidum:test-role-for-command($rule/@role, $cmd))) then $a else (), ' ')
+      return if (not($rule) or (oppidum:test-rule-for-command($rule, $cmd))) then $a else (), ' ')
+};
+
+(: ======================================================================
+   Tests an access rule against the current user and the command.
+   Implements @role and @avoid on role element
+   Returns true if the user is granted access and false otherwise.
+   ======================================================================
+:)
+declare function oppidum:test-rule-for-command( $role as element(),  $cmd as element() ) as xs:boolean
+{
+  let $allow := tokenize($role/@role, ' ')
+  let $avoid := tokenize($role/@avoid, ' ')
+  return 
+    oppidum:my-test-role-iter(1, $allow, $cmd) and not(oppidum:my-test-role-iter(1, $avoid, $cmd))
 };
 
 (: ======================================================================
