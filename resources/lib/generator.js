@@ -23,6 +23,21 @@ function run(goal) {
       });
   }
 }
+function prefill(type) {
+  var contents = { 
+    'service' : '<Service>\n' +
+'      <AuthorizationToken>REPLACE-WITH-YOUR-TOKEN</AuthorizationToken>\n' +
+'      <Payload>\n' +
+'          <AnyContent/>\n' +
+'      </Payload>\n' +
+'</Service>'
+  }
+  $('#data').val(contents[type]);
+}
+function mapping() {
+  var url = '/exist/rest/db/www/' + document.getElementById('project').value + '/config/mapping.xml';
+  window.open(url);
+}
 function duplicateProject() {
   var n = document.getElementById('project'),
       m = document.getElementById('base-url');

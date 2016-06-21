@@ -99,6 +99,7 @@ return
             <p><span class="label">method</span> <input type="text" name="method" value="{$method}"/></p>
             <p><span class="label">mode</span> <input type="text" name="mode" value="{$mode}"/></p>
             <p>Generate : <input type="submit" name="type" value="Command"/> <input type="submit" name="type" value="Pipeline"/></p>
+            <p>Display : <button onclick="javascript:mapping()">mapping.xml</button> (dev only)</p>
           </fieldset>
         </form>
       </div>
@@ -113,6 +114,9 @@ return
         </p>
         <p>
           <button onclick="javascript:run('delete')">DELETE</button> will send a DELETE to the path URL
+        </p>
+        <p>
+          <button onclick="javascript:prefill('service')">SERVICE</button> pre-fill content with empty XML Payload in XML service envelope
         </p>
         <p><textarea id="data"></textarea></p>
       </fieldset>
