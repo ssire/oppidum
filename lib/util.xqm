@@ -329,6 +329,20 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
 };
 
 (: ======================================================================
+   Wrapper to allow calling throw-error from a scheduled job
+   ====================================================================== 
+:)
+declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
+{
+  if (request:exists()) then
+    local:throw-error($err-type, $err-clue)
+  else (: no request, no oppidum command, minimal rendering :)
+    <error>
+      <message type="{$err-type}">{string-join($err-clue, '; ')}</message>
+    </error>
+};
+
+(: ======================================================================
    Throws an error during the execution of the model stage of the current
    pipeline. Depending on the type of pipeline this may lead to the immediate
    error message expansion or to its postponing for the epilogue. In the
@@ -336,7 +350,7 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
    that will cause eXist to terminate the pipeline rendering.
    ======================================================================
 :)
-declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
+declare function local:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
 {
   let $cmd := request:get-attribute('oppidum.command')
   let $level := oppidum:get-pipeline-type($cmd)
