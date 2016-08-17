@@ -33,8 +33,9 @@ a {
   outline: none;
 }
 
-a.ajax {
+a.ajax, #ide-explorer a, #ide-explorer a:visited {
   text-decoration: none;
+  color : rgb(0, 0, 238);
 }
 
 #nav ul {

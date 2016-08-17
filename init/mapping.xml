@@ -69,6 +69,10 @@
         <model src="oppidum:test/generator.xql"/>
       </action>
     </item>
+    <item name="explorer" epilogue="devtools">
+      <model src="oppidum:test/explorer.xql"/>
+      <view src="oppidum:test/explorer.xsl"/>
+    </item>
     <item name="skin" epilogue="devtools">
       <model src="oppidum:test/skin.xql"/>
     </item>

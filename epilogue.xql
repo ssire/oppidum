@@ -62,6 +62,7 @@ declare function site:navigation( $cmd as element(), $view as element() ) as ele
       <li><a href="{$base}devtools">Home</a></li>
       <li><hr/></li>
       <li><a href="{$base}test/generator">Mapping simulator</a></li>
+      <li><a href="{$base}test/explorer">Mapping explorer</a></li>
       <li><a href="{$base}test/skin">Skin simulator</a></li>
       <li><a href="{$base}test/inspect">Request dump</a></li>
       <li><hr/></li>
