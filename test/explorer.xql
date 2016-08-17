@@ -12,8 +12,8 @@ declare namespace request = "http://exist-db.org/xquery/request";
 
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
-declare function local:gen-name( $cur as element() ) {
-  if ($cur/variant) then
+declare function local:gen-name( $cur as element(), $show-variant as xs:boolean ) {
+  if ($show-variant and exists($cur/variant)) then
     concat(
       if ($cur/@name) then $cur/@name else '*',
       '.[',
@@ -29,16 +29,17 @@ declare function local:gen-name( $cur as element() ) {
 declare function local:gen-row( $cur as element(), $path as xs:string, $module as xs:string ) as element()* {
   if (local-name($cur) eq 'import') then
     let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/@module]
-    let $name := local:gen-name($cur/parent::*)
+    let $name := local:gen-name($cur/parent::*, false())
     return
       local:iter-depth-fist(($mod/action[@name ne 'POST'], $mod/item, $mod/collection), concat($path, '/', $name), $module)
   else
     <Row type="{ local-name($cur) }">
       {
-      let $name := local:gen-name($cur)
+      let $name := local:gen-name($cur, true())
       return (
         attribute { 'name'} { $name },
-        attribute { 'path' } { concat($path, '/', $name) },
+        attribute { 'extpath' } { concat($path, '/', $name) },
+        attribute { 'path' } { concat($path, '/', local:gen-name($cur, false())) },
         if (exists($cur/model) or exists($cur/view) or starts-with($cur/@resource, 'file:/') or starts-with($cur/variant/@resource, 'file:/')) then
           attribute { 'GET' } { '1' }
         else

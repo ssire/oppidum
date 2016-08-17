@@ -51,18 +51,18 @@
     </tr>
   </xsl:template>
 
-  <xsl:template match="@path"><xsl:value-of select="."/>
+  <xsl:template match="@path"><xsl:value-of select="../@extpath"/>
   </xsl:template>
 
   <xsl:template match="@path[not(../@GET) and not(../@POST)]">
     <xsl:attribute name="style">color:#999</xsl:attribute>
-    <xsl:value-of select="."/>
+    <xsl:value-of select="../@extpath"/>
   </xsl:template>
 
-  <xsl:template match="@path[../@GET]"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="."/></a>
+  <xsl:template match="@path[../@GET]"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
-  <xsl:template match="@path[../@type = 'action']"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="."/></a>
+  <xsl:template match="@path[../@type = 'action']"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
   <xsl:template match="@type">
