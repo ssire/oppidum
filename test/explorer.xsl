@@ -18,7 +18,7 @@
       <site:title>Oppidum mapping explorer tool for <xsl:value-of select="@module"/></site:title>
       <site:content>
         <h1>Oppidum mapping explorer tool <i><xsl:value-of select="@module"/></i> module</h1>
-        <p>Add a ?m=<i>module</i> parameter to explore a specific module mapping (defaults to oppidum)</p>
+        <p>Explore module : <xsl:apply-templates select="Modules/Module"/></p>
         <table id="ide-explorer">
           <thead>
             <th>Kind</th>
@@ -29,7 +29,9 @@
             <th>Action</th>
           </thead>
           <tbody>
-            <xsl:apply-templates select="Row"/>
+            <xsl:apply-templates select="Row">
+              <xsl:sort select="@sortkey"/>
+            </xsl:apply-templates>
           </tbody>
         </table>
         <script type="text/javascript">
@@ -37,6 +39,14 @@
         </script>
       </site:content>
     </site:view>
+  </xsl:template>
+
+  <xsl:template match="Module">
+    <a href="?m={.}" style="text-decoration:none"><xsl:value-of select="."/></a><xsl:text> </xsl:text>
+  </xsl:template>
+
+  <xsl:template match="Module[/Mapping/@module = .]">
+    <b><xsl:value-of select="."/></b><xsl:text> </xsl:text>
   </xsl:template>
 
   <xsl:template match="Row">

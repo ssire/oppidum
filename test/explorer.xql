@@ -10,6 +10,7 @@
 
 declare namespace request = "http://exist-db.org/xquery/request";
 
+import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
 declare function local:gen-name( $cur as element(), $show-variant as xs:boolean ) {
@@ -26,25 +27,61 @@ declare function local:gen-name( $cur as element(), $show-variant as xs:boolean 
     '*'
 };
 
+(: ======================================================================
+   Checks GET defined at top level in imported module
+   ====================================================================== 
+:)
+declare function local:import-has-method( $cur as element(), $module as xs:string, $method as xs:string ) {
+  if ($cur/import) then 
+    let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/import/@module]
+    return 
+      exists($mod/action[@name eq  $method])
+  else
+    false()
+};
+
+(: ======================================================================
+   Checks GET defined at top level in imported module
+   ====================================================================== 
+:)
+declare function local:import-method-model( $cur as element(), $module as xs:string, $method as xs:string ) {
+  if ($cur/import) then 
+    let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/import/@module]
+    return 
+      attribute { 
+        if ($method eq 'GET') then 
+          'Gmodel'
+        else
+          'Pmodel'
+      }
+      {
+        string($mod/action[@name eq $method]/model/@src)
+      }
+  else
+    ()
+};
+
 declare function local:gen-row( $cur as element(), $path as xs:string, $module as xs:string ) as element()* {
   if (local-name($cur) eq 'import') then
     let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/@module]
     let $name := local:gen-name($cur/parent::*, false())
     return
-      local:iter-depth-fist(($mod/action[@name ne 'POST'], $mod/item, $mod/collection), concat($path, '/', $name), $module)
+      local:iter-depth-fist(($mod/action[(@name ne 'GET') and (@name ne 'POST')], $mod/item, $mod/collection), concat($path, '/', $name), $module)
   else
     <Row type="{ local-name($cur) }">
       {
       let $name := local:gen-name($cur, true())
+      let $new-path := concat($path, '/', local:gen-name($cur, false()))
       return (
         attribute { 'name'} { $name },
         attribute { 'extpath' } { concat($path, '/', $name) },
-        attribute { 'path' } { concat($path, '/', local:gen-name($cur, false())) },
-        if (exists($cur/model) or exists($cur/view) or starts-with($cur/@resource, 'file:/') or starts-with($cur/variant/@resource, 'file:/')) then
+        attribute { 'path' } { $new-path },
+        attribute { 'sortkey' } { replace($new-path, '\*', 'zzz') },
+        if (exists($cur/model) or exists($cur/view) or starts-with($cur/@resource, 'file:/') or starts-with($cur/variant/@resource, 'file:/') or local:import-has-method($cur, $module, 'GET')) then
           attribute { 'GET' } { '1' }
         else
           (),
-        if ($cur/action[@name eq 'POST']) then
+        if ($cur/action[@name eq 'POST'] or local:import-has-method($cur, $module, 'POST')) then
           attribute { 'POST' } { '1' }
         else
           (),
@@ -60,11 +97,11 @@ declare function local:gen-row( $cur as element(), $path as xs:string, $module a
             string($cur/model/@src) 
           }
         else
-          (),
+          local:import-method-model($cur, $module, 'GET'),
         if ($cur/action[@name eq 'POST']/model/@src) then
           attribute { 'Pmodel' } { string($cur/action[@name eq 'POST']/model/@src) }
         else
-          ()
+          local:import-method-model($cur, $module, 'POST')
         )
       }
     </Row>
@@ -90,5 +127,11 @@ let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
 return
   <Mapping module="{$module}">
+   <Modules>
+     {
+      for $c in xdb:get-child-collections('/db/www')
+      return <Module>{ $c }</Module>
+     }
+   </Modules>
    { local:iter-depth-fist($start, '', $module) }
   </Mapping>
