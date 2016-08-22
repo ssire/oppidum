@@ -94,7 +94,7 @@ return
           <fieldset>
             <legend>Configuration</legend>
             <p><span class="label">project</span> <input onblur="javascript:duplicateProject()" id="project" type="text" name="project" value="{$project}"/></p>
-            <p><span class="label">base-url</span> <input type="text" id="base-url" name="base-url" value="{$base-url}"/></p>
+            <p><span class="label">base-url</span> <input type="text" id="base-url" name="base-url" value="{$base-url}" data-project="{ tokenize($base-url, '/')[3] }"/></p>
             <p><span class="label">confbase</span> <input type="text" id="confbase" name="confbase" value="{$confbase}"/></p>
             <p><span class="label">method</span> <input type="text" name="method" value="{$method}"/></p>
             <p><span class="label">mode</span> <input type="text" name="mode" value="{$mode}"/></p>

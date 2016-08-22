@@ -74,6 +74,24 @@ declare function install:fix-template-import( $col-uri as xs:string, $name as xs
 };
 
 (: ======================================================================
+   Returns path to application module code from EXIST-HOME/webapp
+   (e.g. /projects/oppidum, /projects/oppidum, etc)
+   Looks inside application module settings.xml file first (works in all situations)
+   fallbacks to get-uri (works only if no proxy path URL rewrite)
+   ====================================================================== 
+:)
+declare function install:get-project-path-for( $name as xs:string ) as xs:string {
+  let $project := fn:doc(concat('/db/www/', $name, '/config/settings.xml'))/Settings/ProjectFolderName
+  return
+    if ($project ne '') then
+      concat('/', $project, '/', $name)
+    else  
+      let $sub := tokenize(request:get-uri(), '/')[3]
+      return
+        concat('/', $sub, '/', $name)
+};
+
+(: ======================================================================
    This function MUST return the absolute path to the main folder
    containing the library or application to install
    FIXME: simplifier, à priori pas de raison de l'exécuter depuis tomcat (WEBINF)

@@ -310,13 +310,15 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
         let $src := 
           if ((string($cmd/@action) = 'GET') and (starts-with($inline-action/@resource, 'file:///'))) then
             (
-            (: special case to target multiple files at once in a same parent :)              
+            (: special case to target multiple files at once in a same parent :)
             if (ends-with($inline-action/@resource, '*')) then
               replace(substring-after($inline-action/@resource, 'file:///'), '\*', concat($cmd/resource/@name, '.', $cmd/@format))
             else
               substring-after($inline-action/@resource, 'file:///')
             , 
             if (starts-with($inline-action/@resource, 'file:///:self')) then
+              ()
+            else if (starts-with(system:get-version(), '1')) then
               ()
             else
               session:set-attribute('oppidum.ignore', true())

@@ -11,12 +11,9 @@ xquery version "1.0";
 
 declare namespace xdb = "http://exist-db.org/xquery/xmldb";
 declare namespace request = "http://exist-db.org/xquery/request";
-import module namespace install = "http://oppidoc.com/oppidum/install" at "../lib/install.xqm";   
+import module namespace install = "http://oppidoc.com/oppidum/install" at "../lib/install.xqm";
 
 declare option exist:serialize "method=xhtml media-type=text/html indent=yes";
-
-(: WARNING: do not forget to set the correct project directory name in the path below ! :)
-declare variable $local:base := "/projects/oppidum";
 
 declare variable $policies := <policies xmlns="http://oppidoc.com/oppidum/install">
   <policy name="admin" owner="admin" group="dba" perms="rwur-ur-u"/>
@@ -73,5 +70,5 @@ declare variable $static := <static xmlns="http://oppidoc.com/oppidum/install">
   </group>
 </static>;
 
-install:install($local:base, $policies, $site, $code, $static, "oppidum", ())
+install:install(install:get-project-path-for("oppidum"), $policies, $site, $code, $static, "oppidum", ())
 

@@ -26,16 +26,11 @@ Oppidum is designed to support the creation of reusable modules that can be aggr
 Compatiblity and Branches
 ----------------
 
-The branch by default when you checkout is `exist-2.2`. It is compatible with eXist-DB-2.x (current stable release).
+The master branch is the stable release branch. It should be compatible with eXist-1.4.3 and eXist-2.2 and upwards. 
 
 Oppidum runs out of the box on computers running Linux and Apple OS X. We haven't tested it on windows computer yet, there should be some issues with path separator in the library code. 
 
-The `devel` branch works with eXist-DB 1.4.x, switch to it in case you want to use that version of the database :
-
-    cd {eXist-Home}/webapp/{your projects folder}/oppidum
-    git checkout devel
-
-_NOTE_: both branches will be merged together once we are sure _exist-2.2_ is backward compatible
+The legacy `devel` branch works with eXist-DB 1.4.x only.
 
 How to install it ?
 -------------------
@@ -44,7 +39,7 @@ How to install it ?
 
 2. create a project folder that will contain your oppidum applications directly inside the `webapp` folder of your eXist installation, by default you should call it _projects_
 
-3. clone Oppidum inside your projects folder. This should create an `oppidum` folder into your projects folder
+3. clone Oppidum inside your projects folder. This should create an `oppidum` folder into your projects foldere
 
 4. start eXist-DB then go inside the `oppidum/scripts` folder and execute `./bootstrap.sh` to install some oppidum resources into the database, passing it the database admin password as a parameter
 
@@ -62,9 +57,15 @@ In summary :
 
 ### Special settings
 
-If you decide to give your projects folder another name than _projects_ then you should edit line 19 of `oppidum/scripts/install.xql` to set your project folder path into the `$local:base` variable. If you are using the _Mapping simulator_ of the developer tools you also edit line 29 of  `oppidum/resources/lib/generator.js` to replace _projects_ with {your projects folder name}.
-
 You can install and run several eXist-DB instances on your computer, for that purpose you can edit the `EXIST_HOME/tools/jetty/etc/jetty.conf` configuration file for each installation so that they run on different ports.
+
+The installer script from the developer tools deduces the project folder name (e.g. *projects*) from the request URI. In case you want to run it behind a forward proxy configured with path URL rewrite (i.e. to hide out `/exist` prefix in URLs), then you can manually create a `settings.xml` file with the name of you project folder inside a `ProjectFolderName` element  :
+
+      <Settings>
+        <ProjectFolderName>projects</ProjectFolderName>
+      </Settings>
+
+and store it inside your application `/db/www/{application}/config` collection. This should not be necessary since when using a forward proxy you usually access the Oppidum IDE (and installer) from an SSH tunnel.
 
 How to get documentation ?
 --------------------------

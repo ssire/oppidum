@@ -18,13 +18,18 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 
 declare variable $oppidum:DEFAULT_ERR_LOC := '/db/www/oppidum/config/errors.xml';
 
-(: 
-    Returns submitted data as element() node since eXist 2
-    TODO: make it backward compatibility with eXist-1.4 
+(: ======================================================================
+   Returns submitted data as element() instead of document node
+   ====================================================================== 
 :)
 declare function oppidum:get-data () as element()?
 {
-	request:get-data()/*
+  let $ver := system:get-version()
+  return
+    if (starts-with($ver, '1')) then 
+      request:get-data()
+    else
+      request:get-data()/*
 };
 
 declare function oppidum:get-command () as element()
