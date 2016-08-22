@@ -158,7 +158,7 @@ declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:st
         {                                                                                                    
         (: FIXME: maybe some POST request are not Ajax or debug request... :)  
         if ((string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')) then
-          <epilogue mesh=""/>
+          <epilogue mesh="{ $cmd/@error-mesh }"/>
           (: mesh may be an empty string anyway we force it to call epilogue :)
         else 
           () 
@@ -316,7 +316,11 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
             else
               substring-after($inline-action/@resource, 'file:///')
             , 
-            ())
+            if (starts-with($inline-action/@resource, 'file:///:self')) then
+              ()
+            else
+              session:set-attribute('oppidum.ignore', true())
+            )
           else if ($inline-action/model) then 
             (string($inline-action/model/@src), $inline-action/model)
           else 
@@ -361,10 +365,10 @@ declare function gen:resolve($cmd as element(), $default as element()*) as eleme
  :)                                        
 declare function gen:check($cmd as element(), $pipeline as element(), $granted as xs:boolean ) as element()*
 {
-  if ($cmd/@error) then                
+  if ($cmd/@error) then
     if ($cmd/@error = 'not-found') then
       gen:error($cmd, 'URI-NOT-FOUND', ())
-    else 
+    else
       gen:error($cmd, 'URI-NOT-SUPPORTED', ())
   else
     if (not($pipeline/(model | view | epilogue))) then
@@ -554,83 +558,91 @@ declare function gen:process(
   $root as xs:string, $prefix as xs:string, $controller as xs:string, $exist-path as xs:string, 
   $lang as xs:string, $debug as xs:boolean,
   $access as element(), $actions as element(), $mapping as element()) as element() 
-{    
-  let $base-url := if ($mapping/@base-url) then
-                     string($mapping/@base-url)
-                   else 
-                     concat(request:get-context-path(), $prefix, $controller, '/')
-  let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
-  let $def-lang := if ($mapping/@languages) then (: multilingual application, extract default language if defined :)
-                     if ($mapping/@default) then string($mapping/@default) else ()
-                   else 
-                     ()
-  let $path := if ($mapping/@languages) then (: multilingual support :)
-                 if (matches($exist-path,"^/\w\w/?$|^/\w\w/") and (substring($exist-path, 2, 2) = $lang)) then (: controller found a valid language code :)
-                   let $rewrite := substring($exist-path, 4)
-                   return if ($rewrite) then $rewrite else '/'
+{
+  (: second pass pass-through for file: model src protocol since eXist 2 :)
+  if (session:get-attribute('oppidum.ignore') eq true()) then (
+    session:set-attribute('oppidum.ignore', ()),
+    <ignore xmlns="http://exist.sourceforge.net/NS/exist">
+      <cache-control cache="no"/>
+    </ignore>   
+    )
+  else   
+    let $base-url := if ($mapping/@base-url) then
+                       string($mapping/@base-url)
+                     else 
+                       concat(request:get-context-path(), $prefix, $controller, '/')
+    let $app-root := if (not($controller)) then concat($root, '/') else concat($controller, '/')
+    let $def-lang := if ($mapping/@languages) then (: multilingual application, extract default language if defined :)
+                       if ($mapping/@default) then string($mapping/@default) else ()
+                     else 
+                       ()
+    let $path := if ($mapping/@languages) then (: multilingual support :)
+                   if (matches($exist-path,"^/\w\w/?$|^/\w\w/") and (substring($exist-path, 2, 2) = $lang)) then (: controller found a valid language code :)
+                     let $rewrite := substring($exist-path, 4)
+                     return if ($rewrite) then $rewrite else '/'
+                   else
+                    $exist-path
                  else
                   $exist-path
-               else
-                $exist-path
-  return
-    (: Web site root redirection :)
-    if ($path = ('', '/')) then
-      let $xtra := if ($mapping/@languages) then 
-                     if ($def-lang = $lang) then () else concat($lang,'/')
-                   else 
-                     ()
-      return
-      <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <redirect url="{$base-url}{$xtra}{$mapping/@startref}"/>
-        <cache-control cache="no"/>
-      </dispatch>
+    return
+      (: Web site root redirection :)
+      if ($path = ('', '/')) then
+        let $xtra := if ($mapping/@languages) then 
+                       if ($def-lang = $lang) then () else concat($lang,'/')
+                     else 
+                       ()
+        return
+        <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+          <redirect url="{$base-url}{$xtra}{$mapping/@startref}"/>
+          <cache-control cache="no"/>
+        </dispatch>
 
-    (: Note: in production the proxy should serve static/* directly :)
-    else if (starts-with($path, "/static/")) then
-      (: as an alternative we could set WEB-INF/controller-config.xml to rewrite /static :)
-       <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-          <forward url="{gen:path-to-static-resource($app-root, $path, $path, string($mapping/@key))}"/>
-          <cache-control cache="yes"/>
-       </dispatch>
+      (: Note: in production the proxy should serve static/* directly :)
+      else if (starts-with($path, "/static/")) then
+        (: as an alternative we could set WEB-INF/controller-config.xml to rewrite /static :)
+         <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+            <forward url="{gen:path-to-static-resource($app-root, $path, $path, string($mapping/@key))}"/>
+            <cache-control cache="yes"/>
+         </dispatch>
 
-    (: required for exist 2.x to serve static resources in second pass :)
-    else if (starts-with($path, "/resources/")) then
-      <ignore xmlns="http://exist.sourceforge.net/NS/exist">
-        <cache-control cache="no"/>
-      </ignore>
+      (: required for exist 2.x to serve static resources in second pass :)
+      else if (starts-with($path, "/resources/")) then
+        <ignore xmlns="http://exist.sourceforge.net/NS/exist">
+          <cache-control cache="no"/>
+        </ignore>
 
-    else
-      (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
-         si on l'utilise passer $exist:root, $exist:prefix  :)
-      let 
-        $cmd := command:parse-url($base-url, $app-root, $exist-path, $path, request:get-method(), $mapping, $lang, $def-lang),
-        $default := command:get-default-action($cmd, $actions),
-        $rights := oppidum:get-rights-for($cmd, $access),
-        $granted := oppidum:check-rights-for($cmd, $access),
-        $pipeline := gen:pipeline($cmd, $default, string($mapping/@key), $rights, $granted)
-      return
-        ( 
-        if (not($pipeline/@selfie)) then
-          (: sets oppidum "environment" variables for the pipeline scripts :)
-          let $raw-ppl := request:get-attribute('oppidum.pipeline')
-          return
-            (
-            request:set-attribute('oppidum.base-url', $base-url),
-            request:set-attribute('oppidum.command', $cmd),
-            request:set-attribute('oppidum.rights', $rights),
-            request:set-attribute('oppidum.granted', $granted),
-            request:set-attribute('oppidum.mesh', if ($raw-ppl/epilogue/@mesh) then string($raw-ppl/epilogue/@mesh) else ())
-            )
-        else
-          (),
-        (: debug :)
-        if ($debug and (($cmd/@format = 'debug') or (request:get-parameter('debug', '') = 'true'))) then
-          let 
-            $dbg1 := request:set-attribute('oppidum.debug.implementation', $pipeline),
-            $dbg2 := request:set-attribute('oppidum.debug.default', $default)
-          return
-            gen:debug-command($cmd)
-        else
-          $pipeline
-        )
+      else
+        (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
+           si on l'utilise passer $exist:root, $exist:prefix  :)
+        let 
+          $cmd := command:parse-url($base-url, $app-root, $exist-path, $path, request:get-method(), $mapping, $lang, $def-lang),
+          $default := command:get-default-action($cmd, $actions),
+          $rights := oppidum:get-rights-for($cmd, $access),
+          $granted := oppidum:check-rights-for($cmd, $access),
+          $pipeline := gen:pipeline($cmd, $default, string($mapping/@key), $rights, $granted)
+        return
+          ( 
+          if (not($pipeline/@selfie)) then
+            (: sets oppidum "environment" variables for the pipeline scripts :)
+            let $raw-ppl := request:get-attribute('oppidum.pipeline')
+            return
+              (
+              request:set-attribute('oppidum.base-url', $base-url),
+              request:set-attribute('oppidum.command', $cmd),
+              request:set-attribute('oppidum.rights', $rights),
+              request:set-attribute('oppidum.granted', $granted),
+              request:set-attribute('oppidum.mesh', if ($raw-ppl/epilogue/@mesh) then string($raw-ppl/epilogue/@mesh) else ())
+              )
+          else (: first pass pass-through for file:///:self model src protocol :)
+            (),
+          (: debug :)
+          if ($debug and (($cmd/@format = 'debug') or (request:get-parameter('debug', '') = 'true'))) then
+            let 
+              $dbg1 := request:set-attribute('oppidum.debug.implementation', $pipeline),
+              $dbg2 := request:set-attribute('oppidum.debug.default', $default)
+            return
+              gen:debug-command($cmd)
+          else
+            $pipeline
+          )
 };

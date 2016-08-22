@@ -41,7 +41,7 @@ function mapping() {
 function duplicateProject() {
   var n = document.getElementById('project'),
       m = document.getElementById('base-url');
-  m.value = '/exist/projets/' + n.value + '/';
+  m.value = '/exist/projects/' + n.value + '/';
   m = document.getElementById('confbase');
   m.value = '/db/www/' + n.value;
   return false;
