@@ -13,6 +13,8 @@ declare namespace request = "http://exist-db.org/xquery/request";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
+declare option exist:serialize "method=xml media-type=application/xml";
+
 declare function local:gen-name( $cur as element(), $show-variant as xs:boolean ) {
   if ($show-variant and exists($cur/variant)) then
     concat(

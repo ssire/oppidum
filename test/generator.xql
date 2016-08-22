@@ -12,6 +12,8 @@ declare namespace request = "http://exist-db.org/xquery/request";
 declare namespace util="http://exist-db.org/xquery/util";
 declare namespace site = "http://oppidoc.com/oppidum/site";
 
+declare option exist:serialize "method=xml media-type=application/xml";
+
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 import module namespace command = "http://oppidoc.com/oppidum/command" at "../lib/command.xqm";
 import module namespace gen = "http://oppidoc.com/oppidum/generator" at "../lib/pipeline.xqm";
