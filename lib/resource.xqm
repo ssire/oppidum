@@ -15,10 +15,7 @@ xquery version "1.0";
 
 module namespace resource = "http://oppidoc.com/oppidum/resource";
 
-import module namespace request="http://exist-db.org/xquery/request";
-import module namespace response="http://exist-db.org/xquery/response";
-import module namespace session="http://exist-db.org/xquery/session";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";
+import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
 (: ======================================================================
    Substitutes @@vars@@ inside a single string of text
@@ -89,7 +86,7 @@ declare function resource:path-to-ref-col ( $cmd as element() ) as xs:string
 };
 
 declare function resource:get-document ( $cmd as element() ) as element()? {
-  let $path := resource:path-to-ref()
+  let $path := resource:path-to-ref($cmd)
   return
     if (not(contains($path, 'MISSING (')) and fn:doc-available($path)) then
       fn:doc($path)
