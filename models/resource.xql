@@ -36,6 +36,23 @@ import module namespace resource = "http://oppidoc.com/oppidum/resource" at "../
 declare option exist:serialize "method=xml media-type=text/xml";
 
 (: ======================================================================
+   Serializes a fragment
+   ====================================================================== 
+:)
+declare function local:get-fragment( $cmd as element(), $path as xs:string, $fragment as xs:string ) as element()* {
+  <Fragment Path="{ $path }" Fragment="{ $fragment }">
+    {
+    if (not(contains($path, 'MISSING (')) and fn:doc-available($path)) then
+      let $eval := concat("fn:doc($path)", $fragment)
+      return util:eval($eval)
+    else
+      oppidum:throw-error("DB-NOT-FOUND", $path)
+    }
+  </Fragment>
+};  
+
+
+(: ======================================================================
    Serializes a resource
    ====================================================================== 
 :)
@@ -75,7 +92,7 @@ declare function local:get-collection( $path as xs:string ) as element() {
 
 let $cmd := oppidum:get-command()
 let $path := substring-after($cmd/@trail, 'rest')
-let $mapping := fn:doc('/db/www/oppidum/config/mapping.xml')/site
+let $mapping := fn:doc(oppidum:path-to-config('mapping.xml'))/site
 let $parsed := command:parse-url($cmd/@base-url, $cmd/@app-root, $cmd/@exist-path, $path, 'GET', $mapping, 'en', ())
 return
   if ($cmd/@format eq 'parsed') then
@@ -88,8 +105,11 @@ return
       return 
         if (ends-with(request:get-uri(), '/')) then
           local:get-collection(resource:path-to-ref-col($parsed))
+        else if (exists($r/@fragment)) then
+          local:get-fragment($parsed, resource:path-to-ref($parsed), $r/@fragment)
         else
           local:get-resource(resource:path-to-ref($parsed))
     else
       oppidum:throw-error("URI-NOT-FOUND", ())
 
+      

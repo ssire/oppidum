@@ -276,6 +276,7 @@ declare function command:gen-resource(
             attribute { 'verb' } { 'http' } ),
         attribute { 'type' } { name($page) }, (: item or collection :)
         element { 'resource' } {
+          $page/@fragment,
           let $name :=  if ($action-token) then $tokens[$index - 1] else $tokens[$index]
           return (: resource name :)
             if ($name) then attribute { 'name' } {  $name } else (),
