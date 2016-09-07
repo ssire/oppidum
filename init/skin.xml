@@ -12,6 +12,7 @@
     <profile name="devtools" type="mesh">
       <link href="css/devtools.css"/>
       <predef>jquery</predef>
+      <script src="lib/devtools.js"/>
     </profile>
     <!-- Oppidum devtools -->
     <profile name="generator">

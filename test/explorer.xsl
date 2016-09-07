@@ -19,6 +19,27 @@
       <site:content>
         <h1>Oppidum mapping explorer tool <i><xsl:value-of select="@module"/></i> module</h1>
         <p>Explore module : <xsl:apply-templates select="Modules/Module"/></p>
+
+        <!-- TOC construction implies pre-ordered input -->
+        <table id="toc" style="width: 100%;">
+          <tbody>
+            <tr>
+              <xsl:for-each select="Row">
+                <xsl:variable name="pos" select="position()"/>
+                <xsl:variable name="initial" select="translate(substring(@sortkey, 2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+                <xsl:variable name="prev_initial" select="translate(substring(../Row[$pos - 1]/@sortkey, 2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+                <xsl:if test="$prev_initial != $initial">
+                  <td>
+                    <h4>
+                      <a class="toc" href="#ancre_{$initial}" data-letter="{$initial}"><xsl:value-of select="$initial"/></a>
+                    </h4>
+                  </td>
+                </xsl:if>
+              </xsl:for-each>
+            </tr>
+          </tbody>
+        </table>
+
         <table id="ide-explorer">
           <thead>
             <th>Kind</th>
@@ -30,7 +51,7 @@
           </thead>
           <tbody>
             <xsl:apply-templates select="Row">
-              <xsl:sort select="@sortkey"/>
+              <!-- <xsl:sort select="@sortkey"/> -->
             </xsl:apply-templates>
           </tbody>
         </table>
@@ -50,6 +71,23 @@
   </xsl:template>
 
   <xsl:template match="Row">
+    <xsl:variable name="initial" select="translate(substring(@sortkey,2,1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+    <xsl:variable name="pos" select="position()"/>
+    <xsl:variable name="prev_initial" select="translate(substring(../Row[$pos - 1]/@sortkey,2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+    <xsl:if test="$prev_initial != $initial">
+      <tr class="letter" colspan="6">
+        <td>
+          <h1>
+            <a name="ancre_{$initial}">
+              <xsl:value-of select="$initial"/>
+            </a>
+            <sup>
+              <a class="top" href="#toc"></a>
+            </sup>
+          </h1>
+        </td>
+      </tr>
+    </xsl:if>
     <tr>
       <td><xsl:apply-templates select="@type"/></td>
       <td><xsl:apply-templates select="@path"/></td>

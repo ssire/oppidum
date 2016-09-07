@@ -62,3 +62,29 @@ fieldset {
   padding: 1em 0.5em;
   border: solid 1px #999;
 }
+
+/* IDE explorer */
+
+#ide-explorer th {
+  text-align:left;
+  border: solid 1px gray;
+  padding: 5px;
+}
+
+tr.letter h1 {
+  margin: 20px 0 5px 0;
+  min-width: 100px;
+}
+
+a.top {
+  font-size:8px;
+}
+
+a.top:after {
+  content: " \25B2";
+}
+
+a.toc {
+  text-decoration: none;
+}
+

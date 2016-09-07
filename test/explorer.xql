@@ -129,11 +129,17 @@ let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
 return
   <Mapping module="{$module}">
-   <Modules>
-     {
+    <Modules>
+      {
       for $c in xdb:get-child-collections('/db/www')
       return <Module>{ $c }</Module>
-     }
-   </Modules>
-   { local:iter-depth-fist($start, '', $module) }
+      }
+    </Modules>
+    { 
+    let $rows := local:iter-depth-fist($start, '', $module) (: pre-order for XSLT toc construction :)
+    return
+    for $r in $rows
+    order by $r/@sortkey
+    return $r
+    }
   </Mapping>
