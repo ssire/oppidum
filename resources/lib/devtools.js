@@ -12,7 +12,22 @@
       var target = $(sel);
       $('html, body').animate( { scrollTop : target.offset().top - 50 }, 800 );
       ev.preventDefault();
-    }
+      }
+    );
+    $('#ide-explorer a.path').click(
+      function(ev) { 
+        var t, s, _count = 1; 
+        s = $(ev.target).attr('href-cache') || $(ev.target).attr('href'); 
+        if (s.indexOf('*') != '-1') { 
+          $(ev.target).attr('href-cache',s);
+          $(ev.target).attr('href', 
+            s.replace(
+              /\*/g, 
+              function() { return prompt('step ' + _count++); }
+            ) 
+          );
+        } 
+      }
     );
   }
 

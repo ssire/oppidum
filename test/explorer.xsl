@@ -55,9 +55,6 @@
             </xsl:apply-templates>
           </tbody>
         </table>
-        <script type="text/javascript">
-          $('#ide-explorer a').bind('click', function(ev) { var t, s; s = $(ev.target).attr('href-cache') || $(ev.target).attr('href'); if (s.indexOf('*') != '-1') { $(ev.target).attr('href-cache',s); $(ev.target).attr('href', s.replace('*', prompt('step 1'))) } });
-        </script>
       </site:content>
     </site:view>
   </xsl:template>
@@ -107,10 +104,10 @@
     <xsl:value-of select="../@extpath"/>
   </xsl:template>
 
-  <xsl:template match="@path[../@GET]"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+  <xsl:template match="@path[../@GET]"><a class="path" href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
-  <xsl:template match="@path[../@type = 'action']"><a href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+  <xsl:template match="@path[../@type = 'action']"><a class="path" href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
   <xsl:template match="@type">
