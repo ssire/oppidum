@@ -78,7 +78,7 @@ declare function local:gen-row( $cur as element(), $path as xs:string, $module a
         attribute { 'name'} { $name },
         attribute { 'extpath' } { concat($path, '/', $name) },
         attribute { 'path' } { $new-path },
-        attribute { 'sortkey' } { replace($new-path, '\*', 'zzz') },
+        attribute { 'sortkey' } { replace($new-path, '\*', '***') },
         if (exists($cur/model) or exists($cur/view) or starts-with($cur/@resource, 'file:/') or starts-with($cur/variant/@resource, 'file:/') or local:import-has-method($cur, $module, 'GET')) then
           attribute { 'GET' } { '1' }
         else
