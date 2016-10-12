@@ -525,19 +525,19 @@ declare function oppidum:my-test-role-iter( $index as xs:integer, $roles as xs:s
 
 declare function oppidum:check-user( $name as xs:string ) as xs:boolean
 {
-  let $user := xdb:get-current-user()
+  let $user := xdb:get-current-user() (: FIXME: supports only internal realm :)
   return $user = $name
 };
 
 declare function oppidum:check-group( $name as xs:string ) as xs:boolean
 {
-  let $user := xdb:get-current-user()
-  return $name = xdb:get-user-groups($user)
+  let $groups := oppidum:get-current-user-groups()
+  return $name = $groups
 };
 
 (: ======================================================================
    Return true if the user is the owner of the reference object in $cmd
-   and false otherwise
+   and false otherwise. Uses internal eXist-DB login only.
    ======================================================================
 :)
 declare function oppidum:check-owner( $cmd as element() ) as xs:boolean
@@ -573,17 +573,22 @@ declare function oppidum:exists-user( $key as xs:string, $realm as xs:string? ) 
    ======================================================================
 :)
 declare function oppidum:get-current-user() as xs:string {
-  let $surrogates := fn:doc(oppidum:path-to-config('security.xml'))//Surrogate/User
   let $xuser := xdb:get-current-user()
+  let $security-uri := oppidum:path-to-config('security.xml')
   return
-    if ($xuser = $surrogates) then (: remote authenticated Realm :)
-      let $remote := session:get-attribute('cas-user')
+    if (fn:doc-available($security-uri)) then
+      let $surrogates := fn:doc($security-uri)//Surrogate/User
       return
-        if ($remote/user) then
-          $remote/user
-        else
-          $remote/key
-    else (: fallback internal Realm :)
+        if ($xuser = $surrogates) then (: remote authenticated Realm :)
+          let $remote := session:get-attribute('cas-user')
+          return
+            if ($remote/user) then
+              $remote/user
+            else
+              $remote/key
+        else (: fallback internal Realm :)
+          $xuser
+    else
       $xuser
 };
 
@@ -593,11 +598,14 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
     let $exists := $model//Variable[Name eq 'Exists']/Expression
     let $solver:= $model//Variable[Name eq 'Groups']/Expression
     return
-      if (util:eval($exists)) then 
-        fn:distinct-values(
-          (xdb:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
-          util:eval($solver))
-        )
+      if (exists($exists) and exists($solver)) then
+        if (util:eval($exists)) then 
+          fn:distinct-values(
+            (xdb:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
+            util:eval($solver))
+          )
+        else
+          ()
       else
         ()
   else (: fallback internal Realm :)
@@ -607,8 +615,22 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
 declare function oppidum:get-current-user-groups() as xs:string* {
   let $remote := session:get-attribute('cas-user')
   return
-    if (exists($remote)) then
+    if (exists($remote) and exists($remote/key) and exists($remote/@name)) then
       oppidum:get-user-groups($remote/key, $remote/@name)
     else (: fallback internal Realm :)
       xdb:get-user-groups(xdb:get-current-user())
+};
+
+(: ======================================================================
+   Returns the realm name under which current user is authentified 
+   Returns the empty sequence if this is the eXist-DB internal realm
+   ====================================================================== 
+:)
+declare function oppidum:get-current-user-realm() as xs:string* {
+  let $remote := session:get-attribute('cas-user')
+  return  
+    if (exists($remote/@name)) then
+      string($remote/@name)
+    else 
+      ()
 };

@@ -18,7 +18,12 @@ import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace text="http://exist-db.org/xquery/text";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";   
-import module namespace command = "http://oppidoc.com/oppidum/command" at "command.xqm";   
+import module namespace command = "http://oppidoc.com/oppidum/command" at "command.xqm";
+
+declare function local:session-set-attribute( $key as xs:string, $value as element()? ) as element()? {
+  let $done := request:set-attribute($key, $value)
+  return $value
+};
 
 (: ======================================================================
    Changes "/static/{name}/..." target URL to "resources/..." or
@@ -617,7 +622,10 @@ declare function gen:process(
         (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
            si on l'utilise passer $exist:root, $exist:prefix  :)
         let 
-          $cmd := command:parse-url($base-url, $app-root, $exist-path, $path, request:get-method(), $mapping, $lang, $def-lang),
+          $cmd := local:session-set-attribute('oppidum.command',
+                    command:parse-url($base-url, $app-root, $exist-path, $path,
+                      request:get-method(), $mapping, $lang, $def-lang)
+                  ),
           $default := command:get-default-action($cmd, $actions),
           $rights := oppidum:get-rights-for($cmd, $access),
           $granted := oppidum:check-rights-for($cmd, $access),
@@ -630,7 +638,6 @@ declare function gen:process(
             return
               (
               request:set-attribute('oppidum.base-url', $base-url),
-              request:set-attribute('oppidum.command', $cmd),
               request:set-attribute('oppidum.rights', $rights),
               request:set-attribute('oppidum.granted', $granted),
               request:set-attribute('oppidum.mesh', if ($raw-ppl/epilogue/@mesh) then string($raw-ppl/epilogue/@mesh) else ())
