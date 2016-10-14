@@ -592,6 +592,23 @@ declare function oppidum:get-current-user() as xs:string {
       $xuser
 };
 
+declare function oppidum:get-current-realm() as xs:string {
+  let $xuser := xdb:get-current-user()
+  let $security-uri := oppidum:path-to-config('security.xml')
+  return
+    if (fn:doc-available($security-uri)) then
+      let $surrogates := fn:doc($security-uri)//Surrogate/User
+      return
+        if ($xuser = $surrogates) then (: remote authenticated Realm :)
+          let $remote := session:get-attribute('cas-user')
+          return
+            $remote/@name
+        else
+          ()
+    else
+      ()
+};
+
 declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string? ) as xs:string* {
   if ($realm) then (: remote authenticated Realm :)
     let $model := fn:doc(oppidum:path-to-config('security.xml'))//Realm[@Name eq $realm]
