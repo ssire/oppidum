@@ -309,7 +309,8 @@ declare function oppidum:render-message(
     let $body := <message type="{$type}">
                    {( 
                    if ($found) then $found/@*[not(local-name() = ('type', 'code'))] else (),
-                   $text 
+                   $text,
+                   $candidates/following-sibling::* 
                    )}
                  </message>
     return
