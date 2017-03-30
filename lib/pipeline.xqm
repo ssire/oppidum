@@ -16,7 +16,6 @@ declare namespace exist = "http://exist.sourceforge.net/NS/exist";
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
-import module namespace text="http://exist-db.org/xquery/text";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";   
 import module namespace command = "http://oppidoc.com/oppidum/command" at "command.xqm";
 

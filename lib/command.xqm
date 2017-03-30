@@ -24,7 +24,6 @@ module namespace command = "http://oppidoc.com/oppidum/command";
 
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
-import module namespace text="http://exist-db.org/xquery/text";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";
 
 (: ======================================================================
