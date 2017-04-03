@@ -11,15 +11,23 @@ xquery version "1.0";
 
 module namespace compat = "http://oppidoc.com/oppidum/compatibility";
 
-import module namespace sm = "http://exist-db.org/xquery/securitymanager";
-
 (: ======================================================================
    Changes owner, groups and permissions for a collection or resource
-   TODO: eXist 1.4.3 version using https://en.wikibooks.org/wiki/XQuery/Dynamic_Module_Loading
+   NOTE: not implemented for eXist-1.4.3 !
    ======================================================================
 :)
 declare function compat:set-owner-group-permissions( $path as xs:string, $owner as xs:string, $group as xs:string, $mod as xs:string ) as empty() {
-  sm:chown(xs:anyURI($path), $owner),
-  sm:chgrp(xs:anyURI($path), $group),
-  sm:chmod(xs:anyURI($path), $mod)
+  if (starts-with(system:get-version(), '1')) then
+    ()
+  else
+    let $module := util:import-module(
+          xs:anyURI('http://exist-db.org/xquery/securitymanager'),
+          'sm',
+          xs:anyURI('securitymanager')
+          )
+    return (
+      util:eval("sm:chown(xs:anyURI($path), $owner)"),
+      util:eval("sm:chgrp(xs:anyURI($path), $group)"),
+      util:eval("sm:chmod(xs:anyURI($path), $mod)")
+      )
 };

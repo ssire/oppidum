@@ -17,6 +17,8 @@ declare namespace xdb = "http://exist-db.org/xquery/xmldb";
 declare namespace request = "http://exist-db.org/xquery/request";
 declare namespace transform = "http://exist-db.org/xquery/transform";
 
+import module namespace compat = "http://oppidoc.com/oppidum/compatibility" at "compat.xqm";
+
 (: ======================================================================
    Resolves xsl:include statements in a source XSLT file stored in the database by inserting
    all the xsl:template rules from the included fragment into the source file. The included
@@ -142,15 +144,30 @@ declare function install:perms( $p as xs:string) as xs:integer
 };
 
 (: ======================================================================
-   Sets permission on the collection and all its descendants
+   Sets permission on the collection and all its descendants (eXist 1.X version)
    ======================================================================
 :)
-declare function install:apply-permissions-to($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer)
+declare function install:apply-permissions-to-v1($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer)
 {
   xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms),
   for $c in xdb:get-child-resources($col-uri)
   return
     xdb:set-resource-permissions($col-uri, $c, $user-id, $group-id, $perms),
+  for $c in xdb:get-child-collections($col-uri)
+  return
+    install:apply-permissions-to-v1(concat($col-uri, '/', $c), $user-id, $group-id, $perms)
+};
+
+(: ======================================================================
+   Sets permission on the collection and all its descendants (eXist 2. )
+   ======================================================================
+:)
+declare function install:apply-permissions-to($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:string)
+{
+  compat:set-owner-group-permissions($col-uri, $user-id, $group-id, $perms),
+  for $c in xdb:get-child-resources($col-uri)
+  return
+    compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, $perms),
   for $c in xdb:get-child-collections($col-uri)
   return
     install:apply-permissions-to(concat($col-uri, '/', $c), $user-id, $group-id, $perms)
@@ -319,13 +336,22 @@ declare function install:install-policy($policy as element(), $collection as ele
   return
     if (not(xdb:exists-user($owner))) then
       <li style="color:red">Failed to apply policy “{string($policy/@name)}” to collection “{$col}” because there is no user “{$owner}”</li>
-    else
+    else if (starts-with(system:get-version(), '1')) then
       if ($collection/@inherit) then (
-        install:apply-permissions-to($col, $owner, $group, $p),
+        install:apply-permissions-to-v1($col, $owner, $group, $p),
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}” and its content</li>
         )
       else (
         xdb:set-collection-permissions($col, $owner, $group, $p),
+        <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}”</li>
+        )
+    else (: version 2 or superior :)
+      if ($collection/@inherit) then (
+        install:apply-permissions-to($col, $owner, $group, $perms),
+        <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}” and its content</li>
+        )
+      else (
+        compat:set-owner-group-permissions($col, $owner, $group, $perms),
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}”</li>
         )
 };
