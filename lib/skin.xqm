@@ -170,6 +170,7 @@ declare function skin:_render-profiles( $pkg as xs:string, $profiles as element(
 declare function skin:_gen-skin-I( $pkg as xs:string, $mesh as xs:string?, $tokens as xs:string* ) as node()*
 {
   let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin:skin
+  let $key :=  if (exists($skin/@key)) then $skin/@key else $pkg
   let $handlers := if (oppidum:has-error() or oppidum:has-message()) then 
                     let $err-or-msg := $skin/skin:handler[@name = 'msg-or-err'] 
                     return $err-or-msg
@@ -191,20 +192,21 @@ declare function skin:_gen-skin-I( $pkg as xs:string, $mesh as xs:string?, $toke
       if ($found) then $found else <skin:profile missing="{$n}"/>
   return
     let $all := ($handlers, $mprofdef, $mprof, $profdef, $prof)
-    return skin:_render-profiles($pkg, $all, $tokens)
+    return skin:_render-profiles($key, $all, $tokens)
 };
 
 declare function skin:_gen-skin-II( $pkg as xs:string, $names as xs:string*, $tokens as xs:string* ) as node()*
 {
   if (count($names) > 0) then
     let $skin := doc(concat('/db/www/', $pkg, '/config/skin.xml'))/skin:skin
+    let $key :=  if (exists($skin/@key)) then $skin/@key else $pkg
     let $profiles := 
       for $n in $names
       let $found := $skin/skin:profile[(@type = 'predef') and ($n = @name)]
       return
         if ($found) then $found else <skin:profile missing='{$n} ("{$pkg}" predef)'/>
     return
-      skin:_render-profiles($pkg, $profiles, $tokens)
+      skin:_render-profiles($key, $profiles, $tokens)
   else 
     ()
 };
