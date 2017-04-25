@@ -88,7 +88,14 @@ declare function skin:_js-link( $script as element(), $cmd as element(), $base a
       else 
         (),
       if ($script/@data-bundles-path) then (: URL rewrite :)
-        attribute { 'data-bundles-path' } { concat($base, $script/@data-bundles-path) }
+        attribute { 'data-bundles-path' } {
+          if (contains($script/@data-bundles-path,':')) then 
+            let $pkg := substring-before($script/@data-bundles-path, ':')
+            let $src := substring-after($script/@data-bundles-path, ':')
+            return concat(epilogue:make-static-base-url-for($pkg), $src)
+          else
+            concat($base, $script/@data-bundles-path) 
+        }
       else
         (),
       if ($script/@type) then
