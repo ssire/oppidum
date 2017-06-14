@@ -374,34 +374,47 @@ declare function install:install-users($policies as element()) as element()
 
 (: ======================================================================
    Implements @collection-policy, @resource-policy and 
-   @inherit="collection | resource | yes" on collection element
+   @inherit="collection | resource | yes" on collection or resource element
    ====================================================================== 
 :)
-
-declare function install:install-policy($collection as element(), $policies as element()) {
-  if (empty($collection/@inherit)) then
-    <li style="color:red">Failed to apply policies on collection “{string($collection/@name)}” because mandatory inherit attribute is missing</li>
-  else 
-    let $scope :=string($collection/@inherit)
-    return (
-      if (exists($collection/@collection-policy) and $scope = ('collection', 'yes')) then (: inherits collection-policy on collections :)
-        install:install-policy(
-          $policies/install:policy[@name = $collection/@collection-policy], 
-          $collection, ())
+declare function install:install-policy($target as element(), $policies as element()) {
+  if (local-name($target) eq 'collection') then
+    if (empty($target/@inherit)) then
+      <li style="color:red">Failed to apply policies on collection “{string($target/@name)}” because mandatory inherit attribute is missing</li>
+    else 
+      let $scope :=string($target/@inherit)
+      return (
+        if (exists($target/@collection-policy) and $scope = ('collection', 'yes')) then (: inherits collection-policy on collections :)
+          install:install-policy(
+            $policies/install:policy[@name = $target/@collection-policy], 
+            $target, ())
+        else
+          (),
+        if (exists($target/@resource-policy) and $scope = ('resource', 'yes')) then (: inherits resource-policy on resources within collections :)
+          install:install-policy(
+            $policies/install:policy[@name = $target/@resource-policy],
+            <install:collection inherit="resource">
+              { $target/@*[local-name(.) ne 'inherit']}
+            </install:collection>,
+            ())
+        else
+          ()
+        )
+  else if (local-name($target) eq 'resource') then (: assumes eXist-2.2 or superior :)
+    let $policy := $policies/install:policy[@name = $target/@resource-policy]
+    return
+      if (exists($policy)) then
+        compat:set-owner-group-permissions($target/@name, $policy/@owner, $policy/@group, $policy/@perms)
       else
-        (),
-      if (exists($collection/@resource-policy) and $scope = ('resource', 'yes')) then (: inherits resource-policy on resources within collections :)
-        install:install-policy(
-          $policies/install:policy[@name = $collection/@resource-policy],
-          <install:collection inherit="resource">
-            { $collection/@*[local-name(.) ne 'inherit']}
-          </install:collection>,
-          ())
-      else
-        ()
-      )
+        <li style="color:red">Failed to apply policies on resource “{string($target/@name)}” because unkown policy "{local-name($target/@resource-policy)}"</li>
+  else
+    <li style="color:red">Failed to apply policies on collection “{string($target/@name)}” because unkown target type "{local-name($target)}"</li>
 };
 
+(: ======================================================================
+   TODO: replace deprecated xdb:exists-user
+   ====================================================================== 
+:)
 declare function install:install-policy($policy as element(), $collection as element(), $module as xs:string?)
 {
   let $perms := string($policy/@perms)
