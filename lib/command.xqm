@@ -283,7 +283,8 @@ declare function command:gen-resource(
           if ($resource) then attribute { 'resource' } { command:expand-paths($resource, $tokens, $lang) } else (),
           if ($collection) then attribute { 'collection' } { command:expand-paths($collection, $tokens, $lang) } else (),
           (: optional attributes from target item or collection :)
-          $page/(@access | @template | @check | @epilogue | @supported | @method | @redirect),
+          if ($page/@epilogue) then attribute { 'epilogue' } { command:expand-paths($page/@epilogue, $tokens, $lang) } else (),
+          $page/(@access | @template | @check | @supported | @method | @redirect),
           $page/(access|variant),
           $action-spec
           (: debug :)
