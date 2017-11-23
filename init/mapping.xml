@@ -26,6 +26,24 @@
         <model src="modules/localization/messages.xql"/>
       </action>
     </item>
+    <item name="dictionary" epilogue="devtools">
+      <model src="modules/localization/dictionary.xql"/>
+      <item name="import">
+        <model src="modules/localization/dictionary.xql"/>
+      </item>
+      <item name="missing">
+        <model src="modules/localization/dictionary.xql"/>
+        <variant name="GET" format="csv">
+          <view src="oppidum:modules/localization/csv.xsl"/>
+        </variant>
+      </item>
+      <item name="export">
+        <model src="modules/localization/dictionary.xql"/>
+        <variant name="GET" format="csv">
+          <view src="oppidum:modules/localization/csv.xsl"/>
+        </variant>
+      </item>
+    </item>
   </item>
   <!-- Oppidum benchmark module -->
   <item name="benchmark">
@@ -85,10 +103,16 @@
     <item name="errors" epilogue="devtools">
       <model src="oppidum:test/errandmsg.xql"/>
       <view src="oppidum:test/errandmsg.xsl"/>
+      <variant name="GET" format="csv" epilogue="">
+        <view src="oppidum:modules/localization/csv.xsl"/>
+      </variant>
     </item>
     <item name="messages" epilogue="devtools">
       <model src="oppidum:test/errandmsg.xql"/>
       <view src="oppidum:test/errandmsg.xsl"/>
+      <variant name="GET" format="csv" epilogue="">
+        <view src="oppidum:modules/localization/csv.xsl"/>
+      </variant>
     </item>
   </collection>
 </site>

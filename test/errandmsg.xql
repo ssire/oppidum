@@ -19,7 +19,7 @@ declare option exist:serialize "method=xml media-type=text/xml";
    Returns a list of errors type and status code
    ======================================================================
 :)
-declare function local:gen-errors( $doc-uri as xs:string ) {
+declare function local:gen-errors( $doc-uri as xs:string, $incl-msg as xs:boolean ) {
   for $item in fn:doc($doc-uri)/errors/error
   return
     <Error>
@@ -29,8 +29,9 @@ declare function local:gen-errors( $doc-uri as xs:string ) {
           string($item/@code)
         else
           'MISSING'
-      }
+        }
       </Code>
+      { if ($incl-msg) then $item/message else () }
     </Error>
 };
 
@@ -38,7 +39,7 @@ declare function local:gen-errors( $doc-uri as xs:string ) {
    Returns a list of messages type dans optional status code
    ======================================================================
 :)
-declare function local:gen-messages( $doc-uri as xs:string ) {
+declare function local:gen-messages( $doc-uri as xs:string, $incl-msg as xs:boolean ) {
   for $item in fn:doc($doc-uri)/messages/info
   return
     <Message>
@@ -50,6 +51,7 @@ declare function local:gen-messages( $doc-uri as xs:string ) {
           '---'
       }
       </Code>
+      { if ($incl-msg) then $item/message else () }
     </Message>
 };
 
@@ -81,18 +83,29 @@ let $thrown :=  if ($code) then
                 else
                   ()
 
+let $csv:= $cmd/@format and $cmd/@format eq 'csv' or (request:get-parameter('export', '') eq 'csv')
 return
   if (($cmd/@format eq 'xml') and $code) then (: ajax test condition :)
     $thrown
   else
     <Display Type="{$cmd/resource/@name}" Resource="{$res-uri}" Application="{$app}">
-      {(
+      {
       (: devtools way to simulate errors from another application inside oppidum application :)
       request:set-attribute('devtools.confbase', concat('/db/www/', $app)),
       $thrown,
       if ($cmd/resource/@name eq 'errors') then
-        local:gen-errors($res-uri)
+        local:gen-errors($res-uri, $csv)
       else
-        local:gen-messages($res-uri)
-      )}
+        local:gen-messages($res-uri, $csv),
+      if ($csv) then
+        <Languages>
+          {
+          for $lang in distinct-values(fn:doc($res-uri)//@lang)
+          order by $lang descending
+          return <Language>{ $lang }</Language>
+          }
+        </Languages>
+      else
+        ()
+      }
     </Display>

@@ -69,6 +69,7 @@ declare function site:navigation( $cmd as element(), $view as element() ) as ele
       <li><a href="{$base}test/errors">Errors</a></li>
       <li><a href="{$base}test/messages">Messages</a></li>
       <li><a href="{$base}localization/messages">Localization</a></li>
+      <li><a href="{$base}localization/dictionary">Dictionary</a></li>
       <li><hr/></li>
       <li><a href="{$base}docs/toc">Docs</a></li>
       <li><a href="{$base}home">Version</a></li>

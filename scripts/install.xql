@@ -16,7 +16,7 @@ import module namespace install = "http://oppidoc.com/oppidum/install" at "../li
 declare option exist:serialize "method=xhtml media-type=text/html indent=yes";
 
 declare variable $policies := <policies xmlns="http://oppidoc.com/oppidum/install">
-  <policy name="admin" owner="admin" group="dba" perms="rwur-ur-u"/>
+  <policy name="admin" owner="admin" group="dba" perms="rwxr-xr-x"/>
 </policies>;
 
 declare variable $site := <site xmlns="http://oppidoc.com/oppidum/install">

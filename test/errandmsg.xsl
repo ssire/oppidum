@@ -19,6 +19,7 @@
       <site:content>
         <h1>Showing <xsl:value-of select="string(Display/@Type)"/> from <xsl:value-of select="string(Display/@Resource)"/></h1>
         <p>This page shows all <xsl:value-of select="string(Display/@Type)"/> defined by the <xsl:value-of select="string(Display/@Application)"/> application. Click on an type to simulate it in a full pipeline (incl. an epilogue). Click on the <sup>xml</sup> label to simulate it in a 1 step pipeline such as an Ajax submission pipeline.</p>
+        <p>These <xsl:value-of select="string(Display/@Type)"/> are also available as a <a href="messages.csv?app={Display/@Application}">csv file</a>.</p>
         <p>Application :
           <input type="text" id="app" value="{Display/@Application}"></input>
           <button onclick="javascript:window.location.href='{Display/@Type}'+'?app='+$('#app').val()">reload</button>
