@@ -223,9 +223,9 @@ declare function oppidum:render-error(
         else fn:doc($oppidum:DEFAULT_ERR_LOC)/errors/error[@type = $err-type],
     $msgs :=
       if ($error/message[@lang = $lang]) then
-        $error/message[@lang = $lang]
+        $error/message[@lang = $lang]/text()
       else
-        $error/message, (: any language :)
+        $error/message/text(), (: any language :)
     $msg :=
       if (empty($err-clue)) then
         string($msgs[1])
@@ -298,7 +298,7 @@ declare function oppidum:render-message(
 {
   let $msg-uri := concat($db, '/config/messages.xml')
   let $found := fn:doc($msg-uri)/messages/info[@type = $type] 
-  let $candidates := if ($found/message[@lang = $lang]) then $found/message[@lang = $lang] else $found/message
+  let $candidates := if ($found/message[@lang = $lang]) then $found/message[@lang = $lang]/text() else $found/message/text()
   let $msg := if (empty($clues)) then $candidates[1] else $candidates[string(@noargs) != 'yes'][1]
   let $src := if ($msg) then string($msg) else concat("Message (", $type, ")")
   let $arg := if (empty($clues)) then '' else $clues
