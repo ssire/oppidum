@@ -318,8 +318,8 @@ declare function local:missing ( $app_name as xs:string, $driver_lang as xs:stri
         where not($key = $keys)
         return 
           <row>
-            <Order>{ $i }</Order>
-            <Formular>shared</Formular>
+            <Order>-</Order>
+            <Formular>-</Formular>
             <Key>{ $key }</Key>
             {
             for $l in $languages
