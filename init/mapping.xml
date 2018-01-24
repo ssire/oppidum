@@ -20,22 +20,22 @@
   </item>
   <!-- Oppidum localization module -->
   <item name="localization">
-    <item name="messages" method="POST" epilogue="devtools">
+    <item name="messages" method="POST" supported="import" epilogue="devtools">
       <model src="modules/localization/messages.xql"/>
       <action name="POST">
+        <model src="modules/localization/messages.xql"/>
+      </action>
+      <action name="import" epilogue="">
         <model src="modules/localization/messages.xql"/>
       </action>
     </item>
     <item name="dictionary" epilogue="devtools">
       <model src="modules/localization/dictionary.xql"/>
-      <item name="import">
+      <item name="regenerate">
         <model src="modules/localization/dictionary.xql"/>
       </item>
-      <item name="missing">
+      <item name="import">
         <model src="modules/localization/dictionary.xql"/>
-        <variant name="GET" format="csv">
-          <view src="oppidum:modules/localization/csv.xsl"/>
-        </variant>
       </item>
       <item name="export">
         <model src="modules/localization/dictionary.xql"/>
@@ -43,6 +43,18 @@
           <view src="oppidum:modules/localization/csv.xsl"/>
         </variant>
       </item>
+      <item name="missing">
+        <model src="modules/localization/dictionary.xql"/>
+        <variant name="GET" format="csv">
+          <view src="oppidum:modules/localization/csv.xsl"/>
+        </variant>
+      </item>
+      <item name="convert">
+        <model src="modules/localization/dictionary.xql"/>
+        <variant name="GET" format="csv">
+          <view src="oppidum:modules/localization/csv.xsl"/>
+        </variant>
+      </item>      
     </item>
   </item>
   <!-- Oppidum benchmark module -->

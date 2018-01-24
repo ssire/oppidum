@@ -63,6 +63,14 @@ fieldset {
   border: solid 1px #999;
 }
 
+dt {
+  margin-bottom: 10px;
+}
+
+dd {
+  margin-bottom: 20px;
+}
+
 /* IDE explorer */
 
 #ide-explorer th {

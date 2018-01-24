@@ -11,6 +11,10 @@
     <xsl:apply-templates select="*"/>
   </xsl:template>
 
+  <xsl:template match="/error">
+    <xsl:value-of select="message"/>
+  </xsl:template>
+
   <!-- *********************************************** -->
   <!-- Plain table/row/* input model conversion to CSV -->
   <!-- *********************************************** -->
