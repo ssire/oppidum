@@ -150,10 +150,12 @@ declare function install:perms( $p as xs:string) as xs:integer
 :)
 declare function install:apply-permissions-to-v1($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer)
 {
-  xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms),
+  (: xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms), :)
+  compat:set-owner-group-permissions($col-uri, $user-id, $group-id, compat:permsIntegerToString($perm)),
   for $c in xdb:get-child-resources($col-uri)
   return
-    xdb:set-resource-permissions($col-uri, $c, $user-id, $group-id, $perms),
+    (: xdb:set-resource-permissions($col-uri, $c, $user-id, $group-id, $perms), :)
+    compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, compat:permsIntegerToString($perms)),
   for $c in xdb:get-child-collections($col-uri)
   return
     install:apply-permissions-to-v1(concat($col-uri, '/', $c), $user-id, $group-id, $perms)
@@ -183,13 +185,15 @@ declare function install:apply-permissions-to($col-uri as xs:string, $user-id as
 declare function install:apply-permissions-iter-v1($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:integer, $inherit as xs:string?)
 {
   if ($inherit = ('collection', 'yes')) then (: applies to self collection :)
-    xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms)
+    (: xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms) :)
+    compat:set-owner-group-permissions($col-uri, $user-id, $group-id, compat:permsIntegerToString($perm))
   else
     (),
   if ($inherit = ('resource', 'yes')) then (: applies to child resources :)
     for $c in xdb:get-child-resources($col-uri)
     return
-      xdb:set-resource-permissions($col-uri, $c, $user-id, $group-id, $perms)
+      (: xdb:set-resource-permissions($col-uri, $c, $user-id, $group-id, $perms) :)
+      compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, compat:permsIntegerToString($perms))
   else
     (),
   for $c in xdb:get-child-collections($col-uri) (: applies to descendants :)
@@ -349,14 +353,14 @@ declare function install:install-user($user as element())
   let $groups := if (string($user/@groups) != '') then tokenize(string($user/@groups), ' ') else ()
   let $home := if (string($user/@home) != '') then string($user/@home) else ()
   return
-    if (xdb:exists-user($user/@name)) then
+    if (sm:user-exists($user/@name)) then
       (
         xdb:change-user($user/@name, $user/@password, $groups, $home),
         <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then concat("“", $home, "”") else "no home"}</li>
       )
     else
       (
-        xdb:create-user($user/@name, $user/@password, $groups, $home),
+        sm:create-account($user/@name, $user/@password, $groups, $home),
         <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
       )
 };
@@ -412,7 +416,7 @@ declare function install:install-policy($target as element(), $policies as eleme
 };
 
 (: ======================================================================
-   TODO: replace deprecated xdb:exists-user
+   
    ====================================================================== 
 :)
 declare function install:install-policy($policy as element(), $collection as element(), $module as xs:string?)
@@ -423,7 +427,7 @@ declare function install:install-policy($policy as element(), $collection as ele
   let $col := if ($module) then replace($collection/@name, $module, "/db/www/root") else string($collection/@name)
   let $p := install:perms($perms)
   return
-    if (not(xdb:exists-user($owner))) then
+    if (not(sm:user-exists($owner))) then
       <li style="color:red">Failed to apply policy “{string($policy/@name)}” to collection “{$col}” because there is no user “{$owner}”</li>
     else if (starts-with(system:get-version(), '1')) then
       if ($collection/@inherit = ('collection', 'resource', 'yes')) then (
@@ -431,7 +435,8 @@ declare function install:install-policy($policy as element(), $collection as ele
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}” and its content, iterates on {string($collection/@inherit)}</li>
         )
       else (
-        xdb:set-collection-permissions($col, $owner, $group, $p),
+        (: xdb:set-collection-permissions($col, $owner, $group, $p), :)
+        compat:set-owner-group-permissions($col, $owner, $group, compat:permsIntegerToString($p)),
         <li>Set owner “{$owner}” on collection “{$col}” with group “{$group}” and permissions “{$perms}”</li>
         )
     else (: version 2 or superior :)

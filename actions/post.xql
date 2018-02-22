@@ -44,7 +44,7 @@ let
 return           
   if (xdb:collection-available($col-uri)) then (: sanity check :)    
     let $uid := local:gen-unique-id($col-uri)
-    let $data := request:get-data()
+    let $data := oppidum:get-data()
     let $name := concat($uid, '.xml')
     let $stored-path := xdb:store($col-uri, $name, $data)
     return

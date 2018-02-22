@@ -52,7 +52,7 @@ return
             oppidum:add-error('ACTION-LOGIN-DESACTIVATED', (), true())
     else                    
       (),
-    <User>{ if (($user != '') and xdb:exists-user($user)) then $user else () }</User>,
+    <User>{ if (($user != '') and sm:user-exists($user)) then $user else () }</User>,
     <To>{ $goto-url }</To>
   }
   </Login>    

@@ -42,7 +42,7 @@ let
 return           
   if (xdb:collection-available($col-uri)) then
     let                   
-      $data := request:get-data(),
+      $data := oppidum:get-data(),
       $stored-path := xdb:store($col-uri, $filename, $data)
     return
       if(not($stored-path eq ())) then (

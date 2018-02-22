@@ -170,7 +170,7 @@ declare function local:render( $cmd as element(), $source as element(), $view as
    ======================================================================
 :)
 let $mesh := epilogue:finalize()
-let $data := request:get-data()
+let $data := oppidum:get-data()
 let $view := if ($data instance of document-node()) then (: since exist 2.0 :) $data/*[1] else (: exist 1.4.x:) $data
 return
   if ($mesh) then

@@ -19,6 +19,7 @@ import module namespace xdb = "http://exist-db.org/xquery/xmldb";
 import module namespace image = "http://exist-db.org/xquery/image";
 import module namespace text="http://exist-db.org/xquery/text";
 import module namespace util="http://exist-db.org/xquery/util";
+import module namespace compat = "http://oppidoc.com/oppidum/compatibility" at "../../lib/compat.xqm";
 
 (: This is the accepted format :)
 declare variable $accepted-mime-types := ('image/jpeg', 'image/png', 'image/tiff', 'image/gif');
@@ -137,7 +138,8 @@ return
               if ($scaled-image instance of xs:base64Binary) then (               
   (:              util:log-app('info', 'webapp.site', concat('Saving ', $image-name, ' mime type and size: ', $mime-type, ' [', $width, 'px, ', $height, 'px]', 'scaled :', $need-scaling)),
   :)              xdb:store($col-uri, $image-name, $scaled-image, $mime-type),
-                  xdb:set-resource-permissions($col-uri, $image-name, $user, $group, util:base-to-integer(0774, 8)),
+                  (: xdb:set-resource-permissions($col-uri, $image-name, $user, $group, util:base-to-integer(0774, 8)), :)
+                  compat:set-owner-group-permissions(concat($col-uri, '/', $image-name), $user, $group, compat:permsIntegerToString(util:base-to-integer(0774, 8))),
                   local:gen-success($image-id, $extension)
                 )[last()]      
               else  

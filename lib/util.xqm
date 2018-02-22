@@ -565,7 +565,7 @@ declare function oppidum:exists-user( $key as xs:string, $realm as xs:string? ) 
     return
       util:eval($exists)
   else
-    xdb:exists-user($key)
+    sm:user-exists($key)
 };
 
 (: ======================================================================
