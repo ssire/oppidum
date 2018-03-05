@@ -186,7 +186,7 @@ declare function install:apply-permissions-iter-v1($col-uri as xs:string, $user-
 {
   if ($inherit = ('collection', 'yes')) then (: applies to self collection :)
     (: xdb:set-collection-permissions($col-uri, $user-id, $group-id, $perms) :)
-    compat:set-owner-group-permissions($col-uri, $user-id, $group-id, compat:permsIntegerToString($perm))
+    compat:set-owner-group-permissions($col-uri, $user-id, $group-id, compat:permsIntegerToString($perms))
   else
     (),
   if ($inherit = ('resource', 'yes')) then (: applies to child resources :)
@@ -360,7 +360,8 @@ declare function install:install-user($user as element())
       )
     else
       (
-        sm:create-account($user/@name, $user/@password, $groups, $home),
+        (: sm:create-account($user/@name, $user/@password, $groups, $home), :)
+         xdb:create-user($user/@name, $user/@password, $groups, $home),
         <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
       )
 };

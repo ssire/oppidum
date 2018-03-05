@@ -16,7 +16,7 @@ module namespace compat = "http://oppidoc.com/oppidum/compatibility";
    NOTE: not implemented for eXist-1.4.3 !
    ======================================================================
 :)
-declare function compat:set-owner-group-permissions( $path as xs:string, $owner as xs:string, $group as xs:string, $mod as xs:string ) as empty() {
+declare function compat:set-owner-group-permissions( $path as xs:string, $owner as xs:string, $group as xs:string, $mod as xs:string ) as empty-sequence() {
   if (starts-with(system:get-version(), '1')) then
     ()
   else

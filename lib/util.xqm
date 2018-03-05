@@ -99,12 +99,12 @@ declare function oppidum:redirect( $url as xs:string ) as xs:string
    Shortcut to dump a message to the site's log file
    ======================================================================
 :)
-declare function oppidum:log( $msg as xs:string ) as empty()
+declare function oppidum:log( $msg as xs:string ) as empty-sequence()
 {
   util:log-app('debug', 'webapp.site', $msg)
 };
 
-declare function oppidum:debug( $msg as xs:string* ) as empty()
+declare function oppidum:debug( $msg as xs:string* ) as empty-sequence()
 {
   util:log-app('debug', 'webapp.site', string-join($msg, ' '))
 };
@@ -113,7 +113,7 @@ declare function oppidum:debug( $msg as xs:string* ) as empty()
    Dumps eXist variables related to the request URL to the site's log file
    ======================================================================
 :)
-declare function oppidum:log-parameters( $params as element() ) as empty()
+declare function oppidum:log-parameters( $params as element() ) as empty-sequence()
 {
   let $out := for $p in $params/param
               return concat($p/@name, ' = [', $p/@value, ']')
@@ -132,7 +132,7 @@ declare function oppidum:my-add-error-or-msg(
   $from as xs:string, 
   $type as xs:string,
   $clues as xs:string*, 
-  $sticky as xs:boolean ) as empty()
+  $sticky as xs:boolean ) as empty-sequence()
 {
   if ($sticky) then
     let
