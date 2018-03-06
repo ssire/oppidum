@@ -11,8 +11,10 @@
 # Then you can point your browser to http://localhost:8080/exist/{your projects folder name}/oppidum
 ../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/mesh -p ../mesh -s
 ../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/config -p ../init -s
+../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/lib -p ../lib -s
 
 #echo "xmldb:chmod-collection('/db/www/oppidum/config', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x '/db/www/oppidum/config'
 ../../../../bin/client.sh -u admin -P $1 -x "xmldb:chmod-collection('/db/www/oppidum/config', util:base-to-integer(0775, 8))"
 #echo "xmldb:chmod-collection('/db/www/oppidum/mesh', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x '/db/www/oppidum/mesh'
 ../../../../bin/client.sh -u admin -P $1 -x "xmldb:chmod-collection('/db/www/oppidum/mesh', util:base-to-integer(0775, 8))"
+../../../../bin/client.sh -u admin -P $1 -x "xmldb:chmod-collection('/db/www/oppidum/lib', util:base-to-integer(0775, 8))"
