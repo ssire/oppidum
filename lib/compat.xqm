@@ -48,13 +48,13 @@ declare function compat:permsIntegerToString( $p as xs:integer) as xs:string
     
     let $u1 := if (($u eq 7) or ($u eq 6) or ($u eq 5) or ($u eq 4)) then "r" else "-"
     let $u2 := if (($u eq 7) or ($u eq 6) or ($u eq 3) or ($u eq 2)) then "w" else "-"
-    let $u3 := if (($u eq 7) or ($u eq 5) or ($u eq 3) or ($u eq 1)) then "u" else "-"
+    let $u3 := if (($u eq 7) or ($u eq 5) or ($u eq 3) or ($u eq 1)) then "x" else "-"
     let $g1 := if (($g eq 7) or ($g eq 6) or ($g eq 5) or ($g eq 4)) then "r" else "-"
     let $g2 := if (($g eq 7) or ($g eq 6) or ($g eq 3) or ($g eq 2)) then "w" else "-"
-    let $g3 := if (($g eq 7) or ($g eq 5) or ($g eq 3) or ($g eq 1)) then "u" else "-"
+    let $g3 := if (($g eq 7) or ($g eq 5) or ($g eq 3) or ($g eq 1)) then "x" else "-"
     let $o1 := if (($o eq 7) or ($o eq 6) or ($o eq 5) or ($o eq 4)) then "r" else "-"
     let $o2 := if (($o eq 7) or ($o eq 6) or ($o eq 3) or ($o eq 2)) then "w" else "-"
-    let $o3 := if (($o eq 7) or ($o eq 5) or ($o eq 3) or ($o eq 1)) then "u" else "-"
+    let $o3 := if (($o eq 7) or ($o eq 5) or ($o eq 3) or ($o eq 1)) then "x" else "-"
     
     return concat($u1, $u2, $u3, $g1, $g2, $g3, $o1, $o2, $o3)
 };
