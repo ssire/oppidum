@@ -139,7 +139,7 @@ return
   (:              util:log-app('info', 'webapp.site', concat('Saving ', $image-name, ' mime type and size: ', $mime-type, ' [', $width, 'px, ', $height, 'px]', 'scaled :', $need-scaling)),
   :)              xdb:store($col-uri, $image-name, $scaled-image, $mime-type),
                   (: xdb:set-resource-permissions($col-uri, $image-name, $user, $group, util:base-to-integer(0774, 8)), :)
-                  compat:set-owner-group-permissions(concat($col-uri, '/', $image-name), $user, $group, compat:permsIntegerToString(util:base-to-integer(0774, 8))),
+                  compat:set-owner-group-permissions(concat($col-uri, '/', $image-name), $user, $group, compat:permsIntegerToString(util:base-to-integer(775, 8))),
                   local:gen-success($image-id, $extension)
                 )[last()]      
               else  
