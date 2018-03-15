@@ -26,9 +26,9 @@ declare function compat:set-owner-group-permissions( $path as xs:string, $owner 
           xs:anyURI('securitymanager')
           )
     return (
-      util:eval("sm:chown(xs:anyURI($path), $owner)"),
-      util:eval("sm:chgrp(xs:anyURI($path), $group)"),
-      util:eval("sm:chmod(xs:anyURI($path), $mod)")
+      util:eval('system:as-user("admin", "admin40", sm:chown(xs:anyURI($path), $owner))'),
+      util:eval('system:as-user("admin", "admin40", sm:chgrp(xs:anyURI($path), $group))'),
+      util:eval('system:as-user("admin", "admin40", sm:chmod(xs:anyURI($path), $mod))')
       )
 };
 

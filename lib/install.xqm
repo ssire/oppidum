@@ -169,10 +169,10 @@ declare function install:apply-permissions-to-v1($col-uri as xs:string, $user-id
 declare function install:apply-permissions-to($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:string)
 {
   compat:set-owner-group-permissions($col-uri, $user-id, $group-id, $perms),
-  for $c in xdb:get-child-resources($col-uri)
+  for $c in system:as-user("admin", "admin40", xdb:get-child-resources($col-uri))
   return
     compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, $perms),
-  for $c in xdb:get-child-collections($col-uri)
+  for $c in system:as-user("admin", "admin40", xdb:get-child-collections($col-uri))
   return
     install:apply-permissions-to(concat($col-uri, '/', $c), $user-id, $group-id, $perms)
 };
@@ -208,19 +208,24 @@ declare function install:apply-permissions-iter-v1($col-uri as xs:string, $user-
 :)
 declare function install:apply-permissions-iter($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:string, $inherit as xs:string?)
 {
+  <li> install:apply-permissions-iter </li>,
   if ($inherit = ('collection', 'yes')) then (: applies to self collection :)
     compat:set-owner-group-permissions($col-uri, $user-id, $group-id, $perms)
   else
     (),
   if ($inherit = ('resource', 'yes')) then (: applies to child resources :)
-    for $c in xdb:get-child-resources($col-uri)
-    return
+    for $c in system:as-user("admin", "admin40", xdb:get-child-resources($col-uri))
+    return (
+      <li> Iter in {concat($col-uri, '/', $c)}</li>,
       compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, $perms)
+      )
   else
     (),
-  for $c in xdb:get-child-collections($col-uri) (: applies to descendants :)
-  return
+  for $c in system:as-user("admin", "admin40", xdb:get-child-collections($col-uri)) (: applies to descendants :)
+  return (
+    <li> Iter in {concat($col-uri, '/', $c)}</li>,
     install:apply-permissions-iter(concat($col-uri, '/', $c), $user-id, $group-id, $perms, $inherit)
+    )
 };
 
 declare function install:store-files($collection as xs:string, $home as xs:string, $patterns as xs:string, $mimeType as xs:string?) as element()*

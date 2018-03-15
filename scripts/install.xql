@@ -24,7 +24,7 @@ declare variable $site := <site xmlns="http://oppidoc.com/oppidum/install">
 </site>;
 
 declare variable $code := <code xmlns="http://oppidoc.com/oppidum/install">
-  <collection name="/db/www" policy="admin" inherit="true"/>
+  <collection name="/db/www" policy="admin" inherit="yes"/>
   <group name="config" mandatory="true">
     <collection name="/db/www/oppidum/config">
       <files pattern="init/mapping.xml"/>
