@@ -602,14 +602,19 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
     let $exists := $model//Variable[Name eq 'Exists']/Expression
     let $solver:= $model//Variable[Name eq 'Groups']/Expression
     return
-      if (exists($exists) and exists($solver)) then
-        if (util:eval($exists)) then 
+      if (exists($exists)) then (: group allocation enabled :)
+        if (util:eval($exists) and exists($solver)) then
           fn:distinct-values(
             (xdb:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
             util:eval($solver))
           )
         else
-          ()
+          let $fallback := $model//Variable[Name eq 'Guest']/Expression
+          return
+            if (exists($fallback)) then
+              util:eval($fallback)
+            else
+              ()
       else
         ()
   else (: fallback internal Realm :)
