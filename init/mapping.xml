@@ -34,7 +34,7 @@
       <item name="regenerate">
         <model src="modules/localization/dictionary.xql"/>
       </item>
-      <item name="import">
+      <item name="merge">
         <model src="modules/localization/dictionary.xql"/>
       </item>
       <item name="export">
