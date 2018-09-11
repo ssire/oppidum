@@ -29,7 +29,7 @@ declare variable $lmaxheight := 156;
 
 declare function local:get-extension( $file-name as xs:string ) as xs:string
 {
-  let $unparsed-extension := lower-case( (text:groups($file-name, '\.(\w+)'))[2] )
+  let $unparsed-extension := lower-case( (analyze-string($file-name, '\.(\w+)')//fn:group)[2] )
   return 
     replace(replace($unparsed-extension, 'jpg', 'jpeg'), 'tif', 'tiff')
 };  
@@ -60,7 +60,7 @@ declare function local:get-free-resource-name( $col-uri as xs:string )
        1
     else 
       max(for $name in $files
-          let $nb := text:groups($name, '((\d+)\.\w{2,5})$')[3]
+          let $nb := analyze-string($name, '((\d+)\.\w{2,5})$')//fn:group[3]
           return 
           xs:integer($nb)) + 1
 };
