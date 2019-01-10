@@ -1,7 +1,7 @@
 xquery version "3.0";
 (: ------------------------------------------------------------------
   Description :
-    oppidum installation script for eXist v2.2
+    oppidum installation script for eXist v2.2 or superior
   
   Date : March 2018
    ------------------------------------------------------------------ :)
@@ -11,7 +11,7 @@ declare namespace request = "http://exist-db.org/xquery/request";
 
 (: ======================================================================
    Changes owner, groups and permissions for a collection or resource
-   NOTE: not implemented for eXist-1.4.3 !
+   NOT compatible with exist-1.4.3
    ======================================================================
 :)
 declare function local:set-owner-group-permissions( $path as xs:string, $owner as xs:string, $group as xs:string, $mod as xs:string ) {
@@ -27,12 +27,6 @@ declare function local:set-owner-group-permissions( $path as xs:string, $owner a
       )
 };
 
-(:
-Description : 
-    Replace the following code from bootstrap.xh
-echo "xmldb:chmod-collection('/db/www/oppidum/config', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x
-echo "xmldb:chmod-collection('/db/www/oppidum/mesh', util:base-to-integer(0775, 8))" | ../../../../bin/client.sh -u admin -P $1 -x
-:)
 declare function local:create-and-update-coll( $targets as xs:string* ) {
 for $uri in $targets 
 return 
@@ -44,7 +38,6 @@ return
     )
 };
 
-
-let $targets := ( '/www/oppidum/config', '/db/www/oppidum/mesh' )
+let $targets := ( '/www/oppidum/config', '/www/oppidum/mesh' )
 return 
     local:create-and-update-coll( $targets )
