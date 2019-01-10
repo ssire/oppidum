@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 (: -----------------------------------------------
    Oppidum framework utilities
 
@@ -56,12 +56,16 @@ declare function oppidum:path-to-config ( $fn as xs:string? ) as xs:string
 };
 
 declare function oppidum:replace-clues( $text as xs:string, $clues as xs:string* ) as xs:string {
-  if (not(contains($text, "%s"))) then 
+  try{
+    if (not(contains($text, "%s"))) then 
+      $text
+    else
+      oppidum:replace-clues(
+        replace($text, concat('(^.*?)', "%s"), concat('$1', replace($clues[1], '\$', 'S|'))), (: replace first :)
+        subsequence($clues,2))
+  } catch * {
     $text
-  else
-    oppidum:replace-clues(
-      replace($text, concat('(^.*?)', "%s"), concat('$1', $clues[1])), (: replace first :)
-      subsequence($clues,2))  
+  }
 };
 
 (: ======================================================================
