@@ -60,7 +60,7 @@ declare function oppidum:replace-clues( $text as xs:string, $clues as xs:string*
     $text
   else
     oppidum:replace-clues(
-      replace($text, concat('(^.*?)', "%s"), concat('$1', $clues[1])), (: replace first :)
+      replace($text, concat('(^.*?)', "%s"), concat('$1', replace($clues[1], '\$', 'S|'))), (: replace first :)
       subsequence($clues,2))  
 };
 
