@@ -1,8 +1,6 @@
 Oppidum - XQuery web application framework for eXist-db
 =======
 
-_Last update : 2015-09-14 (by Stéphane Sire)_
-
 Oppidum is an XML-oriented MVC framework written in XQuery / XSLT / Javascript. It allows to develop web applications on top of the [eXist-db](http://exist-db.org/) native XML database.
 
 Oppidum is developped and maintained by Stéphane Sire at [Oppidoc](http://www.oppidoc.com).
