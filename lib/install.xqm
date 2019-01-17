@@ -363,7 +363,7 @@ declare function local:resource-permissions-iter($col-uri as xs:string, $user-id
 };
 
 (: ======================================================================
-   Implement @collection-policy, @resource-policy and 
+   Implement @policy, @collection-policy, @resource-policy and 
    @inherit="collection | resource | both | yes | no" on host element.
    "yes" is DEPRECATED use "both" instead.
    ====================================================================== 
@@ -377,8 +377,8 @@ declare function install:install-policy($host as element(), $policies as element
         <li style="color:red">Failed to apply policies on collection “{string($col-uri)}” because mandatory inherit attribute is missing or has wrong value</li>
       else (
         (: 1. launch process with collection permissions :)
-        if (exists($host/@collection-policy)) then
-          let $policy := $policies/install:policy[@name = $host/@collection-policy]
+        if (exists($host/@collection-policy) or exists($host/@policy)) then
+          let $policy := $policies/install:policy[@name = ($host/@collection-policy, $host/@policy)[1]]
           return
             if ($policy) then 
               let $perms := string($policy/@perms)
@@ -397,8 +397,8 @@ declare function install:install-policy($host as element(), $policies as element
         else
           (),
         (: 2. launch process with resource permissions :)
-        if (exists($host/@resource-policy)) then
-          let $policy := $policies/install:policy[@name = $host/@resource-policy]
+        if (exists($host/@resource-policy) or exists($host/@policy)) then
+          let $policy := $policies/install:policy[@name = ($host/@resource-policy, $host/@policy)[1]]
           return
             if ($policy) then 
               let $perms := string($policy/@perms)
