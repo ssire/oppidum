@@ -373,42 +373,112 @@ declare function install:install-users($policies as element()) as element()
 };
 
 (: ======================================================================
-   Implements @collection-policy, @resource-policy and 
-   @inherit="collection | resource | yes" on collection or resource element
+   Set permissions on the collection itself then iterate on its 
+   descendants as per the $inherit scope
+   ======================================================================
+:)
+declare function local:collection-permissions-iter($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:string, $inherit as xs:string?)
+{
+  if (xdb:collection-available($col-uri)) then (
+    compat:set-owner-group-permissions($col-uri, $user-id, $group-id, $perms),
+    if ($inherit = ('collection', 'both', 'yes')) then
+      for $c in xdb:get-child-collections($col-uri)
+      return
+        local:collection-permissions-iter(concat($col-uri, '/', $c), $user-id, $group-id, $perms, $inherit)
+    else
+      ()
+    )
+  else
+    <li style="color:red">Failed to apply collection policies on “{$col-uri}” because it does not exists</li>
+};
+
+(: ======================================================================
+   Set permissions on the direct resources inside the collection itself 
+   then iterate on its descendants as per the $inherit scope
+   ======================================================================
+:)
+declare function local:resource-permissions-iter($col-uri as xs:string, $user-id as xs:string, $group-id as xs:string, $perms as xs:string, $inherit as xs:string?)
+{
+  if (xdb:collection-available($col-uri)) then (
+    for $c in xdb:get-child-resources($col-uri)
+    return
+      compat:set-owner-group-permissions(concat($col-uri, '/', $c), $user-id, $group-id, $perms),
+    if ($inherit = ('resource', 'both', 'yes')) then
+      for $c in xdb:get-child-collections($col-uri)
+      return
+        local:resource-permissions-iter(concat($col-uri, '/', $c), $user-id, $group-id, $perms, $inherit)
+    else
+      ()
+    )
+  else
+    <li style="color:red">Failed to apply resource policies on “{$col-uri}” because it does not exists</li>
+};
+
+(: ======================================================================
+   Implement @policy, @collection-policy, @resource-policy and 
+   @inherit="collection | resource | both | yes | no" on host element.
+   "yes" is DEPRECATED use "both" instead.
    ====================================================================== 
 :)
-declare function install:install-policy($target as element(), $policies as element()) {
-  if (local-name($target) eq 'collection') then
-    if (empty($target/@inherit)) then
-      <li style="color:red">Failed to apply policies on collection “{string($target/@name)}” because mandatory inherit attribute is missing</li>
-    else 
-      let $scope :=string($target/@inherit)
-      return (
-        if (exists($target/@collection-policy) and $scope = ('collection', 'yes')) then (: inherits collection-policy on collections :)
-          install:install-policy(
-            $policies/install:policy[@name = $target/@collection-policy], 
-            $target, ())
+declare function install:install-policy($host as element(), $policies as element()) {
+  if (local-name($host) eq 'collection') then
+    let $col-uri := string($host/@name)
+    let $scope := $host/@inherit
+    return
+      if (empty($scope) or not($scope = ('collection', 'resource', 'yes', 'both', 'no'))) then
+        <li style="color:red">Failed to apply policies on collection “{string($col-uri)}” because mandatory inherit attribute is missing or has wrong value</li>
+      else (
+        (: 1. launch process with collection permissions :)
+        if (exists($host/@collection-policy) or exists($host/@policy)) then
+          let $policy := $policies/install:policy[@name = ($host/@collection-policy, $host/@policy)[1]]
+          return
+            if ($policy) then 
+              let $perms := string($policy/@perms)
+              let $owner := string($policy/@owner)
+              let $group := string($policy/@group)
+              let $p := install:perms($perms)
+              return
+                if (not(xdb:exists-user($owner))) then
+                  <li style="color:red">Failed to apply policy “{string($policy/@name)}” to collection “{$col-uri}” because there is no user “{$owner}”</li>
+                else (
+                  <li>Set owner “{$owner}” on collection “{$col-uri}” with group “{$group}” and permissions “{$perms}”{ if ($scope = ('resource', 'both', 'yes')) then " iterate on descendants" else () }</li>,
+                  local:collection-permissions-iter($col-uri, $owner, $group, $perms, $scope)
+                  )
+            else
+              <li style="color:red">Failed to apply policy “{string($host/@collection-policy)}” to collection “{$col-uri}” because there is no such policy</li>
         else
           (),
-        if (exists($target/@resource-policy) and $scope = ('resource', 'yes')) then (: inherits resource-policy on resources within collections :)
-          install:install-policy(
-            $policies/install:policy[@name = $target/@resource-policy],
-            <install:collection inherit="resource">
-              { $target/@*[local-name(.) ne 'inherit']}
-            </install:collection>,
-            ())
+        (: 2. launch process with resource permissions :)
+        if (exists($host/@resource-policy) or exists($host/@policy)) then
+          let $policy := $policies/install:policy[@name = ($host/@resource-policy, $host/@policy)[1]]
+          return
+            if ($policy) then 
+              let $perms := string($policy/@perms)
+              let $owner := string($policy/@owner)
+              let $group := string($policy/@group)
+              let $p := install:perms($perms)
+              return
+                if (not(xdb:exists-user($owner))) then
+                  <li style="color:red">Failed to apply policy “{string($policy/@name)}” to resources of collection “{$col-uri}” because there is no user “{$owner}”</li>
+                else (
+                  <li>Set owner “{$owner}” on resources  “{$col-uri}” with group “{$group}” and permissions “{$perms}”{ if ($scope = ('resource', 'both', 'yes')) then " iterate on descendants" else () }</li>,
+                  local:resource-permissions-iter($col-uri, $owner, $group, $perms, $scope)
+                  )
+            else
+              <li style="color:red">Failed to apply policy “{string($host/@resource-policy)}” to resources of collection “{$col-uri}” because there is no such policy</li>
         else
           ()
         )
-  else if (local-name($target) eq 'resource') then (: assumes eXist-2.2 or superior :)
-    let $policy := $policies/install:policy[@name = $target/@resource-policy]
+  else if (local-name($host) eq 'resource') then
+    (: apply to explicit individual resource :)
+    let $policy := $policies/install:policy[@name = $host/@resource-policy]
     return
       if (exists($policy)) then
-        compat:set-owner-group-permissions($target/@name, $policy/@owner, $policy/@group, $policy/@perms)
+        compat:set-owner-group-permissions($host/@name, $policy/@owner, $policy/@group, $policy/@perms)
       else
-        <li style="color:red">Failed to apply policies on resource “{string($target/@name)}” because unkown policy "{local-name($target/@resource-policy)}"</li>
+        <li style="color:red">Failed to apply policies on resource “{string($host/@name)}” because unkown policy "{local-name($host/@resource-policy)}"</li>
   else
-    <li style="color:red">Failed to apply policies on collection “{string($target/@name)}” because unkown target type "{local-name($target)}"</li>
+    <li style="color:red">Failed to apply policies on “{string($host/@name)}” because unkown target type "{local-name($host)}"</li>
 };
 
 (: ======================================================================
