@@ -145,37 +145,54 @@ declare function gen:path-to-view($app-root as xs:string, $script as xs:string, 
   else
     concat($app-root, $script)
 };
-                                
-(: ======================================================================
-   Returns a pre-construction error pipeline specification. 
-   Side effects :
-   - sets "oppidum.error.type" to the error type
-   - sets "oppidum.error.clue" to an optionnal error clue
-   ======================================================================
-:)             
-declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:string*) as element()
-{               
-  let 
-    $pipeline := 
-      <pipeline> 
-        <model src="oppidum:models/error.xql"/>
-        {                                                                                                    
-        (: FIXME: maybe some POST request are not Ajax or debug request... :)  
-        if ((string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')) then
-          <epilogue mesh="{ $cmd/@error-mesh }"/>
-          (: mesh may be an empty string anyway we force it to call epilogue :)
-        else 
-          () 
-        }
-      </pipeline>,
-    $exec := (    
-      (: sets attribute to be exploited by error.xql :)
-      request:set-attribute('oppidum.error.type', $type),
-      request:set-attribute('oppidum.error.clue', $clue)
-      )
-  return $pipeline
+
+(:~
+ : This function generates an error pipeline with an optional epilogue. 
+ : The optional epilogue is usually sert to true if the request returns
+ : a page to be read by an end-user.
+ : As a side effect it :
+ : <ul>
+ : <li>sets "oppidum.error.type" to the error type</li>
+ : <li>sets "oppidum.error.clue" to an optionnal error clue</li>
+ : </ul>
+ : 
+ : @param $cmd - the oppidum generated command
+ : @param $type - the error type string
+ : @param $clue - optional clue(s) to inject in the error message 
+ : @return A pre-construction error pipeline specification
+ :
+ :)
+declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:string*, $with-epilogue as xs:boolean) as element()
+{
+  <pipeline> 
+    <model src="oppidum:models/error.xql"/>
+    {
+    if ($with-epilogue) 
+      (: Force call to epilogue even if @error-mesh is empty in which case 
+       : epilogue:my-pregen-error-mesh will generate a default one 
+       :)
+      then <epilogue mesh="{ $cmd/@error-mesh }"/>
+      else (),
+    (: Set attributes for error.xql :)
+    request:set-attribute('oppidum.error.type', $type),
+    request:set-attribute('oppidum.error.clue', $clue)
+    }
+  </pipeline>
 };
-    
+
+(:~
+ : This function tries to detect if the request is originating from
+ : a web service request (Ajax call) and calls the gen:error 
+ : function with an epilogue boolean third argument set accordingly.
+ :
+ :)
+declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:string*) as element() {
+  (: FIXME: maybe some POST request are not Ajax or debug request... :)
+  gen:error($cmd, $type, $clue,
+    (string($cmd/@action) != 'POST') and (string($cmd/@format) != 'xml') and (string($cmd/@format) != 'raw')
+    )
+};
+
 (: ======================================================================
    Returns a pre-construction error pipeline specification. 
 
@@ -195,27 +212,34 @@ declare function gen:error($cmd as element(), $type as xs:string, $clue as xs:st
    ======================================================================
 :)
 declare function gen:must-authenticate($cmd as element()) as element()
-{                                                          
+{
   let (: FIXME: redirection to include query string ? :)
     $uri := concat($cmd/@base-url, $cmd/@trail, if ($cmd/@verb eq 'custom') then concat('/', $cmd/@action) else ()),
     $method := request:get-method(),
     $grantee := request:get-attribute('oppidum.grantee')
       (: optional grantee should have been set when checking rights :)
   return
-    (: variant: if (($method = 'GET') and (not($cmd/@format) or ($cmd/@format = 'html'))) then :)
-    if (($method eq 'GET') and (not($cmd/@format) or ($cmd/@format ne 'xml'))) then
-      let 
-        $goto := concat($cmd/@base-url, 'login?url=', $uri),
-        $exec := (
-          oppidum:add-error('UNAUTHORIZED-ACCESS', $grantee, true()),
-          response:redirect-to(xs:anyURI($goto))
-          )
-      return                                    
-        <pipeline redirect="{$goto}">
-          <model src="oppidum:models/null.xql"/>
-        </pipeline>
+    if ($cmd/resource/access/@error) then (
+      gen:error($cmd, $cmd/resource/access/@error, $grantee, false()),
+      if ($cmd/resource/access/@method eq 'json') then
+        request:set-attribute('oppidum.error.method', 'json')
+      else
+        ()
+      )
     else
-      gen:error($cmd, 'UNAUTHORIZED-ACCESS', $grantee)
+      if (($method eq 'GET') and (not($cmd/@format) or ($cmd/@format ne 'xml'))) then
+        let 
+          $goto := concat($cmd/@base-url, 'login?url=', $uri),
+          $exec := (
+            oppidum:add-error('UNAUTHORIZED-ACCESS', $grantee, true()),
+            response:redirect-to(xs:anyURI($goto))
+            )
+        return
+          <pipeline redirect="{$goto}">
+            <model src="oppidum:models/null.xql"/>
+          </pipeline>
+      else
+        gen:error($cmd, 'UNAUTHORIZED-ACCESS', $grantee)
 };  
 
 (: ======================================================================
