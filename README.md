@@ -1,7 +1,7 @@
 Oppidum - XQuery web application framework for eXist-db
 =======
 
-_Last update : 2015-09-14 (by Stéphane Sire)_
+_Last update : 2019-28-02 (by Stéphane Sire)_
 
 Oppidum is an XML-oriented MVC framework written in XQuery / XSLT / Javascript. It allows to develop web applications on top of the [eXist-db](http://exist-db.org/) native XML database.
 
@@ -26,20 +26,25 @@ Oppidum is designed to support the creation of reusable modules that can be aggr
 Compatiblity and Branches
 ----------------
 
-The master branch is the stable release branch. It should be compatible with eXist-1.4.3 and eXist-2.2 and upwards. 
-
 Oppidum runs out of the box on computers running Linux and Apple OS X. We haven't tested it on windows computer yet, there should be some issues with path separator in the library code. 
 
-The legacy `devel` branch works with eXist-DB 1.4.x only.
+The *master* branch is the stable release branch. It contains the Oppidum current version. It is currently compatible with eXist-2.x and eXist-3.x.
+
+The *devel* branch is the development branch of Oppidum current version. You should not install it in production.
+
+The *oppidum-1* branch is an archived branch on which we do not plan any evolution. It is required if your application is running with eXist-1.4.3.
+
+Some specific branch may be used to prepare Oppidum next release in particular to adapt to new eXist-DB versions before they are supported in the *master* (or *devel*) branch. This is the case of the *exist-4* branch which is currently required to run with eXist-4.x.
+
 
 How to install it ?
 -------------------
 
-1. install the latest stable release of [eXist-db](http://exist-db.org) on your system first (currently using the _eXist-db-setup-2.2.jar_ installer)
+1. install the latest stable release of [eXist-db](http://exist-db.org) on your system first
 
 2. create a project folder that will contain your oppidum applications directly inside the `webapp` folder of your eXist installation, by default you should call it _projects_
 
-3. clone Oppidum inside your projects folder. This should create an `oppidum` folder into your projects foldere
+3. clone Oppidum inside your projects folder. This should create an `oppidum` folder into your projects folder
 
 4. start eXist-DB then go inside the `oppidum/scripts` folder and execute `./bootstrap.sh` to install some oppidum resources into the database, passing it the database admin password as a parameter
 
