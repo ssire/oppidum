@@ -1,5 +1,9 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xt="http://ns.inria.org/xtiger">
+    
+   <!-- Possible implementation for a <install:fix-template-import> element inside a <group>
+        for post-deployment inclusion of xt:import statements 
+        See also install:fix-xsl-import in install.xqm -->
 
    <!-- FIXME: very slow (several seconds !) when executed from eXist - replace it 
         with a Typeswitch expression in XQuery ? -->

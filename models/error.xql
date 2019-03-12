@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 (: --------------------------------------
 	 Oppidum : oppidum low level error reporting
 
@@ -29,7 +29,14 @@ declare option exist:serialize "method=xml media-type=application/xml";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 import module namespace request="http://exist-db.org/xquery/request";
 
+let $cmd := oppidum:get-command()
 let $err-type := request:get-attribute('oppidum.error.type')
-let $err-clue := request:get-attribute('oppidum.error.clue')    
-return               
-  oppidum:throw-error($err-type, $err-clue)
+let $err-clue := request:get-attribute('oppidum.error.clue')
+let $err-method := request:get-attribute('oppidum.error.method')
+return (
+  oppidum:throw-error($err-type, $err-clue),
+  if (string($cmd/@format) ne 'xml' and $err-method eq 'json') then
+    util:declare-option("exist:serialize", "method=json media-type=application/json")
+  else
+    ()
+  )

@@ -32,7 +32,7 @@ declare function local:gen-unique-id( $col-uri as xs:string ) as xs:integer
     else 
       max((0, 
           for $name in $files
-          let $m := text:groups($name, '^(\d+)')
+          let $m := analyze-string($name, '^(\d+)')//fn:group
           where count($m) > 0
           return xs:integer($m[2]))) + 1
 };

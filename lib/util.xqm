@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.0";
 (: -----------------------------------------------
    Oppidum framework utilities
 
@@ -56,12 +56,16 @@ declare function oppidum:path-to-config ( $fn as xs:string? ) as xs:string
 };
 
 declare function oppidum:replace-clues( $text as xs:string, $clues as xs:string* ) as xs:string {
-  if (not(contains($text, "%s"))) then 
+  try{
+    if (not(contains($text, "%s"))) then 
+      $text
+    else
+      oppidum:replace-clues(
+        replace($text, concat('(^.*?)', "%s"), concat('$1', replace($clues[1], '\$', 'S|'))), (: replace first :)
+        subsequence($clues,2))
+  } catch * {
     $text
-  else
-    oppidum:replace-clues(
-      replace($text, concat('(^.*?)', "%s"), concat('$1', replace($clues[1], '\$', 'S|'))), (: replace first :)
-      subsequence($clues,2))  
+  }
 };
 
 (: ======================================================================
@@ -99,12 +103,12 @@ declare function oppidum:redirect( $url as xs:string ) as xs:string
    Shortcut to dump a message to the site's log file
    ======================================================================
 :)
-declare function oppidum:log( $msg as xs:string ) as empty()
+declare function oppidum:log( $msg as xs:string ) 
 {
   util:log-app('debug', 'webapp.site', $msg)
 };
 
-declare function oppidum:debug( $msg as xs:string* ) as empty()
+declare function oppidum:debug( $msg as xs:string* ) 
 {
   util:log-app('debug', 'webapp.site', string-join($msg, ' '))
 };
@@ -113,7 +117,7 @@ declare function oppidum:debug( $msg as xs:string* ) as empty()
    Dumps eXist variables related to the request URL to the site's log file
    ======================================================================
 :)
-declare function oppidum:log-parameters( $params as element() ) as empty()
+declare function oppidum:log-parameters( $params as element() ) 
 {
   let $out := for $p in $params/param
               return concat($p/@name, ' = [', $p/@value, ']')
@@ -132,7 +136,7 @@ declare function oppidum:my-add-error-or-msg(
   $from as xs:string, 
   $type as xs:string,
   $clues as xs:string*, 
-  $sticky as xs:boolean ) as empty()
+  $sticky as xs:boolean ) 
 {
   if ($sticky) then
     let
