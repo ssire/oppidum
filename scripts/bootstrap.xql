@@ -8,6 +8,7 @@ xquery version "3.0";
 
 declare namespace xdb = "http://exist-db.org/xquery/xmldb";
 declare namespace request = "http://exist-db.org/xquery/request";
+import module namespace sm='http://exist-db.org/xquery/securitymanager';
 
 (: ======================================================================
    Changes owner, groups and permissions for a collection or resource
@@ -15,16 +16,9 @@ declare namespace request = "http://exist-db.org/xquery/request";
    ======================================================================
 :)
 declare function local:set-owner-group-permissions( $path as xs:string, $owner as xs:string, $group as xs:string, $mod as xs:string ) {
-    let $module := util:import-module(
-          xs:anyURI('http://exist-db.org/xquery/securitymanager'),
-          'sm',
-          xs:anyURI('securitymanager')
-          )
-    return (
-      util:eval("sm:chown(xs:anyURI($path), $owner)"),
-      util:eval("sm:chgrp(xs:anyURI($path), $group)"),
-      util:eval("sm:chmod(xs:anyURI($path), $mod)")
-      )
+  sm:chown(xs:anyURI($path), $owner),
+  sm:chgrp(xs:anyURI($path), $group),
+  sm:chmod(xs:anyURI($path), $mod)
 };
 
 declare function local:create-and-update-coll( $targets as xs:string* ) {

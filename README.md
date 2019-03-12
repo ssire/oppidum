@@ -1,11 +1,8 @@
 Oppidum - XQuery web application framework for eXist-db
 =======
 
-<<<<<<< HEAD
-_Last update : 2019-28-02 (by Stéphane Sire)_
+_Last update : 2019-03-12 (by Stéphane Sire)_
 
-=======
->>>>>>> exist-4
 Oppidum is an XML-oriented MVC framework written in XQuery / XSLT / Javascript. It allows to develop web applications on top of the [eXist-db](http://exist-db.org/) native XML database.
 
 Oppidum is developped and maintained by Stéphane Sire at [Oppidoc](http://www.oppidoc.com).
@@ -26,18 +23,18 @@ Besides the steps above, Oppidum provides support to skin applications (a skin i
 
 Oppidum is designed to support the creation of reusable modules that can be aggregated together through the mapping mechanism to create complete web applications. Each module is a set of conventions (usually associated with XML vocabularies) and XQuery, XSLT, JavaScript, CSS files.
 
-Compatiblity and Branches
+Compatibility and Branches
 ----------------
 
 Oppidum runs out of the box on computers running Linux and Apple OS X. We haven't tested it on windows computer yet, there should be some issues with path separator in the library code. 
 
-The *master* branch is the stable release branch. It contains the Oppidum current version. It is currently compatible with eXist-2.x and eXist-3.x.
+The *master* branch is the stable release branch. It contains the Oppidum current version. It is currently compatible with eXist-2.x, eXist-3.x and eXist-4.x
 
 The *devel* branch is the development branch of Oppidum current version. You should not install it in production.
 
 The *oppidum-1* branch is an archived branch on which we do not plan any evolution. It is required if your application is running with eXist-1.4.3.
 
-Some specific branch may be used to prepare Oppidum next release in particular to adapt to new eXist-DB versions before they are supported in the *master* (or *devel*) branch. This is the case of the *exist-4* branch which is currently required to run with eXist-4.x.
+Some specific branch may be used to prepare Oppidum next release in particular to adapt to new eXist-DB versions before they are supported in the *master* (or *devel*) branch.
 
 
 How to install it ?
