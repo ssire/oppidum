@@ -32,6 +32,8 @@ The *master* branch is the stable release branch. It contains the Oppidum curren
 
 The *devel* branch is the development branch of Oppidum current version. You should not install it in production.
 
+The *test* branch is a pre-release branch. You should not install it in production.
+
 The *oppidum-1* branch is an archived branch on which we do not plan any evolution. It is required if your application is running with eXist-1.4.3.
 
 Some specific branch may be used to prepare Oppidum next release in particular to adapt to new eXist-DB versions before they are supported in the *master* (or *devel*) branch.
@@ -84,11 +86,6 @@ There is a [tutorial repository](https://github.com/ssire/tutorial) that contain
 We have also setup an [oppidum-dev](https://groups.google.com/forum/?fromgroups#!forum/oppidum-dev) Google group to share assistance and discuss new features.
 
 As a general introduction you can read the [XML London 2013 presentation of Oppidum](http://xmllondon.com/2013/presentations/sire/). 
-
-Future plans
-----------------
-
-We are planing to improve integration with eXist-DB 2.x to release Oppidum as a XAR package in the future (and to remove the dependency to the project folder name in the installer). Any help welcome.
 
 How to get most benefits of it ?
 ----------------
