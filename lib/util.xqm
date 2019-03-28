@@ -347,6 +347,42 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
     else 3
 };
 
+(:~
+ : This function raises an exception built from an oppidum error.
+ :
+ : @param $err-type - error type to find the error in errors.xml
+ : @param $err-clue - zero or more clue strings to inject in the error message
+ : @return an XQuery exception
+ :
+ :)
+declare function oppidum:throw-exception ( $err-type as xs:string, $err-clue as xs:string* ) {
+  if (request:exists()) then
+    let $error := local:throw-error($err-type, $err-clue)
+    return
+      fn:error(
+        fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $error/message/@type)), $error/message/text()) 
+  else (: no request, no oppidum command, minimal rendering :)
+    fn:error(
+      fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $err-type)), string-join($err-clue, '; ')) 
+};
+
+(:~
+ : This function catches an exception. For native exceptions it raises an oppidum error.
+ : For exceptions raised by oppidum:throw-exception it simply dumps it.
+ :
+ : @param $err-type - exception code
+ : @param $err-clue - string describing the exception
+ : @return an oppidum error element with a error type attribute and a text message
+ :)
+declare function oppidum:catch-exception ( $err-type as xs:string, $err-description as xs:string ) {
+ if (starts-with($err-type, 'OPPIDUM.')) then
+   <error type="{ substring-after($err-type, 'OPPIDUM.') }">
+       <message>{ $err-description }</message>
+   </error>
+ else
+   oppidum:throw-error('EXCEPTION', concat($err-type, ': ', $err-description))
+};
+
 (: ======================================================================
    Wrapper to allow calling throw-error from a scheduled job
    ====================================================================== 

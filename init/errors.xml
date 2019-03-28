@@ -2,6 +2,9 @@
                        Oppidum framework error messages
      ====================================================================== -->
 <errors>
+  <error type="EXCEPTION" code="500">
+    <message lang="en">%s</message>
+  </error>
   <error type="URI-NOT-FOUND" code="404">
     <message lang="fr">La page demandée n'existe pas</message>
     <message lang="en">Page does not exist</message>
