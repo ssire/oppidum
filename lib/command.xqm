@@ -498,8 +498,8 @@ declare function command:parse-url(
   $lang as xs:string,
   $def-lang as xs:string? ) as element()
 {
-  let $extension := if (contains($url, '.')) then substring-after($url, '.') else ''
-  let $raw-payload := if ($extension != '') then substring-before($url, '.') else $url
+  let $extension := if (contains($url, '.')) then replace ($url,concat('^.*','\.'),'') else ''
+  let $raw-payload := if ($extension != '') then replace($url, concat('^(.*)', '\.','.*'), '$1') else $url
   let $payload := if ($raw-payload = '/') then $mapping/@startref else $raw-payload (: although we SHOULD have redirected before reaching that line :)
   let $tokens := tokenize($payload, '/')[. != '']
   let $format := if ($extension) then $extension else request:get-parameter('format', '')
