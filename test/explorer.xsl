@@ -86,7 +86,7 @@
       <td>
         <xsl:choose>
           <xsl:when test="@name eq 'GET'">
-            <a class="path" href="../../{/Mapping/@module}{.}/{../@path}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+            <a class="path" href="../../{/Mapping/@module}{.}{../@path}" target="_blank"><xsl:value-of select="../@extpath"/></a>
           </xsl:when>
           <xsl:otherwise>
             <xsl:attribute name="style">color:#111</xsl:attribute>

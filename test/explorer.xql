@@ -45,7 +45,7 @@ declare function local:import-has-method( $cur as element(), $module as xs:strin
 };
 
 (: ======================================================================
-   Checks GET defined at top level in imported module
+   Checks GET model defined at top level in imported module
    ====================================================================== 
 :)
 declare function local:import-method-model( $cur as element(), $module as xs:string, $method as xs:string ) {
@@ -53,6 +53,19 @@ declare function local:import-method-model( $cur as element(), $module as xs:str
     let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/import/@module]
     return 
       attribute { 'model'} { string($mod/action[@name eq $method]/model/@src) }
+  else
+    ()
+};
+
+(: ======================================================================
+   Checks GET view defined at top level in imported module
+   ====================================================================== 
+:)
+declare function local:import-method-view( $cur as element(), $module as xs:string, $method as xs:string ) {
+  if ($cur/import) then 
+    let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/import/@module]
+    return 
+      attribute { 'view'} { string($mod/action[@name eq $method]/view/@src) }
   else
     ()
 };
@@ -72,8 +85,8 @@ declare function local:gen-get( $cur as element(), $module as xs:string ) as ele
       local:import-method-model($cur, $module, 'GET'),
     if ($cur/view/@src) then
       attribute { 'view' } { string($cur/view/@src) }
-    else (: TODO: import view ? :)
-      (),
+    else
+      local:import-method-view($cur, $module, 'GET'),
     if ($cur/@epilogue)
       then attribute { 'mesh' } { string($cur/@epilogue) }
       else ()
@@ -93,8 +106,8 @@ declare function local:gen-other-http-verbs( $cur as element(), $module as xs:st
         (: @resource not supported on action ? :),
       if ($cur/action[@name eq $m]/view/@src) then
         attribute { 'view' } { string($cur/action[@name eq $m]/view/@src) }
-      else (: TODO: import view ? :)
-        (),
+      else
+        local:import-method-view($cur, $module, $m),
       if ($cur/@epilogue)
         then attribute { 'mesh' } { string($cur/@epilogue) }
         else ()
