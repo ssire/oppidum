@@ -1,12 +1,14 @@
-(: ------------------------------------------------------------------
-   Oppidum framework skin
-
-   Author: Stéphane Sire <s.sire@opppidoc.fr>
-
-   Mapping explorer model generation
-
-   August 2016 - (c) Copyright 2016 Oppidoc SARL. All Rights Reserved.
-   ------------------------------------------------------------------ :)
+xquery version "3.0";
+(:~ 
+ : Oppidum framework IDE
+ :
+ : Mapping explorer. Routes generation for table display.
+ :
+ : @author Stéphane Sire <s.sire@free.fr>
+ :
+ : August 2016 - (c) Copyright 2016 Oppidoc SARL. All Rights Reserved.
+ :
+ :)
 
 declare namespace request = "http://exist-db.org/xquery/request";
 
@@ -50,25 +52,63 @@ declare function local:import-method-model( $cur as element(), $module as xs:str
   if ($cur/import) then 
     let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/import/@module]
     return 
-      attribute { 
-        if ($method eq 'GET') then 
-          'Gmodel'
-        else
-          'Pmodel'
-      }
-      {
-        string($mod/action[@name eq $method]/model/@src)
-      }
+      attribute { 'model'} { string($mod/action[@name eq $method]/model/@src) }
   else
     ()
+};
+
+declare function local:gen-get( $cur as element(), $module as xs:string ) as element()? {
+  <method>
+    {
+    if (local-name($cur) eq 'action') then
+      attribute { 'name' } { '*' }
+    else
+      attribute { 'name' } { 'GET' },
+    if ($cur/model/@src) then
+      attribute { 'model' } { string($cur/model/@src) }
+    else if ($cur/@resource) then
+      attribute { 'model' }{ string($cur/@resource) }
+    else
+      local:import-method-model($cur, $module, 'GET'),
+    if ($cur/view/@src) then
+      attribute { 'view' } { string($cur/view/@src) }
+    else (: TODO: import view ? :)
+      (),
+    if ($cur/@epilogue)
+      then attribute { 'mesh' } { string($cur/@epilogue) }
+      else ()
+    }
+  </method>
+};
+
+declare function local:gen-other-http-verbs( $cur as element(), $module as xs:string ) as element()* {
+  for $m in tokenize($cur/@method, ' ')
+  return
+    <method name="{ upper-case($m) }">
+      {
+      if ($cur/action[@name eq $m]/model/@src) then
+        attribute { 'model' } { string($cur/action[@name eq $m]/model/@src) }
+      else 
+        local:import-method-model($cur, $module, $m)
+        (: @resource not supported on action ? :),
+      if ($cur/action[@name eq $m]/view/@src) then
+        attribute { 'view' } { string($cur/action[@name eq $m]/view/@src) }
+      else (: TODO: import view ? :)
+        (),
+      if ($cur/@epilogue)
+        then attribute { 'mesh' } { string($cur/@epilogue) }
+        else ()
+      }
+    </method>
 };
 
 declare function local:gen-row( $cur as element(), $path as xs:string, $module as xs:string ) as element()* {
   if (local-name($cur) eq 'import') then
     let $mod := fn:doc(concat('/db/www/', $module, '/config/modules.xml'))//module[@id eq $cur/@module]
     let $name := local:gen-name($cur/parent::*, false())
+    let $verbs := tokenize($cur/@method, ' ')
     return
-      local:iter-depth-fist(($mod/action[(@name ne 'GET') and (@name ne 'POST')], $mod/item, $mod/collection), concat($path, '/', $name), $module)
+      local:iter-depth-fist(($mod/action[(@name ne 'GET') and not(@name = $verbs)], $mod/item, $mod/collection), concat($path, '/', $name), $module)
   else
     <Row type="{ local-name($cur) }">
       {
@@ -80,30 +120,10 @@ declare function local:gen-row( $cur as element(), $path as xs:string, $module a
         attribute { 'path' } { $new-path },
         attribute { 'sortkey' } { replace($new-path, '\*', '***') },
         if (exists($cur/model) or exists($cur/view) or starts-with($cur/@resource, 'file:/') or starts-with($cur/variant/@resource, 'file:/') or local:import-has-method($cur, $module, 'GET')) then
-          attribute { 'GET' } { '1' }
+          local:gen-get($cur, $module)
         else
           (),
-        if ($cur/action[@name eq 'POST'] or local:import-has-method($cur, $module, 'POST')) then
-          attribute { 'POST' } { '1' }
-        else
-          (),
-        if ($cur/model/@src) then
-          attribute 
-          { 
-            if (local-name($cur) eq 'action') then 
-              'Amodel' 
-            else
-              'Gmodel' 
-          } 
-          { 
-            string($cur/model/@src) 
-          }
-        else
-          local:import-method-model($cur, $module, 'GET'),
-        if ($cur/action[@name eq 'POST']/model/@src) then
-          attribute { 'Pmodel' } { string($cur/action[@name eq 'POST']/model/@src) }
-        else
-          local:import-method-model($cur, $module, 'POST')
+        local:gen-other-http-verbs($cur, $module)
         )
       }
     </Row>
@@ -116,9 +136,10 @@ declare function local:gen-row( $cur as element(), $path as xs:string, $module a
 declare function local:iter-depth-fist( $items as element()*, $path as xs:string, $module as xs:string ) as element()* {
   for $cur in $items
   let $row := local:gen-row($cur, $path, $module)
+  let $verbs := tokenize($cur/@method, ' ')
   return (
     $row,
-    local:iter-depth-fist(($cur/action[@name ne 'POST'], $cur/item, $cur/collection), $row/@path, $module),
+    local:iter-depth-fist(($cur/action[not(@name = $verbs)], $cur/item, $cur/collection), $row/@path, $module),
     if ($cur/import) then local:gen-row($cur/import, $path, $module) else ()
     )
 };
@@ -138,8 +159,13 @@ return
     { 
     let $rows := local:iter-depth-fist($start, '', $module) (: pre-order for XSLT toc construction :)
     return
-    for $r in $rows
-    order by $r/@sortkey
-    return $r
+      for $r in $rows
+      let $index := substring($r/@path, 2, 1)
+      group by $index
+      order by lower-case($index)
+      return
+        <Range Letter="{$index}">
+          { $r }
+        </Range>
     }
   </Mapping>

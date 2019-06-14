@@ -73,13 +73,12 @@ dd {
 
 /* IDE explorer */
 
-#ide-explorer th {
-  text-align:left;
-  border: solid 1px gray;
+table.explorer th {
+  text-align:center;
   padding: 5px;
 }
 
-tr.letter h1 {
+.letter h1 {
   margin: 20px 0 5px 0;
   min-width: 100px;
 }
@@ -94,5 +93,38 @@ a.top:after {
 
 a.toc {
   text-decoration: none;
+}
+
+table.explorer {
+  font-family:Arial, Helvetica, sans-serif;
+  color:#666;
+  font-size:12px;
+  text-shadow: 1px 1px 0px #fff;
+  background:#eaebec;
+  margin:20px;
+  border:#ccc 1px solid;
+
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  border-radius:3px;
+
+  -moz-box-shadow: 0 1px 2px #d1d1d1;
+  -webkit-box-shadow: 0 1px 2px #d1d1d1;
+  box-shadow: 0 1px 2px #d1d1d1;
+}
+
+table.explorer th {
+  background: #ededed ! important;
+}
+
+table.explorer td {
+  padding:18px;
+  border-top: 1px solid #ffffff;
+  border-bottom:1px solid #e0e0e0;
+  border-left: 1px solid #e0e0e0;
+
+  background: #fafafa;
+  background: -webkit-gradient(linear, left top, left bottom, from(#fbfbfb), to(#fafafa));
+  background: -moz-linear-gradient(top,  #fbfbfb,  #fafafa);
 }
 

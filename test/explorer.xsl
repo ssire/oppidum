@@ -24,37 +24,20 @@
         <table id="toc" style="width: 100%;">
           <tbody>
             <tr>
-              <xsl:for-each select="Row">
-                <xsl:variable name="pos" select="position()"/>
-                <xsl:variable name="initial" select="translate(substring(@sortkey, 2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-                <xsl:variable name="prev_initial" select="translate(substring(../Row[$pos - 1]/@sortkey, 2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-                <xsl:if test="$prev_initial != $initial">
-                  <td>
-                    <h4>
-                      <a class="toc" href="#ancre_{$initial}" data-letter="{$initial}"><xsl:value-of select="$initial"/></a>
-                    </h4>
-                  </td>
-                </xsl:if>
+              <xsl:for-each select="Range">
+                <td>
+                  <h4>
+                    <a class="toc" href="#ancre_{@Letter}" data-letter="{@Letter}"><xsl:value-of select="@Letter"/></a>
+                  </h4>
+                </td>
               </xsl:for-each>
             </tr>
           </tbody>
         </table>
 
-        <table id="ide-explorer">
-          <thead>
-            <th>Kind</th>
-            <th>URL</th>
-            <th>Verbs</th>
-            <th>GET</th>
-            <th>POST</th>
-            <th>Action</th>
-          </thead>
-          <tbody>
-            <xsl:apply-templates select="Row">
-              <!-- <xsl:sort select="@sortkey"/> -->
-            </xsl:apply-templates>
-          </tbody>
-        </table>
+        <div id="ide-explorer">
+          <xsl:apply-templates select="Range"/>
+        </div>
       </site:content>
     </site:view>
   </xsl:template>
@@ -67,83 +50,63 @@
     <b><xsl:value-of select="."/></b><xsl:text> </xsl:text>
   </xsl:template>
 
-  <xsl:template match="Row">
-    <xsl:variable name="initial" select="translate(substring(@sortkey,2,1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-    <xsl:variable name="pos" select="position()"/>
-    <xsl:variable name="prev_initial" select="translate(substring(../Row[$pos - 1]/@sortkey,2, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-    <xsl:if test="$prev_initial != $initial">
-      <tr class="letter" colspan="6">
-        <td>
-          <h1>
-            <a name="ancre_{$initial}">
-              <xsl:value-of select="$initial"/>
-            </a>
-            <sup>
-              <a class="top" href="#toc"></a>
-            </sup>
-          </h1>
-        </td>
-      </tr>
-    </xsl:if>
-    <tr>
-      <td><xsl:apply-templates select="@type"/></td>
-      <td><xsl:apply-templates select="@path"/></td>
-      <td><xsl:apply-templates select="@type" mode="GET"/><xsl:text> </xsl:text><xsl:apply-templates select="@type" mode="POST"/>
+  <xsl:template match="Range">
+    <div class="letter">
+      <td>
+        <h1>
+          <a name="ancre_{@Letter}"><xsl:value-of select="@Letter"/></a>
+          <sup><a class="top" href="#toc"></a></sup>
+        </h1>
       </td>
-      <td><xsl:apply-templates select="@Gmodel"/></td>
-      <td><xsl:apply-templates select="@Pmodel"/></td>
-      <td><xsl:apply-templates select="@Amodel"/></td>
+    </div>
+    <table class="explorer">
+      <thead>
+        <th>Kind</th>
+        <th>Verb</th>
+        <th>URL</th>
+        <th>Model</th>
+        <th>View</th>
+        <th>Mesh</th>
+      </thead>
+      <tbody>
+        <xsl:apply-templates select="Row"/>
+      </tbody>
+    </table>
+  </xsl:template>
+
+  <!-- duplicate Row for method/upported verbs/actions-->
+  <xsl:template match="Row">
+    <xsl:apply-templates select="method"/>
+  </xsl:template>
+
+  <xsl:template match="method">
+    <tr>
+      <td><xsl:apply-templates select="../@type"/></td>
+      <td><xsl:value-of select="substring(@name, 1, 1)"/></td>
+      <td>
+        <xsl:choose>
+          <xsl:when test="@name eq 'GET'">
+            <a class="path" href="../../{/Mapping/@module}{.}/{../@path}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:attribute name="style">color:#111</xsl:attribute>
+            <xsl:value-of select="../@extpath"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </td>
+      <td><xsl:apply-templates select="@model"/></td>
+      <td><xsl:apply-templates select="@view"/></td>
+      <td><xsl:apply-templates select="@mesh"/></td>
     </tr>
-  </xsl:template>
-
-  <xsl:template match="@path"><xsl:value-of select="../@extpath"/>
-  </xsl:template>
-
-  <xsl:template match="@path[not(../@GET) and not(../@POST)]">
-    <xsl:attribute name="style">color:#999</xsl:attribute>
-    <xsl:value-of select="../@extpath"/>
-  </xsl:template>
-
-  <xsl:template match="@path[../@GET]"><a class="path" href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
-  </xsl:template>
-
-  <xsl:template match="@path[../@type = 'action']"><a class="path" href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
   <xsl:template match="@type">
   </xsl:template>
 
-  <xsl:template match="@type[. = 'action']">~
+  <xsl:template match="@type[. = 'action']" priority="1">~
   </xsl:template>
 
-  <xsl:template match="@type[. = 'collection']">+
-  </xsl:template>
-
-  <xsl:template match="@type" mode="GET">
-  </xsl:template>
-
-  <xsl:template match="@type[../@GET]" mode="GET">G
-  </xsl:template>
-
-  <xsl:template match="@type[. = 'action']" mode="GET">*
-  </xsl:template>
-
-  <xsl:template match="@type" mode="POST">
-  </xsl:template>
-
-  <xsl:template match="@type[../@POST]" mode="POST">P
-  </xsl:template>
-
-  <xsl:template match="@type[. = 'action']" mode="POST">
-  </xsl:template>
-
-  <xsl:template match="@Gmodel"><xsl:value-of select="."/>
-  </xsl:template>
-
-  <xsl:template match="@Pmodel"><xsl:value-of select="."/>
-  </xsl:template>
-
-  <xsl:template match="@Amodel"><xsl:value-of select="."/>
+  <xsl:template match="@type[. = 'collection']" priority="1">+
   </xsl:template>
 
 </xsl:stylesheet>
