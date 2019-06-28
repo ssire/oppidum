@@ -249,7 +249,13 @@ declare function oppidum:render-error(
           ()
         )
       else (),
-      <message type="{$err-type}">{$text}</message>
+      <message type="{$err-type}">
+        {
+        if (contains($text, '\lf'))
+          then replace($text, '\\lf', '&#xA;')
+          else $text
+        }
+      </message>
       }
     </error>
 };
@@ -348,7 +354,7 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
 };
 
 (:~
- : This function raises an exception built from an oppidum error.
+ : This function throws an oppidum error and raises an exception
  :
  : @param $err-type - error type to find the error in errors.xml
  : @param $err-clue - zero or more clue strings to inject in the error message
@@ -364,6 +370,21 @@ declare function oppidum:throw-exception ( $err-type as xs:string, $err-clue as 
   else (: no request, no oppidum command, minimal rendering :)
     fn:error(
       fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $err-type)), string-join($err-clue, '; ')) 
+};
+
+(:~
+ : This function raises an exception from an oppidum error element
+ :
+ : @param $error - error element as returned by a previous call to oppidum:throw-error
+ : @return an XQuery exception if passed an error element or the empty sequence
+ :
+ :)
+declare function oppidum:throw-exception ( $error as element() ) {
+  if (local-name($error) eq 'error') then
+    fn:error(
+      fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $error/message/@type)), string($error/message))
+  else
+    ()
 };
 
 (:~
@@ -395,6 +416,23 @@ declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:st
     <error>
       <message type="{$err-type}">{string-join($err-clue, '; ')}</message>
     </error>
+};
+
+(:~
+ : Immediately serializes an oppidum error. The error contains the localized message
+ : as per the lang defined in the current oppidum command.
+ : 
+ : @param $err-type the error type string 
+ : @param $err-clue zero or more string clues to replace the %s characters in the error message 
+ : @param $set-status boolean to indicate if the function call should also set the HTTP status
+ : as per the error or not
+ : @return an error element with a message child with full text error message
+ :
+ :)
+declare function oppidum:serialize-error( $err-type as xs:string, $err-clue as xs:string*, $set-status as xs:boolean ) as element()
+{
+  let $cmd := request:get-attribute('oppidum.command')
+  return oppidum:render-error($cmd/@confbase, $err-type, $err-clue, $cmd/@lang, $set-status)
 };
 
 (: ======================================================================
