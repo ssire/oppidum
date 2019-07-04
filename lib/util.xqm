@@ -241,14 +241,12 @@ declare function oppidum:render-error(
   return
     <error>
       {
-      if ($error/@code) then (
-        attribute status { string($error/@code) },
-        if ($exec) then
-          response:set-status-code($error/@code)
-        else
-          ()
-        )
-      else (),
+      if ($error/@code)
+        then attribute status { string($error/@code) }
+        else (),
+      if ($exec) 
+        then response:set-status-code(($error/@code, 500)[1])
+        else (),
       <message type="{$err-type}">
         {
         if (contains($text, '\lf'))
