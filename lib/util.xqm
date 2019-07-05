@@ -363,8 +363,9 @@ declare function oppidum:throw-exception ( $err-type as xs:string, $err-clue as 
   if (request:exists()) then
     let $error := local:throw-error($err-type, $err-clue)
     return
+      (: message may be empty depending on the pipeline number or steps :)
       fn:error(
-        fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $error/message/@type)), $error/message/text()) 
+        fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $error/message/@type)), string(($error/message, $error/message/@type)[1])) 
   else (: no request, no oppidum command, minimal rendering :)
     fn:error(
       fn:QName('http://oppidoc.com/ns/error', concat('OPPIDUM.', $err-type)), string-join($err-clue, '; ')) 
