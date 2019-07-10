@@ -9,8 +9,8 @@ xquery version "1.0";
 	 July 2011
 	 -------------------------------------- :)
 declare namespace request = "http://exist-db.org/xquery/request";
-import module namespace xdb = "http://exist-db.org/xquery/xmldb";                    
 
+import module namespace compat = "http://oppidoc.com/oppidum/compatibility" at "../lib/compat.xqm";
 import module namespace command = "http://oppidoc.com/oppidum/command" at "../lib/command.xqm";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
@@ -54,7 +54,7 @@ declare function local:test-access( $nb as xs:integer, $payload as xs:string, $m
 };
             
 let 
-  $user := xdb:get-current-user(),
+  $user := compat:username(),
   $my-url := request:get-uri()
   
 return

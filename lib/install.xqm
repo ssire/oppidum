@@ -522,7 +522,7 @@ declare function install:gen-form-for-bundle( $bundle as element() ) as element(
 (: DEPRECATED [will be removed, exist-1 only] :)
 declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl as xs:boolean  ) as element()
 {
-  let $user :=  xdb:get-current-user()
+  let $user :=  compat:username()
   return
     <div>
       <p>Select the files to copy to the database below;
@@ -644,7 +644,7 @@ declare function install:install(
   $module as xs:string?) as element()
 {
   let $install := request:get-parameter("go", ())
-  let $user :=  xdb:get-current-user()
+  let $user :=  compat:username()
   (:$login := xdb:login('/db', $login, $passwd):)
   return
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
