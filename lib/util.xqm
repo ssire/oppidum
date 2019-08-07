@@ -394,7 +394,7 @@ declare function oppidum:throw-exception ( $error as element() ) {
  : @param $err-clue - string describing the exception
  : @return an oppidum error element with a error type attribute and a text message
  :)
-declare function oppidum:catch-exception ( $err-type as xs:string, $err-description as xs:string ) {
+declare function oppidum:catch-exception ( $err-type as xs:string, $err-description as xs:string? ) {
  if (starts-with($err-type, 'OPPIDUM.')) then
    <error type="{ substring-after($err-type, 'OPPIDUM.') }">
        <message>{ $err-description }</message>
