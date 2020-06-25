@@ -121,6 +121,10 @@ return
           <button onclick="javascript:prefill('service')">SERVICE</button> pre-fill content with empty XML Payload in XML service envelope
         </p>
         <p><textarea id="data"></textarea></p>
+        <form id="file" method="POST" enctype="multipart/form-data" onsubmit="return false">
+          <input type="file" name="xt-file"/>
+          <input type="submit" value="POST" onclick="javascript:file()"/> will send the File on the left to the path URL
+        </form>
       </fieldset>
     </site:content>
   </site:view>

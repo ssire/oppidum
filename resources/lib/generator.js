@@ -46,3 +46,21 @@ function duplicateProject() {
   m.value = '/db/www/' + n.value;
   return false;
 }
+function file(goal) {
+  var url = document.forms[0]['base-url'].value + document.forms[0].path.value,
+      form = $('form#file')[0];
+      data = new FormData(form);
+    $.ajax({
+      url : url,
+      type: "POST",
+      enctype: 'multipart/form-data',
+      processData: false,  // Important!
+      contentType: false,
+      data : data,
+      cache : false,
+      timeout : 10000,
+      success : saveSuccessCb,
+      error : saveErrorCb
+      });
+  return false;
+}
