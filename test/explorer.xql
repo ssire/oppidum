@@ -157,12 +157,13 @@ declare function local:iter-depth-fist( $items as element()*, $path as xs:string
     )
 };
 
-
+let $cmd := oppidum:get-command()
 let $module := request:get-parameter('m', 'oppidum')
 let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
 return
   <Mapping module="{$module}">
+    { $cmd/@base-url }
     <Modules>
       {
       for $c in xdb:get-child-collections('/db/www')

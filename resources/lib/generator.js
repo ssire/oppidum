@@ -41,7 +41,9 @@ function mapping() {
 function duplicateProject() {
   var n = document.getElementById('project'),
       m = document.getElementById('base-url');
-  m.value = '/exist/' + m.getAttribute('data-project') +'/' + n.value + '/';
+  if (m.value !== '/') {
+    m.value = '/exist/' + m.getAttribute('data-project') +'/' + n.value + '/';
+  } // no change if behind forward proxy
   m = document.getElementById('confbase');
   m.value = '/db/www/' + n.value;
   return false;

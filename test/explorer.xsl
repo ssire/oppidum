@@ -15,7 +15,7 @@
 
   <xsl:template match="/Mapping">
     <site:view>
-      <site:title>Oppidum mapping explorer tool for <xsl:value-of select="@module"/></site:title>
+      <site:title><title>Oppidum mapping explorer tool for <xsl:value-of select="@module"/></title></site:title>
       <site:content>
         <h1>Oppidum mapping explorer tool <i><xsl:value-of select="@module"/></i> module</h1>
         <p>Explore module : <xsl:apply-templates select="Modules/Module"/></p>
@@ -86,7 +86,9 @@
       <td>
         <xsl:choose>
           <xsl:when test="@name eq 'GET'">
-            <a class="path" href="../../{/Mapping/@module}{.}{../@path}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+            <a class="path" href="{/Mapping/@base-url}{substring-after(../@path, '/')}" target="_blank">
+              <xsl:value-of select="../@extpath"/>
+            </a>
           </xsl:when>
           <xsl:otherwise>
             <xsl:attribute name="style">color:#111</xsl:attribute>

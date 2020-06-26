@@ -73,7 +73,7 @@ let $restore-pl := request:set-attribute('oppidum.pipeline', $saved-pl)
 (: print result :)
 return
   <site:view skin="generator">
-    <site:title>Oppidum mapping simulator</site:title>
+    <site:title><title>Oppidum mapping simulator</title></site:title>
     <site:content>
       <h1>Mapping simulator</h1>
       {
