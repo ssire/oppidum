@@ -252,6 +252,8 @@ declare function skin:rewrite-css-link( $key as xs:string, $links as element() )
   return
     if (starts-with($href,'http')) then
       <link href="{$href}" rel="stylesheet" type="text/css" />
+    else if (starts-with($href,'/')) then
+      <link href="{$href}" rel="stylesheet" type="text/css" />
     else
       let $pkg := if ($l/@module) then $l/@module/string() else $key
       let $base := epilogue:make-static-base-url-for($pkg)
