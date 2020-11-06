@@ -35,7 +35,7 @@ let $err-clue := request:get-attribute('oppidum.error.clue')
 let $err-method := request:get-attribute('oppidum.error.method')
 return (
   oppidum:throw-error($err-type, $err-clue),
-  if (string($cmd/@format) ne 'xml' and $err-method eq 'json') then
+  if (string($cmd/@format) ne 'xml' and $err-method eq 'json' or starts-with(request:get-header('Accept'), 'application/json')) then
     util:declare-option("exist:serialize", "method=json media-type=application/json")
   else
     ()
