@@ -129,26 +129,6 @@ let $module := request:get-parameter('m', 'oppidum')
 let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
 
-(:
-
-<rest:resource-function xquery-uri="/db/apps/tennis/api.xql">
-    <rest:identity namespace="http://unifr.ch/ssd/w13" local-name="tournaments" arity="1"/>
-    <rest:annotations>
-        <rest:GET/>
-        <rest:produces>
-            <rest:internet-media-type>application/xml</rest:internet-media-type>
-        </rest:produces>
-        <rest:path specificity-metric="14">
-            <rest:segment>api</rest:segment>
-            <rest:segment>tournaments</rest:segment>
-            <rest:segment>{$Id}</rest:segment>
-        </rest:path>
-        <output:media-type xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization">application/xml</output:media-type>
-        <output:method xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization">xml</output:method>
-    </rest:annotations>
-</rest:resource-function>
-
-:)
 let $restroutes := try{
     for $rr in rest:resource-functions()/rest:resource-function
     let $type := "rest"
