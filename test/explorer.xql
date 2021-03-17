@@ -13,6 +13,7 @@ declare namespace request = "http://exist-db.org/xquery/request";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
+declare namespace rest="http://exquery.org/ns/restxq";
 declare option exist:serialize "method=xml media-type=application/xml";
 
 declare function local:gen-name( $cur as element(), $show-variant as xs:boolean ) {
@@ -127,6 +128,59 @@ declare function local:iter-depth-fist( $items as element()*, $path as xs:string
 let $module := request:get-parameter('m', 'oppidum')
 let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
+
+(:
+
+<rest:resource-function xquery-uri="/db/apps/tennis/api.xql">
+    <rest:identity namespace="http://unifr.ch/ssd/w13" local-name="tournaments" arity="1"/>
+    <rest:annotations>
+        <rest:GET/>
+        <rest:produces>
+            <rest:internet-media-type>application/xml</rest:internet-media-type>
+        </rest:produces>
+        <rest:path specificity-metric="14">
+            <rest:segment>api</rest:segment>
+            <rest:segment>tournaments</rest:segment>
+            <rest:segment>{$Id}</rest:segment>
+        </rest:path>
+        <output:media-type xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization">application/xml</output:media-type>
+        <output:method xmlns:output="http://www.w3.org/2010/xslt-xquery-serialization">xml</output:method>
+    </rest:annotations>
+</rest:resource-function>
+
+:)
+let $restroutes := try{
+    for $rr in rest:resource-functions()/rest:resource-function
+    let $type := "rest"
+    let $name := data($rr//@local-name)
+    let $extpath := "//exist/restxq/" || string-join($rr//rest:segment,"/")
+    let $path := $extpath
+    let $sortkey := "/" || $name
+    let $get := 0
+    let $post := 0
+    let $model := data($rr/@xquery-uri)
+    let $pmodel := data($rr/@xquery-uri)
+    let $amodel := $rr//rest:internet-media-type
+    return
+        <Row type="{$type}" name="{$name}" extpath="{$extpath}" path="{$path}" sortkey="{$sortkey}" Amodel="{$amodel}">
+        {
+        if (exists($rr//rest:GET)) then
+            (
+            attribute { 'GET'} { 1 },
+            attribute { 'Gmodel'} { $model }
+            )
+        else (),
+        if (exists($rr//rest:POST)) then
+            (
+            attribute { 'POST'} { 1 },
+            attribute { 'Pmodel'} { $model }
+            )
+        else ()
+        }
+        </Row>
+} catch *{
+    ()
+}
 return
   <Mapping module="{$module}">
     <Modules>
@@ -134,6 +188,7 @@ return
       for $c in xdb:get-child-collections('/db/www')
       return <Module>{ $c }</Module>
       }
+      <Module>RestXQ</Module>
     </Modules>
     { 
     let $rows := local:iter-depth-fist($start, '', $module) (: pre-order for XSLT toc construction :)
@@ -141,5 +196,11 @@ return
     for $r in $rows
     order by $r/@sortkey
     return $r
+    }
+    {
+    $restroutes
+    }
+    {
+    rest:resource-functions()
     }
   </Mapping>

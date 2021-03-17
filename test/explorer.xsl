@@ -110,6 +110,9 @@
   <xsl:template match="@path[../@type = 'action']"><a class="path" href="../../{/Mapping/@module}{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
   </xsl:template>
 
+  <xsl:template match="@path[../@type = 'rest']"><a class="path" href="{.}" target="_blank"><xsl:value-of select="../@extpath"/></a>
+  </xsl:template>
+
   <xsl:template match="@type">
   </xsl:template>
 
