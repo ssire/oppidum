@@ -158,7 +158,7 @@ let $restroutes := try{
     let $sortkey := "/" || $name
     let $get := 0
     let $post := 0
-    let $model := data($rr/@xquery-uri)
+    let $model := data($rr/@xquery-uri) || "::" || $name || "()"
     let $pmodel := data($rr/@xquery-uri)
     let $amodel := $rr//rest:internet-media-type
     return
@@ -199,8 +199,5 @@ return
     }
     {
     $restroutes
-    }
-    {
-    rest:resource-functions()
     }
   </Mapping>
