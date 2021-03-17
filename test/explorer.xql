@@ -15,6 +15,7 @@ declare namespace request = "http://exist-db.org/xquery/request";
 import module namespace xdb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "../lib/util.xqm";
 
+declare namespace rest="http://exquery.org/ns/restxq";
 declare option exist:serialize "method=xml media-type=application/xml";
 
 declare function local:gen-name( $cur as element(), $show-variant as xs:boolean ) {
@@ -161,6 +162,25 @@ let $cmd := oppidum:get-command()
 let $module := request:get-parameter('m', 'oppidum')
 let $config := fn:doc(concat('/db/www/', $module, '/config/mapping.xml'))/site
 let $start := ($config/action[@name ne 'POST'], $config/item, $config/collection)
+
+let $restroutes := try{
+    for $rr in rest:resource-functions()/rest:resource-function
+    let $type := "rest"
+    let $name := data($rr//@local-name)
+    let $extpath := "/" || string-join($rr//rest:segment,"/")
+    let $path := "/" || string-join($rr//rest:segment,"/")
+    let $sortkey := "/" || $name
+    let $model := data($rr/@xquery-uri)
+    let $mesh := $rr//rest:internet-media-type
+    let $method := if (exists($rr//rest:GET)) then "GET" else if (exists($rr//rest:POST)) then "POST" else ""
+    return
+        <Row type="{$type}" name="{$name}" extpath="{$extpath}" path="{$path}" sortkey="{$sortkey}">
+            <method name="{$method}" model="{$model}" view="::{$name}()" mesh="{$mesh}"/>
+        </Row>
+} catch *{
+    ()
+}
+
 return
   <Mapping module="{$module}">
     { $cmd/@base-url }
@@ -169,9 +189,10 @@ return
       for $c in xdb:get-child-collections('/db/www')
       return <Module>{ $c }</Module>
       }
+      <Module>RestXQ</Module>
     </Modules>
     { 
-    let $rows := local:iter-depth-fist($start, '', $module) (: pre-order for XSLT toc construction :)
+    let $rows := (local:iter-depth-fist($start, '', $module),$restroutes) (: pre-order for XSLT toc construction :)
     return
       for $r in $rows
       let $index := substring($r/@path, 2, 1)
@@ -182,4 +203,5 @@ return
           { $r }
         </Range>
     }
+    { $restroutes }
   </Mapping>
