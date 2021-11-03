@@ -474,17 +474,20 @@ declare function oppidum:render-errors( $db as xs:string, $lang as xs:string ) a
 
 declare function oppidum:throw-message( $msg-type as xs:string, $clues as xs:string* ) as element()
 {
-  let $cmd := request:get-attribute('oppidum.command')
-  let $level := oppidum:get-pipeline-type($cmd)
-  return
-    if ($level < 3) then (: immediate rendering of message :)
-      let $pipeline := request:get-attribute('oppidum.pipeline')
-      let $set-status := ($level = 1)
-      return 
-        oppidum:render-message($cmd/@confbase, $msg-type, $clues, $cmd/@lang, $set-status, 'success')
-    else
-      (: side storage of message for later rendering by the epilogue :)
-      oppidum:add-message($msg-type, $clues, if (($level = 4) or (request:get-attribute('oppidum.redirect.to'))) then true() else false())
+  if (request:exists()) then
+    let $cmd := request:get-attribute('oppidum.command')
+    let $level := oppidum:get-pipeline-type($cmd)
+    return
+      if ($level < 3) then (: immediate rendering of message :)
+        let $pipeline := request:get-attribute('oppidum.pipeline')
+        let $set-status := ($level = 1)
+        return 
+          oppidum:render-message($cmd/@confbase, $msg-type, $clues, $cmd/@lang, $set-status, 'success')
+      else
+        (: side storage of message for later rendering by the epilogue :)
+        oppidum:add-message($msg-type, $clues, if (($level = 4) or (request:get-attribute('oppidum.redirect.to'))) then true() else false())
+  else
+    <message type="{$msg-type}" clues="{string-join($clues, ', ')}"/>
 };
 
 (: ======================================================================
