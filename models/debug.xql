@@ -24,6 +24,7 @@ let
   $def := request:get-attribute('oppidum.debug.default'),
   $err-type := request:get-attribute('oppidum.error.type'),
   $err-clue := request:get-attribute('oppidum.error.clue'),
+  $view-groups := request:get-attribute('oppidum.view-groups'),
   $rc := codepoints-to-string(13)
 
 return	
@@ -40,7 +41,15 @@ return
    $base-url,
    $rc,
    comment { 'oppidum.command' },
-   $cmd,
+   <command>
+     {
+     $cmd/@*,
+     $cmd/*[local-name() ne 'groups'],
+     if ($view-groups)
+       then $cmd/groups
+       else ()
+     }
+   </command>,   
    $rc,
    comment { 'oppidum.pipeline' },
    $pipeline,
