@@ -20,7 +20,6 @@ xquery version "1.0";
    February 2012 - (c) Copyright 2012 Oppidoc SARL. All Rights Reserved.
    ------------------------------------------------------------------ :)
 
-import module namespace xdb="http://exist-db.org/xquery/xmldb"; (: only for 'curtain' mode :)
 import module namespace gen = "http://oppidoc.com/oppidum/generator" at "../oppidum/lib/pipeline.xqm";
 
 (: ======================================================================
@@ -56,7 +55,7 @@ declare variable $curtain := ();
 
 let $mapping := fn:doc('/db/www/oppidum/config/mapping.xml')/site
 return
-  if ($curtain and (xdb:get-current-user() != 'admin')) then 
+  if ($curtain and (sm:id()//sm:real/sm:username/string() != 'admin')) then 
     gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $curtain)
   else
     gen:process($exist:root, $exist:prefix, $exist:controller, $exist:path, 'fr', true(), $access, $actions, $mapping)

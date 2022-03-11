@@ -10,6 +10,6 @@
 # ---
 # Creates the initial /db/www/oppidum/config and /db/www/oppidum/mesh collections
 # Then you can point your browser to http://localhost:8080/exist/projects/oppidum
-../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/mesh --parse ../mesh -s
-../../../../bin/client.sh -u admin -P $1 -m /db/www/oppidum/config --parse ../init -s
-../../../../bin/client.sh -u admin -P $1 -F bootstrap.xql
+../../../../../bin/client.sh -u admin -P $1 -c /db/www/oppidum/mesh -p ../mesh/* -s
+../../../../../bin/client.sh -u admin -P $1 -c /db/www/oppidum/config -p ../init/* -s
+../../../../../bin/client.sh -u admin -P $1 -F bootstrap.xql

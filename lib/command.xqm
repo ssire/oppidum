@@ -351,7 +351,7 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
   let $cur := $imports[1]
   let $mods := doc(concat($confbase,'/config/modules.xml'))/modules
   let $m := $mods/module[(@id = $cur/@module)]
-  (:  let $log := oppidum:debug(('*** found module ', util:serialize($m, ()))) :)
+  (:  let $log := oppidum:debug(('*** found module ', fn:serialize($m, ()))) :)
   (: search in the imported module or in an imported module inside it - NO MORE :)
   let $found :=
     if ($m/(item|collection)[@name = $name]) then (: exact match :)

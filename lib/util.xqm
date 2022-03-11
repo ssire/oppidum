@@ -606,7 +606,7 @@ declare function oppidum:my-test-role-iter( $index as xs:integer, $roles as xs:s
 
 declare function oppidum:check-user( $name as xs:string ) as xs:boolean
 {
-  let $user := xdb:get-current-user() (: FIXME: supports only internal realm :)
+  let $user := sm:id()//sm:real/sm:username/string() (: FIXME: supports only internal realm :)
   return $user = $name
 };
 
@@ -628,7 +628,7 @@ declare function oppidum:check-owner( $cmd as element() ) as xs:boolean
   let $doc-uri := concat($col-uri, '/', $r/@resource)
   return
     if (doc-available($doc-uri)) then
-      xdb:get-current-user() = xdb:get-owner($col-uri, $r/@resource)
+      sm:id()//sm:real/sm:username/string() eq sm:get-permissions(xs:anyURI(concat($col-uri, '/', $r/@resource)))//@owner/string()
     else
       false() (: in case user forged a URL to a resource that does not exists :)
 };
@@ -645,7 +645,7 @@ declare function oppidum:exists-user( $key as xs:string, $realm as xs:string? ) 
     return
       util:eval($exists)
   else
-    xdb:exists-user($key)
+    sm:user-exists($key)
 };
 
 (: ======================================================================
@@ -654,7 +654,7 @@ declare function oppidum:exists-user( $key as xs:string, $realm as xs:string? ) 
    ======================================================================
 :)
 declare function oppidum:get-current-user() as xs:string {
-  let $xuser := xdb:get-current-user()
+  let $xuser := sm:id()//sm:real/sm:username/string()
   let $security-uri := oppidum:path-to-config('security.xml')
   return
     if (fn:doc-available($security-uri)) then
@@ -685,7 +685,7 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
       if (exists($exists)) then (: group allocation enabled :)
         if (util:eval($exists) and exists($solver)) then
           fn:distinct-values(
-            (xdb:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
+            (sm:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
             util:eval($solver))
           )
         else
@@ -698,7 +698,7 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
       else
         ()
   else (: fallback internal Realm :)
-    xdb:get-user-groups($key)
+    sm:get-user-groups($key)
 };
 
 declare function oppidum:get-current-user-groups() as xs:string* {
@@ -707,7 +707,7 @@ declare function oppidum:get-current-user-groups() as xs:string* {
     if (exists($remote) and exists($remote/key) and exists($remote/@name)) then
       oppidum:get-user-groups($remote/key, $remote/@name)
     else (: fallback internal Realm :)
-      xdb:get-user-groups(xdb:get-current-user())
+      sm:get-user-groups(sm:id()//sm:real/sm:username/string())
 };
 
 (: ======================================================================
