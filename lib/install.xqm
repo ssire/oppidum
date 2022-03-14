@@ -1,4 +1,4 @@
-xquery version "1.0";
+xquery version "3.1";
 (: ------------------------------------------------------------------
    Oppidum framework installation helpers
 
@@ -86,16 +86,18 @@ declare function install:get-project-path-for( $name as xs:string ) as xs:string
 :)
 declare function install:webapp-home( $localPath as xs:string ) {
     let
+      $version := try { xs:integer(substring(system:get-version(), 1, 1)) } catch * { 1 },
       $home := system:get-exist-home(),
       $pathSep := util:system-property("file.separator"),
-      $base := if (starts-with($localPath, '/')) then $localPath else concat('/', $localPath)
+      $base := if (starts-with($localPath, '/')) then $localPath else concat('/', $localPath),
+      $webapp := concat($pathSep, if ($version >= 5) then "etc/webapp" else "webapp")
     return
-      if (doc-available(concat($home, "/webapp", $base, "/controller.xql"))) then (: "file:///" error :)
-        concat($home, $pathSep, "webapp", $base)
+      if (doc-available(concat($home, $webapp, $base, "/controller.xql"))) then (: "file:///" error :)
+        concat($home, $webapp, $base)
       else if (ends-with($home, "WEB-INF")) then
         concat(substring-before($home, "WEB-INF"), $pathSep, $base)
       else
-        concat($home, $pathSep, "webapp", $base)
+        concat($home, $webapp, $base)
 };
 
 declare function install:create-collection($parent as xs:string, $collection as xs:string)
@@ -297,15 +299,28 @@ declare function install:install-user($user as element())
   let $groups := if (string($user/@groups) != '') then tokenize(string($user/@groups), ' ') else ()
   let $home := if (string($user/@home) != '') then string($user/@home) else ()
   return
-    if (xdb:exists-user($user/@name)) then
-      (
-        xdb:change-user($user/@name, $user/@password, $groups, $home),
-        <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then concat("“", $home, "”") else "no home"}</li>
-      )
+    if (sm:user-exists($user/@name)) then
+      let $cur-groups := sm:get-user-groups($user/@name)
+      return
+        (
+        sm:passwd($user/@name, $user/@password),
+        for $gp in $cur-groups
+        where not($gp = $groups)
+        return
+          sm:remove-group-member($gp, $user/@name),
+        if (sm:get-user-primary-group($user/@name) ne head($groups))
+          then sm:set-user-primary-group($user/@name, head($groups))
+          else (),
+        for $gp in tail($groups)
+        where not($gp = $cur-groups)
+        return
+          sm:add-group-member($gp, $user/@name),
+        <li>Updated existing user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then concat("DEPRECATED “", $home, "” NOT SET") else ()}</li>
+        )
     else
       (
-        xdb:create-user($user/@name, $user/@password, $groups, $home),
-        <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "“{$home}”" else "no home"}</li>
+        sm:create-account($user/@name, $user/@password, head($groups), tail($groups)),
+        <li>Created user “{string($user/@name)}” with group “{string($user/@groups)}” and {if ($home) then "DEPRECATED “{$home}” NOT SET" else ()}</li>
       )
 };
 
@@ -386,7 +401,7 @@ declare function install:install-policy($host as element(), $policies as element
               let $group := string($policy/@group)
               let $p := install:perms($perms)
               return
-                if (not(xdb:exists-user($owner))) then
+                if (not(sm:user-exists($owner))) then
                   <li style="color:red">Failed to apply policy “{string($policy/@name)}” to collection “{$col-uri}” because there is no user “{$owner}”</li>
                 else (
                   <li>Set owner “{$owner}” on collection “{$col-uri}” with group “{$group}” and permissions “{$perms}”{ if ($scope = ('resource', 'both', 'yes')) then " iterate on descendants" else () }</li>,
@@ -406,7 +421,7 @@ declare function install:install-policy($host as element(), $policies as element
               let $group := string($policy/@group)
               let $p := install:perms($perms)
               return
-                if (not(xdb:exists-user($owner))) then
+                if (not(sm:user-exists($owner))) then
                   <li style="color:red">Failed to apply policy “{string($policy/@name)}” to resources of collection “{$col-uri}” because there is no user “{$owner}”</li>
                 else (
                   <li>Set owner “{$owner}” on resources  “{$col-uri}” with group “{$group}” and permissions “{$perms}”{ if ($scope = ('resource', 'both', 'yes')) then " iterate on descendants" else () }</li>,
@@ -433,7 +448,6 @@ declare function install:install-policy($host as element(), $policies as element
    DEPRECATED [may be removed]
    Apply permissions to a collection element. Does not make distinction 
    between collection or resource policy for the inner resources !
-   TODO: replace deprecated xdb:exists-user
    ====================================================================== 
 :)
 declare function install:install-policy($policy as element(), $collection as element(), $module as xs:string?)
@@ -444,7 +458,7 @@ declare function install:install-policy($policy as element(), $collection as ele
   let $col := if ($module) then replace($collection/@name, $module, "/db/www/root") else string($collection/@name)
   let $p := install:perms($perms)
   return
-    if (not(xdb:exists-user($owner))) then
+    if (not(sm:user-exists($owner))) then
       <li style="color:red">Failed to apply policy “{string($policy/@name)}” to collection “{$col}” because there is no user “{$owner}”</li>
     else
       if ($collection/@inherit= ('collection', 'resource', 'both', 'yes')) then (
@@ -522,7 +536,7 @@ declare function install:gen-form-for-bundle( $bundle as element() ) as element(
 (: DEPRECATED [will be removed, exist-1 only] :)
 declare function install:gen-forms-for-bundles( $bundles as element()*, $hasCtrl as xs:boolean  ) as element()
 {
-  let $user :=  xdb:get-current-user()
+  let $user := sm:id()//sm:real/sm:username/string()
   return
     <div>
       <p>Select the files to copy to the database below;
@@ -644,7 +658,7 @@ declare function install:install(
   $module as xs:string?) as element()
 {
   let $install := request:get-parameter("go", ())
-  let $user :=  xdb:get-current-user()
+  let $user := sm:id()//sm:real/sm:username/string()
   (:$login := xdb:login('/db', $login, $passwd):)
   return
     <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
