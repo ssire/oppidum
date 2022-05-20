@@ -44,7 +44,7 @@ declare function local:check-csv( $languages as xs:string*, $uri as xs:string ) 
 };
 
 declare function local:timestamp() {
-  let $date := current-dateTime()
+  let $date := string(current-dateTime())
   return
     concat(
       substring($date,9,2), '/', substring($date,6,2), '/', substring($date,1,4),
