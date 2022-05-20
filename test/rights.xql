@@ -35,7 +35,7 @@ declare variable $mapping := <site db="/db/aed" startref="home" supported="login
 declare function local:test-rights( $nb as xs:integer, $payload as xs:string, $method as xs:string, $access as element()?) 
 {
   let 
-    $cmd := command:parse-url('BASE', 'ROOT', $payload, $method, $mapping, 'fr', ()),
+    $cmd := command:parse-url('BASE', 'ROOT', 'PATH', $payload, $method, $mapping, 'fr', ()),
     $rights := oppidum:get-rights-for($cmd, $access)
   
   return 
@@ -45,7 +45,7 @@ declare function local:test-rights( $nb as xs:integer, $payload as xs:string, $m
 declare function local:test-access( $nb as xs:integer, $payload as xs:string, $method as xs:string, $access as element()?) 
 {
   let 
-    $cmd := command:parse-url('BASE', 'ROOT', $payload, $method, $mapping, 'fr', ()),
+    $cmd := command:parse-url('BASE', 'ROOT', 'PATH', $payload, $method, $mapping, 'fr', ()),
     $granted := oppidum:check-rights-for($cmd, $access),
     $msg := string-join(oppidum:get-errors(), ' ')
     

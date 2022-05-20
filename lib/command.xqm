@@ -402,7 +402,7 @@ declare function command:match-token-iter(
   (: "inherits"" attributes :)
   let $db := if ($page/@db) then $page/@db else $indb
   let $resource := if ($page/@resource) then $page/@resource else $inres
-  let $collection : = if ($page/@collection) then $page/@collection else $incol
+  let $collection := if ($page/@collection) then $page/@collection else $incol
   (:  $log := oppidum:debug(('match-token-iter with $cur', $tokens[$index], ' and $greedy=', if ($greedy) then 'true' else 'false', ' name=', string($mapping/@name), ' page=', string($page/@name))):)
   return
     if (not($last)) then
@@ -463,7 +463,7 @@ declare function command:parse-token-iter(
   (: compute inherited attributes :)
   let $db := if ($page/@db) then $page/@db else $indb
   let $resource := if ($page/@resource) then $page/@resource else $inres
-  let $collection : = if ($page/@collection) then $page/@collection else $incol
+  let $collection := if ($page/@collection) then $page/@collection else $incol
   return
     if ($page[@name = '*']) then
       (: recurse in greedy mode starting at self :)
@@ -481,6 +481,18 @@ declare function command:parse-token-iter(
       else
         command:gen-resource($method, $action, $index, $tokens, $page, $db, $resource, $collection, $confbase, $lang)
       )
+};
+
+declare function command:parse-url(
+  $base-url as xs:string,
+  $exist-root as xs:string,
+  $exist-path as xs:string,
+  $url as xs:string,
+  $method as xs:string,
+  $mapping as element(),
+  $lang as xs:string)
+{
+  command:parse-url($base-url, $exist-root, $exist-path, $url, $method, $mapping, $lang, ())
 };
 
 (: ========================================================================
