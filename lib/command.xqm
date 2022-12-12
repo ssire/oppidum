@@ -86,17 +86,29 @@ declare function command:get-default-action( $cmd as element(), $actions as elem
 
 declare function command:expand-paths( $exp as xs:string, $tokens as xs:string*, $lang as xs:string ) as xs:string
 {
-  let $expanded := replace($exp, "\$(\d)", "|var=$1|")
-  return
-    let $subst :=  
-        string-join(
-          for $t in tokenize($expanded, "\|")
-          let $index := substring-after($t, 'var=')
-          return
-            if ($index) then $tokens[xs:decimal($index)] else $t,
-          '')
-   return
-      replace($subst, "\$lang", $lang)
+  if (contains($exp, '$')) then 
+    let $expanded := replace($exp, "\$(\d)", "|var=$1|")
+    let $segments := tokenize($expanded, "\|")
+    let $count := count($tokens)
+    let $rewritten :=  
+      string-join(
+        for $t in $segments
+        let $index := substring-after($t, 'var=')
+        return
+          if ($index) then
+            let $rank := xs:decimal($index)
+            return 
+              if ($rank <= $count) then
+                $tokens[$rank]
+              else
+                concat('$', $index, '-UNDEF')
+          else
+            $t,
+        '')
+    return
+      replace($rewritten, "\$lang", $lang)          
+  else
+    $exp
 };
 
 (: ======================================================================
