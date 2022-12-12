@@ -85,6 +85,11 @@
       <td><xsl:value-of select="substring(@name, 1, 1)"/></td>
       <td>
         <xsl:choose>
+          <xsl:when test="@name eq 'GET' and ../@type eq 'rest'">
+            <a class="path" href="//exist/restxq{../@path}" target="_blank">
+              <xsl:value-of select="../@extpath"/>
+            </a>
+          </xsl:when>
           <xsl:when test="@name eq 'GET'">
             <a class="path" href="{/Mapping/@base-url}{substring-after(../@path, '/')}" target="_blank">
               <xsl:value-of select="../@extpath"/>
