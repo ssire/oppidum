@@ -702,12 +702,20 @@ declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string
 };
 
 declare function oppidum:get-current-user-groups() as xs:string* {
-  let $remote := session:get-attribute('cas-user')
-  return
-    if (exists($remote) and exists($remote/key) and exists($remote/@name)) then
-      oppidum:get-user-groups($remote/key, $remote/@name)
-    else (: fallback internal Realm :)
-      xdb:get-user-groups(xdb:get-current-user())
+  if (session:exists()) then 
+    let $groups := session:get-attribute('cas-groups')
+    return
+      if (exists($groups)) then
+        $groups
+      else
+        let $remote := session:get-attribute('cas-user')
+        return      
+          if (exists($remote) and exists($remote/key) and exists($remote/@name)) then
+            oppidum:get-user-groups($remote/key, $remote/@name)
+          else (: fallback internal Realm :)
+            xdb:get-user-groups(xdb:get-current-user())
+  else            
+    xdb:get-user-groups(xdb:get-current-user())
 };
 
 (: ======================================================================
