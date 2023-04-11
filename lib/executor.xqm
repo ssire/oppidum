@@ -1,4 +1,4 @@
-xquery version "1.0";  
+xquery version "3.1";  
 (: -----------------------------------------------
    Oppidum framework pipeline generator facade
 
@@ -179,7 +179,7 @@ declare function local:parse-url(
         $mapping/@db, $mapping/@resource, $mapping/@collection, $mapping/@confbase, $lang)
       }
       <groups>
-        { local:get-current-user-groups($mapping/@confbase) ! <group>{ . }</group> }
+        { try { local:get-current-user-groups($mapping/@confbase) ! <group>{ . }</group> } catch * { <group>guest</group> } }
       </groups>
     </command>
 };
