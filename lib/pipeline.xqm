@@ -232,6 +232,7 @@ declare function gen:must-authenticate($cmd as element()) as element()
           $goto := concat($cmd/@base-url, 'login?url=', $uri),
           $exec := (
             oppidum:add-error('UNAUTHORIZED-ACCESS', $grantee, true()),
+            session:clear(),
             response:redirect-to(xs:anyURI($goto))
             )
         return
