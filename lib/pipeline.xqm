@@ -229,10 +229,9 @@ declare function gen:must-authenticate($cmd as element()) as element()
     else
       if (($method eq 'GET') and (not($cmd/@format) or ($cmd/@format ne 'xml'))) then
         let 
-          $goto := concat($cmd/@base-url, 'login?url=', $uri),
+          $goto := concat($cmd/@base-url, 'login?auth=1&amp;url=', $uri),
           $exec := (
-            oppidum:add-error('UNAUTHORIZED-ACCESS', $grantee, true()),
-            session:clear(),
+            oppidum:add-error('UNAUTHORIZED-ACCESS', $grantee, true()),            
             response:redirect-to(xs:anyURI($goto))
             )
         return
