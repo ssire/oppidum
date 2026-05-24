@@ -39,7 +39,7 @@ let $max := request:get-parameter('max', 10)
 return
   if ($max castable as xs:integer) then
     if ((number($max) > 0) and (number($max) < 1000)) then 
-      let $results := local:fibonacci(number($max))
+      let $results := local:fibonacci(xs:integer(number($max)))
       let $free-after := system:get-memory-free()
       let $end := util:system-time()
       let $runtimems := (($end - $start) div xs:dayTimeDuration('PT1S'))  * 1000

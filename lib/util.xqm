@@ -234,7 +234,7 @@ declare function oppidum:render-error(
       if (empty($err-clue)) then
         string($msgs[1])
       else
-        string($msgs[string(@noargs) != 'yes'][1]),
+        string($msgs[string(../@noargs) != 'yes'][1]),
     $message := if ($msg) then $msg else concat("Error (", $err-type, ")"),
     $arg := if (empty($err-clue)) then '' else $err-clue,
     $text := oppidum:replace-clues($message, $arg)
@@ -307,7 +307,7 @@ declare function oppidum:render-message(
   let $msg-uri := concat($db, '/config/messages.xml')
   let $found := fn:doc($msg-uri)/messages/info[@type = $type] 
   let $candidates := if ($found/message[@lang = $lang]) then $found/message[@lang = $lang]/text() else $found/message/text()
-  let $msg := if (empty($clues)) then $candidates[1] else $candidates[string(@noargs) != 'yes'][1]
+  let $msg := if (empty($clues)) then $candidates[1] else $candidates[string(../@noargs) != 'yes'][1]
   let $src := if ($msg) then string($msg) else concat("Message (", $type, ")")
   let $arg := if (empty($clues)) then '' else $clues
   let $text := oppidum:replace-clues($src, $arg)
