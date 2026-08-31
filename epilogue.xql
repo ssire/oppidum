@@ -171,7 +171,12 @@ declare function local:render( $cmd as element(), $source as element(), $view as
 :)
 let $mesh := epilogue:finalize()
 let $data := request:get-data()
-let $view := if ($data instance of document-node()) then (: since exist 2.0 :) $data/*[1] else (: exist 1.4.x:) $data
+let $view := if ($data instance of document-node()) then
+               (: since exist 2.0 :) $data/*[1]
+             else if ($data instance of xs:string) then
+               (: since exist 6.0 :) util:parse-html($data)/*:HTML/*:BODY/*
+             else
+               (: exist 1.4.x:) $data
 return
   if ($mesh) then
     local:render(request:get-attribute('oppidum.command'), $mesh, $view)
