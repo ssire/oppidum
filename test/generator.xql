@@ -85,7 +85,7 @@ return
       <p><b>Current path</b>: {$path}</p>
       <div class="code">
         <pre id="results">
-          { replace(util:serialize($result, ()), '<', '&lt;') }
+          { replace(fn:serialize($result, ()), '<', '&lt;') }
         </pre>
       </div>
       { local:gen-error($cmd) }

@@ -23,11 +23,10 @@ declare namespace exist = "http://exist.sourceforge.net/NS/exist";
 import module namespace gen = "http://oppidoc.com/oppidum/generator" at "pipeline.xqm";
 import module namespace response="http://exist-db.org/xquery/response";
 import module namespace request="http://exist-db.org/xquery/request";
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";   
 import module namespace command = "http://oppidoc.com/oppidum/command" at "command.xqm";
 
-declare function local:session-set-attribute( $key as xs:string, $value as element()? ) as element()? {
+declare function local:my-session-set-attribute( $key as xs:string, $value as element()? ) as element()? {
   let $done := request:set-attribute($key, $value)
   return $value
 };
@@ -41,7 +40,7 @@ declare function local:get-user-groups( $confbase as xs:string, $key as xs:strin
       if (exists($exists)) then (: group allocation enabled :)
         if (util:eval($exists) and exists($solver)) then
           fn:distinct-values(
-            (xmldb:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
+            (sm:get-user-groups($model/Surrogate/User), (: TODO: check user exists :)
             util:eval($solver))
           )
         else
@@ -54,7 +53,7 @@ declare function local:get-user-groups( $confbase as xs:string, $key as xs:strin
       else
         ()
   else (: fallback internal Realm :)
-    xmldb:get-user-groups($key)
+    sm:get-user-groups($key)
 };
 
 declare function local:get-current-user-groups( $confbase as xs:string ) as xs:string* {
@@ -75,9 +74,9 @@ declare function local:get-current-user-groups( $confbase as xs:string ) as xs:s
               $groups
               )
           else
-            xmldb:get-user-groups(xmldb:get-current-user()) (: or 'guest' ? :)
+            sm:get-user-groups(sm:id()//sm:real/sm:username/string()) (: or 'guest' ? :)
   else
-    xmldb:get-user-groups(xmldb:get-current-user()) (: or 'guest' ? :)
+    sm:get-user-groups(sm:id()//sm:real/sm:username/string()) (: or 'guest' ? :)
 };
 
 declare function local:my-test-role-iter( $index as xs:integer, $roles as xs:string*, $cmd as element() ) as xs:boolean
@@ -242,7 +241,7 @@ declare function exec:process(
         (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
            si on l'utilise passer $exist:root, $exist:prefix  :)
         let 
-          $cmd := local:session-set-attribute('oppidum.command',
+          $cmd := local:my-session-set-attribute('oppidum.command',
                     local:parse-url($base-url, $app-root, $exist-path, $path,
                       request:get-method(), $mapping, $lang, $def-lang)
                   ),

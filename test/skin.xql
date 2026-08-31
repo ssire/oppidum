@@ -64,7 +64,7 @@ return
       <p><b>Source</b></p>
       <div class="code">
         <pre>
-          { replace(replace(util:serialize($result, ()), '<', '&lt;'), 'xmlns="http://www.w3.org/1999/xhtml"', '') }
+          { replace(replace(fn:serialize($result, ()), '<', '&lt;'), 'xmlns="http://www.w3.org/1999/xhtml"', '') }
         </pre>
       </div>
       <h2>New simulation</h2>
