@@ -119,7 +119,7 @@ declare function command:expand-paths( $exp as xs:string, $tokens as xs:string*,
    with their value inherited from the current context.
    ======================================================================
 :)
-declare function local:rewrite-module(
+declare function command:rewrite-module(
   $source as element(),
   $vars as xs:string*,
   $delta as xs:integer,
@@ -184,7 +184,7 @@ declare function local:rewrite-module(
           else
             $child
       else
-        local:rewrite-module($child, $vars, $delta, $param)
+        command:rewrite-module($child, $vars, $delta, $param)
   }
 };
 
@@ -203,7 +203,7 @@ declare function command:import-action(
   ) as element()?
 {
   let $imports := $mapping/import
-  let $match := if ($imports) then local:import-action-iter($name, $confbase, $imports) else ()
+  let $match := if ($imports) then command:import-action-iter($name, $confbase, $imports) else ()
   return
     if ($match) then
       let $vars := (
@@ -212,10 +212,10 @@ declare function command:import-action(
                     if ($mapping/@template) then $mapping/@template else '-1',
                     if ($mapping/@epilogue) then $mapping/@epilogue else '-1'
                    )
-      return local:rewrite-module($match[1], $vars, $index - 1, $match[2]) else ()
+      return command:rewrite-module($match[1], $vars, $index - 1, $match[2]) else ()
 };
 
-declare function local:import-action-iter( $name as xs:string, $confbase as xs:string, $imports as element()* ) as item()*
+declare function command:import-action-iter( $name as xs:string, $confbase as xs:string, $imports as element()* ) as item()*
 {
   let $cur := $imports[1]
   let $mods := doc(concat($confbase,'/config/modules.xml'))/modules
@@ -232,7 +232,7 @@ declare function local:import-action-iter( $name as xs:string, $confbase as xs:s
     else
       let $next := subsequence($imports,2)
       return
-        if ($next) then local:import-action-iter($name, $confbase, $next) else ()
+        if ($next) then command:import-action-iter($name, $confbase, $next) else ()
 };
 
 (: ======================================================================
@@ -335,7 +335,7 @@ declare function command:find-item-or-collection(
     $mapping/(item|collection)[@name = $name]
   else
     let $imports := $mapping/import
-    let $match := if ($imports) then local:import-iter($name, $confbase, $imports) else ()
+    let $match := if ($imports) then command:import-iter($name, $confbase, $imports) else ()
     return
       if ($match) then
         let $vars := (
@@ -345,7 +345,7 @@ declare function command:find-item-or-collection(
                      if ($mapping/@epilogue) then $mapping/@epilogue else '-1'
                      )
         return
-          local:rewrite-module($match[1], $vars, $index - 1, $match[2])
+          command:rewrite-module($match[1], $vars, $index - 1, $match[2])
       else
         let $match := $mapping/item[not(@name)] (: anonymous item :)
         return
@@ -357,7 +357,7 @@ declare function command:find-item-or-collection(
    matching $name. Returns it or the empty sequence.
    ======================================================================
 :)
-declare function local:import-iter ( $name as xs:string, $confbase as xs:string, $imports as element()* ) as item()*
+declare function command:import-iter ( $name as xs:string, $confbase as xs:string, $imports as element()* ) as item()*
 {
   (:  let $log := oppidum:debug(('import-iter for ',  $name, ' inside ', concat($confbase,'/config/modules.xml'),' and #imports=', for $i in $imports return $i/@module/string())):)
   let $cur := $imports[1]
@@ -382,7 +382,7 @@ declare function local:import-iter ( $name as xs:string, $confbase as xs:string,
     else
       let $next := subsequence($imports,2)
       return
-        if ($next) then local:import-iter($name, $confbase, $next) else ()
+        if ($next) then command:import-iter($name, $confbase, $next) else ()
 };
 
 (: ======================================================================

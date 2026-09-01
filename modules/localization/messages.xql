@@ -136,7 +136,7 @@ return
   else if ($m = 'POST') then
     let $module := request:get-parameter('module', 'oppidum')
     let $data := request:get-parameter('data', ())
-    let $parsed := util:catch('*', util:parse($data), local:gen-error())
+    let $parsed := try { util:parse-html($data)/*:HTML/*:BODY/* } catch * { local:gen-error() }
     let $submitted := $parsed/*[1]
     let $name := local-name($submitted)
     let $messages := fn:doc(concat("/db/www/", $module, "/config/", $name, ".xml"))/*[local-name(.) eq $name]

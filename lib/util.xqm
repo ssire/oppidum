@@ -361,7 +361,7 @@ declare function oppidum:get-pipeline-type( $cmd as element() ) as xs:integer
  :)
 declare function oppidum:throw-exception ( $err-type as xs:string, $err-clue as xs:string* ) {
   if (request:exists()) then
-    let $error := local:throw-error($err-type, $err-clue)
+    let $error := oppidum:local-throw-error($err-type, $err-clue)
     return
       (: message may be empty depending on the pipeline number or steps :)
       fn:error(
@@ -410,7 +410,7 @@ declare function oppidum:catch-exception ( $err-type as xs:string, $err-descript
 declare function oppidum:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
 {
   if (request:exists()) then
-    local:throw-error($err-type, $err-clue)
+    oppidum:local-throw-error($err-type, $err-clue)
   else (: no request, no oppidum command, minimal rendering :)
     <error>
       <message type="{$err-type}">{string-join($err-clue, '; ')}</message>
@@ -442,7 +442,7 @@ declare function oppidum:serialize-error( $err-type as xs:string, $err-clue as x
    that will cause eXist to terminate the pipeline rendering.
    ======================================================================
 :)
-declare function local:throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
+declare function oppidum:local-throw-error( $err-type as xs:string, $err-clue as xs:string* ) as element()
 {
   let $cmd := request:get-attribute('oppidum.command')
   let $level := oppidum:get-pipeline-type($cmd)

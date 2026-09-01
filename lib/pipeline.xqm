@@ -19,7 +19,7 @@ import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 import module namespace oppidum = "http://oppidoc.com/oppidum/util" at "util.xqm";   
 import module namespace command = "http://oppidoc.com/oppidum/command" at "command.xqm";
 
-declare function local:session-set-attribute( $key as xs:string, $value as element()? ) as element()? {
+declare function gen:session-set-attribute( $key as xs:string, $value as element()? ) as element()? {
   let $done := request:set-attribute($key, $value)
   return $value
 };
@@ -487,12 +487,14 @@ declare function gen:render( $cmd as element(), $pipeline as element(), $mkey as
           if ($pipeline/model/@src eq ':self') then
             ()
           else
-            <exist:forward url="{gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src, $mkey)}" xmlns="http://exist.sourceforge.net/NS/exist">
-              <set-header name="Cache-Control" value="no-cache"/>
-              <set-header name="Pragma" value="no-cache"/>
-              { gen:model_parameters($cmd, $pipeline) }
-            </exist:forward>
-        else              
+            let $path := gen:path-to-model($cmd/@app-root, $cmd/@exist-path, $pipeline/model/@src, $mkey)
+            return
+              <exist:forward url="{$path}" xmlns="http://exist.sourceforge.net/NS/exist">
+                <set-header name="Cache-Control" value="no-cache"/>
+                <set-header name="Pragma" value="no-cache"/>
+                { gen:model_parameters($cmd, $pipeline) }
+              </exist:forward>
+        else
           <exist:forward url="{gen:path-to-lib($cmd/@app-root, $cmd/@exist-path, 'models/error.xql', 'oppidum')}">
             <exist:set-attribute name="oppidum.error.type" value="DB-NOT-FOUND"/>
             <exist:set-attribute name="oppidum.error.clue" value="{$cmd/resource/@name}"/>
@@ -645,7 +647,7 @@ declare function gen:process(
         (: si on utilise pas le prefix remapping alors passer $exist:controller, $exist:controller
            si on l'utilise passer $exist:root, $exist:prefix  :)
         let 
-          $cmd := local:session-set-attribute('oppidum.command',
+          $cmd := gen:session-set-attribute('oppidum.command',
                     command:parse-url($base-url, $app-root, $exist-path, $path,
                       request:get-method(), $mapping, $lang, $def-lang)
                   ),
