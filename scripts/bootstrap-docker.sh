@@ -12,15 +12,15 @@ if ([ $# -lt 2 ]); then
     exit 1
 fi
 
-echo "loading oppidum mesh collection"
+echo "### loading oppidum mesh collection"
 docker exec $1 java org.exist.start.Main client -u admin -P $2 -m "/db/www/oppidum/mesh" -s
 docker exec $1 java org.exist.start.Main client -u admin -P $2 --collection "/db/www/oppidum/mesh" --parse "/exist/etc/webapp/projects/oppidum/mesh" -s
 
-echo "loading oppidum config collection"
+echo "### loading oppidum config collection"
 docker exec $1 java org.exist.start.Main client -u admin -P $2 -m "/db/www/oppidum/config" -s
 docker exec $1 java org.exist.start.Main client -u admin -P $2 --collection "/db/www/oppidum/config" --parse "/exist/etc/webapp/projects/oppidum/init" -s
 
-echo "configuring oppidum permissions on collections"
+echo "### configuring oppidum permissions on collections"
 docker exec $1 java org.exist.start.Main client -u admin -P $2 -F "/exist/etc/webapp/projects/oppidum/scripts/bootstrap.xql"
 
 # uncomment next 2 lines if you want to debug oppidum from eXide

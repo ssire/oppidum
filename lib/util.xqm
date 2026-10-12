@@ -654,7 +654,9 @@ declare function oppidum:exists-user( $key as xs:string, $realm as xs:string? ) 
    ======================================================================
 :)
 declare function oppidum:get-current-user() as xs:string {
-  let $xuser := sm:id()//sm:real/sm:username/string()
+  let $sm := sm:id()
+  (: takes effective username in case xdb:login is called in the caller :)
+  let $xuser := ($sm//sm:effective/sm:username/string(), $sm//sm:real/sm:username/string())
   let $security-uri := oppidum:path-to-config('security.xml')
   return
     if (fn:doc-available($security-uri)) then
@@ -671,9 +673,9 @@ declare function oppidum:get-current-user() as xs:string {
             else
               'guest'
         else (: fallback internal Realm :)
-          $xuser
+          head($xuser)
     else
-      $xuser
+      head($xuser)    
 };
 
 declare function oppidum:get-user-groups( $key as xs:string, $realm as xs:string? ) as xs:string* {
